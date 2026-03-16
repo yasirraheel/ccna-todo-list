@@ -33,6 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const sessionEmail = document.getElementById('session-email');
   const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login.html') || document.body.dataset.page === 'login';
   const scrollTopBtn = document.getElementById('scroll-top-btn');
+
+  // Modal elements
+  const customModal = document.getElementById('custom-modal');
+  const modalTitle = document.getElementById('modal-title');
+  const modalMessage = document.getElementById('modal-message');
+  const modalCancel = document.getElementById('modal-cancel');
+  const modalConfirm = document.getElementById('modal-confirm');
+
   const statTotalEl = document.getElementById('stat-total');
   const statCompletedEl = document.getElementById('stat-completed');
   const statPendingEl = document.getElementById('stat-pending');
@@ -156,8 +164,14 @@ document.addEventListener('DOMContentLoaded', () => {
   if (playlistDeleteBtn) {
     playlistDeleteBtn.addEventListener('click', async () => {
       if (!currentPlaylistFilter || currentPlaylistFilter === 'all') return;
-      const yes = confirm(`Delete playlist "${currentPlaylistFilter}"? Tasks will move to Unassigned.`);
-      if (!yes) return;
+      
+      const confirmed = await showCustomConfirm(
+        'Delete Playlist',
+        `Are you sure you want to delete "${currentPlaylistFilter}"? All tasks in this playlist will be moved to "Unassigned".`
+      );
+      
+      if (!confirmed) return;
+      
       const r = await apiFetch(PLAYLIST_DELETE_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -663,6 +677,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const ids = Array.from(selectedTaskIds);
     if (ids.length === 0) return;
 
+    const confirmed = await showCustomConfirm(
+      'Delete Selected Tasks',
+      `Are you sure you want to delete ${ids.length} selected tasks? This action cannot be undone.`
+    );
+    
+    if (!confirmed) return;
+
     deleteSelectedBtn.disabled = true;
     try {
       const response = await apiFetch(BULK_DELETE_API, {
@@ -683,6 +704,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function deleteAllTasks() {
     if (tasks.length === 0) return;
+
+    const confirmed = await showCustomConfirm(
+      'Delete All Tasks',
+      'Are you sure you want to delete ALL tasks? This action is permanent.'
+    );
+    
+    if (!confirmed) return;
 
     deleteAllBtn.disabled = true;
     try {
@@ -770,9 +798,6 @@ document.addEventListener('DOMContentLoaded', () => {
       li.innerHTML = `
         <div class="task-thumbnail-wrapper">
           ${thumbnailHtml}
-          <div class="task-status-overlay">
-            <input type="checkbox" class="custom-checkbox" ${task.completed ? 'checked' : ''}>
-          </div>
           <div class="task-priority-badge">${task.priority}</div>
         </div>
         <div class="task-body">
@@ -785,6 +810,10 @@ document.addEventListener('DOMContentLoaded', () => {
               ${task.playlistName ? `<span><i class="fas fa-list"></i> ${task.playlistName}</span>` : ''}
             </div>
             <div class="task-actions">
+              <label class="task-check-wrap" title="${task.completed ? 'Completed' : 'Mark as done'}">
+                <input type="checkbox" class="custom-checkbox" ${task.completed ? 'checked' : ''}>
+                <span>${task.completed ? 'Done' : 'Mark done'}</span>
+              </label>
               ${watchUrl ? `<a class="watch-btn" href="${watchUrl}" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> Watch</a>` : ''}
               ${downloadSubUrl ? `<a class="sub-btn" href="${downloadSubUrl}" download title="Download Subtitles"><i class="fas fa-closed-captioning"></i> Sub</a>` : ''}
               <button class="delete-btn" title="Delete task"><i class="fas fa-trash"></i></button>
@@ -793,13 +822,36 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
 
+      // Handle full card click (unless clicking on specific actions)
+      li.addEventListener('click', (e) => {
+        // Prevent click if clicking on a link or button
+        if (e.target.closest('a') || e.target.closest('button') || e.target.closest('input')) {
+          return;
+        }
+        
+        // Default action: open watch URL if available
+        if (watchUrl) {
+          window.open(watchUrl, '_blank');
+        }
+      });
+
       const checkbox = li.querySelector('.custom-checkbox');
-      checkbox.addEventListener('change', () => {
+      checkbox.addEventListener('change', (e) => {
+        e.stopPropagation(); // Prevent card click
         toggleTask(task.id, li, checkbox).catch(() => {});
       });
 
       const deleteBtn = li.querySelector('.delete-btn');
-      deleteBtn.addEventListener('click', () => deleteTask(task.id, li));
+      deleteBtn.addEventListener('click', async (e) => {
+        e.stopPropagation(); // Prevent card click
+        const confirmed = await showCustomConfirm(
+          'Delete Task',
+          `Are you sure you want to delete "${task.text}"?`
+        );
+        if (confirmed) {
+          deleteTask(task.id, li);
+        }
+      });
 
       taskList.appendChild(li);
     });
@@ -847,5 +899,40 @@ document.addEventListener('DOMContentLoaded', () => {
         priorityChartRef = new Chart(ctx2, { type: 'bar', data: data2, options: { plugins: { legend: { display: false }, tooltip: { enabled: true } }, scales: { y: { beginAtZero: true, display: false, grid: { display: false } }, x: { ticks: { display: false }, grid: { display: false } } }, maintainAspectRatio: false } });
       }
     }
+  }
+
+  /**
+   * Shows a custom confirmation dialog
+   * @param {string} title 
+   * @param {string} message 
+   * @returns {Promise<boolean>}
+   */
+  function showCustomConfirm(title, message) {
+    if (!customModal) return Promise.resolve(confirm(message));
+    
+    return new Promise((resolve) => {
+      modalTitle.textContent = title;
+      modalMessage.textContent = message;
+      customModal.classList.add('active');
+      
+      const onConfirm = () => {
+        cleanup();
+        resolve(true);
+      };
+      
+      const onCancel = () => {
+        cleanup();
+        resolve(false);
+      };
+      
+      const cleanup = () => {
+        customModal.classList.remove('active');
+        modalConfirm.removeEventListener('click', onConfirm);
+        modalCancel.removeEventListener('click', onCancel);
+      };
+      
+      modalConfirm.addEventListener('click', onConfirm);
+      modalCancel.addEventListener('click', onCancel);
+    });
   }
 });
