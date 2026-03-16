@@ -379,6 +379,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function setDefaultPublicScope() {
+    currentScope = 'public';
+    localStorage.setItem(TASK_SCOPE_KEY, 'public');
+    currentPlaylistFilter = 'all';
+    selectedTaskIds.clear();
+    if (scopeFilterSelect) scopeFilterSelect.value = 'public';
+    if (playlistFilterSelect) playlistFilterSelect.value = 'all';
+  }
+
   function redirectToLogin() {
     if (!isLoginPage) {
       window.location.href = 'login.html';
@@ -549,9 +558,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     setAuthToken(data.token || '');
+    setDefaultPublicScope();
     showAppPanel(data.user || {});
     redirectToApp();
     if (isLoginPage) return;
+    await loadPlaylists();
     await loadTasks();
     renderTasks();
     showFlash('Logged in successfully', 'success');
@@ -579,9 +590,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     setAuthToken(data.token || '');
+    setDefaultPublicScope();
     showAppPanel(data.user || {});
     redirectToApp();
     if (isLoginPage) return;
+    await loadPlaylists();
     await loadTasks();
     renderTasks();
     showFlash('Account created successfully', 'success');
