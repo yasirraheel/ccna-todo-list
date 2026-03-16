@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const logoutBtn = document.getElementById('logout-btn');
   const sessionEmail = document.getElementById('session-email');
   const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login.html') || document.body.dataset.page === 'login';
+  const scrollTopBtn = document.getElementById('scroll-top-btn');
 
   const browserHost = window.location.hostname || 'localhost';
   const isLocalNetworkHost =
@@ -352,6 +353,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isLoginPage) return;
     await loadTasks();
     renderTasks();
+    if (scrollTopBtn) {
+      const onScroll = () => {
+        if (window.scrollY > 300) {
+          scrollTopBtn.classList.add('visible');
+        } else {
+          scrollTopBtn.classList.remove('visible');
+        }
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      scrollTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      onScroll();
+    }
   }
 
   async function loadTasks() {

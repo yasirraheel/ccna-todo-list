@@ -476,7 +476,7 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
             ':category' => $record['category'],
             ':video_url' => $record['videoUrl'],
             ':completed' => 0,
-            ':created_at' => $now + $index
+            ':created_at' => $now - $index
         ]);
         $imported[] = $record;
         $index++;
