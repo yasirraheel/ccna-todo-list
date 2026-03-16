@@ -80,6 +80,7 @@ function extractPlaylistVideosFromFeed(string $playlistId): array {
         }
         $videos[] = [
             'title' => $title,
+            'videoId' => $videoId,
             'videoUrl' => $videoId !== '' ? 'https://www.youtube.com/watch?v=' . urlencode($videoId) : '',
             'thumbnailUrl' => $videoId !== '' ? 'https://i.ytimg.com/vi/' . $videoId . '/mqdefault.jpg' : '',
             'description' => ''
@@ -122,6 +123,7 @@ function extractPlaylistVideosFromYouTubeApi(string $playlistId, int $limit, str
 
             $videos[] = [
                 'title' => $title,
+                'videoId' => $videoId,
                 'videoUrl' => $videoId !== '' ? 'https://www.youtube.com/watch?v=' . urlencode($videoId) : '',
                 'thumbnailUrl' => $thumbUrl,
                 'description' => (string) ($snippet['description'] ?? '')
@@ -142,6 +144,33 @@ function getApiPathSegments(): array {
     $apiIndex = array_search('api', $parts, true);
     if ($apiIndex === false) return [];
     return array_slice($parts, $apiIndex + 1);
+}
+
+function downloadCaptions(string $videoId): ?string {
+    $apiUrl = "https://www.youtube.com/api/timedtext?v=" . urlencode($videoId) . "&lang=en&fmt=srv3";
+    $context = stream_context_create(['http' => ['timeout' => 10, 'ignore_errors' => true]]);
+    $content = @file_get_contents($apiUrl, false, $context);
+    
+    if (!$content || str_contains($content, '<error')) {
+        // Try fallback without lang=en to see available
+        $listUrl = "https://www.youtube.com/api/timedtext?v=" . urlencode($videoId) . "&type=list";
+        $list = @file_get_contents($listUrl, false, $context);
+        if ($list && preg_match('/lang_code="([^"]+)"/', $list, $m)) {
+            $apiUrl = "https://www.youtube.com/api/timedtext?v=" . urlencode($videoId) . "&lang=" . $m[1] . "&fmt=srv3";
+            $content = @file_get_contents($apiUrl, false, $context);
+        }
+    }
+
+    if ($content && !str_contains($content, '<error')) {
+        $fileName = "captions_" . $videoId . "_" . time() . ".xml";
+        $dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'captions';
+        if (!is_dir($dir)) mkdir($dir, 0777, true);
+        $filePath = $dir . DIRECTORY_SEPARATOR . $fileName;
+        if (file_put_contents($filePath, $content)) {
+            return $fileName;
+        }
+    }
+    return null;
 }
 
 function resolveImportLimit($value): int {
@@ -217,6 +246,7 @@ function ensureTables(PDO $pdo): void {
       `video_url` TEXT NULL,
       `thumbnail_url` TEXT NULL,
       `description` TEXT NULL,
+      `caption_path` TEXT NULL,
       `completed` TINYINT(1) NOT NULL DEFAULT 0,
       `created_at` BIGINT NOT NULL,
       PRIMARY KEY (`id`),
@@ -231,6 +261,9 @@ function ensureTables(PDO $pdo): void {
     try {
         $pdo->exec('ALTER TABLE `tasks` ADD COLUMN `description` TEXT NULL');
     } catch (Throwable $e) {}
+    try {
+        $pdo->exec('ALTER TABLE `tasks` ADD COLUMN `caption_path` TEXT NULL');
+    } catch (Throwable $e) {}
 }
 
 function mapTaskRow(array $row): array {
@@ -244,6 +277,7 @@ function mapTaskRow(array $row): array {
         'videoUrl' => (string) ($row['video_url'] ?? ''),
         'thumbnailUrl' => (string) ($row['thumbnail_url'] ?? ''),
         'description' => (string) ($row['description'] ?? ''),
+        'captionPath' => (string) ($row['caption_path'] ?? ''),
         'completed' => ((int) ($row['completed'] ?? 0)) === 1
     ];
 }
@@ -353,6 +387,16 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'me' &
     jsonResponse(200, ['user' => $user]);
 }
 
+if (count($segments) === 2 && $segments[0] === 'captions' && $method === 'GET') {
+    $fileName = basename((string) $segments[1]);
+    $filePath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'captions' . DIRECTORY_SEPARATOR . $fileName;
+    if (!file_exists($filePath)) jsonResponse(404, ['message' => 'Caption not found']);
+    header('Content-Type: application/xml');
+    header('Content-Disposition: attachment; filename="' . $fileName . '"');
+    readfile($filePath);
+    exit;
+}
+
 $authUser = getAuthenticatedUser($pdo);
 $userId = (int) $authUser['id'];
 
@@ -385,10 +429,10 @@ if (count($segments) === 1 && $segments[0] === 'preferences' && $method === 'POS
 if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'GET') {
     $playlist = trim((string) ($_GET['playlist'] ?? ''));
     if ($playlist !== '' && strtolower($playlist) !== 'all') {
-        $stmt = $pdo->prepare('SELECT `id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `completed` FROM `tasks` WHERE `user_id` = :user_id AND `playlist_name` = :playlist ORDER BY `created_at` DESC');
+        $stmt = $pdo->prepare('SELECT `id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `caption_path`, `completed` FROM `tasks` WHERE `user_id` = :user_id AND `playlist_name` = :playlist ORDER BY `created_at` DESC');
         $stmt->execute([':user_id' => $userId, ':playlist' => $playlist]);
     } else {
-        $stmt = $pdo->prepare('SELECT `id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `completed` FROM `tasks` WHERE `user_id` = :user_id ORDER BY `created_at` DESC');
+        $stmt = $pdo->prepare('SELECT `id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `caption_path`, `completed` FROM `tasks` WHERE `user_id` = :user_id ORDER BY `created_at` DESC');
         $stmt->execute([':user_id' => $userId]);
     }
     jsonResponse(200, array_map('mapTaskRow', $stmt->fetchAll() ?: []));
@@ -533,12 +577,16 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
     $now = (int) round(microtime(true) * 1000);
     $imported = [];
     $index = 0;
-    $insert = $pdo->prepare('INSERT INTO `tasks` (`id`, `user_id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `completed`, `created_at`) VALUES (:id, :user_id, :text, :date, :priority, :category, :playlist_name, :video_url, :thumbnail_url, :description, :completed, :created_at)');
+    $insert = $pdo->prepare('INSERT INTO `tasks` (`id`, `user_id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `caption_path`, `completed`, `created_at`) VALUES (:id, :user_id, :text, :date, :priority, :category, :playlist_name, :video_url, :thumbnail_url, :description, :caption_path, :completed, :created_at)');
     foreach ($videos as $video) {
         $title = trim((string) ($video['title'] ?? ''));
         $normalized = normalizeText($title);
         if ($normalized === '' || isset($existing[$normalized])) continue;
         $existing[$normalized] = true;
+        
+        $videoId = (string) ($video['videoId'] ?? '');
+        $captionPath = $videoId !== '' ? downloadCaptions($videoId) : null;
+
         $taskId = $now . '-' . $index . '-' . bin2hex(random_bytes(2));
         $record = [
             'id' => $taskId,
@@ -550,6 +598,7 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
             'videoUrl' => trim((string) ($video['videoUrl'] ?? '')),
             'thumbnailUrl' => (string) ($video['thumbnailUrl'] ?? ''),
             'description' => (string) ($video['description'] ?? ''),
+            'captionPath' => $captionPath,
             'completed' => false
         ];
         $insert->execute([
@@ -563,6 +612,7 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
             ':video_url' => $record['videoUrl'],
             ':thumbnail_url' => $record['thumbnailUrl'],
             ':description' => $record['description'],
+            ':caption_path' => $record['captionPath'],
             ':completed' => 0,
             ':created_at' => $now - $index
         ]);

@@ -756,6 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const formattedDate = task.date ? new Date(task.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : '';
       const watchUrl = getSafeWatchUrl(task.videoUrl);
+      const downloadSubUrl = task.captionPath ? `/api/captions/${task.captionPath}` : '';
       
       // YT layout components
       const thumbnailHtml = task.thumbnailUrl 
@@ -785,6 +786,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="task-actions">
               ${watchUrl ? `<a class="watch-btn" href="${watchUrl}" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> Watch</a>` : ''}
+              ${downloadSubUrl ? `<a class="sub-btn" href="${downloadSubUrl}" download title="Download Subtitles"><i class="fas fa-closed-captioning"></i> Sub</a>` : ''}
               <button class="delete-btn" title="Delete task"><i class="fas fa-trash"></i></button>
             </div>
           </div>

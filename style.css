@@ -453,6 +453,26 @@ header h1 {
   background: #cc0000;
 }
 
+.sub-btn {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  border: 1px solid #e2e8f0;
+}
+
+.sub-btn:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
 .delete-btn {
   background: #f1f5f9;
   color: #64748b;
