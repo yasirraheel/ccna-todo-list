@@ -855,6 +855,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  async function trackTaskView(taskId) {
+    const id = String(taskId || '').trim();
+    if (!id) return;
+    try {
+      const response = await apiFetch(`${API_BASE}/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ incrementViews: true })
+      });
+      if (!response.ok) return;
+      const updated = await response.json();
+      const idx = tasks.findIndex(task => task.id === id);
+      if (idx !== -1 && updated && typeof updated.views === 'number') {
+        tasks[idx] = { ...tasks[idx], views: updated.views };
+      }
+    } catch (_error) {
+    }
+  }
+
   function renderTasks() {
     if (!taskList || !taskCount) return;
     taskList.innerHTML = '';
@@ -917,6 +936,7 @@ document.addEventListener('DOMContentLoaded', () => {
               ${formattedDate ? `<span><i class="far fa-calendar"></i> ${formattedDate}</span>` : ''}
               <span><i class="fas fa-tag"></i> ${task.category}</span>
               ${task.playlistName ? `<span><i class="fas fa-list"></i> ${task.playlistName}</span>` : ''}
+              <span><i class="fas fa-chart-line"></i> ${Number(task.views || 0)} views</span>
               ${task.visibility ? `<span><i class="fas fa-eye"></i> ${task.visibility}</span>` : ''}
               ${task.ownerEmail ? `<span><i class="fas fa-user"></i> ${task.ownerEmail}</span>` : ''}
             </div>
@@ -948,6 +968,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (watchUrl) {
+          trackTaskView(task.id).catch(() => {});
           window.open(watchUrl, '_blank');
         }
       });
@@ -974,6 +995,13 @@ document.addEventListener('DOMContentLoaded', () => {
           if (confirmed) {
             deleteTask(task.id, li);
           }
+        });
+      }
+
+      const watchBtn = li.querySelector('.watch-btn');
+      if (watchBtn) {
+        watchBtn.addEventListener('click', () => {
+          trackTaskView(task.id).catch(() => {});
         });
       }
 
