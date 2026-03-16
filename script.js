@@ -541,6 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateBulkActionState(filteredTasks) {
+    if (!selectAllTasksInput || !deleteSelectedBtn || !deleteAllBtn) return;
     const filteredIds = filteredTasks.map(task => task.id);
     const selectedVisibleCount = filteredIds.filter(id => selectedTaskIds.has(id)).length;
     selectAllTasksInput.checked = filteredIds.length > 0 && selectedVisibleCount === filteredIds.length;
@@ -562,6 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderTasks() {
+    if (!taskList || !taskCount) return;
     taskList.innerHTML = '';
     
     const filteredTasks = getFilteredTasks();
