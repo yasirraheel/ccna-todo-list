@@ -50,14 +50,18 @@ document.addEventListener('DOMContentLoaded', () => {
   let authToken = localStorage.getItem(AUTH_TOKEN_KEY) || '';
 
   const options = { weekday: 'long', month: 'short', day: 'numeric' };
-  dateDisplay.textContent = new Date().toLocaleDateString('en-US', options);
+  if (dateDisplay) {
+    dateDisplay.textContent = new Date().toLocaleDateString('en-US', options);
+  }
 
   init();
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    addTask().catch(() => {});
-  });
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      addTask().catch(() => {});
+    });
+  }
 
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -68,27 +72,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  importPlaylistBtn.addEventListener('click', () => {
-    importPlaylist().catch(() => {});
-  });
+  if (importPlaylistBtn) {
+    importPlaylistBtn.addEventListener('click', () => {
+      importPlaylist().catch(() => {});
+    });
+  }
 
-  selectAllTasksInput.addEventListener('change', () => {
-    const filteredTasks = getFilteredTasks();
-    if (selectAllTasksInput.checked) {
-      filteredTasks.forEach(task => selectedTaskIds.add(task.id));
-    } else {
-      filteredTasks.forEach(task => selectedTaskIds.delete(task.id));
-    }
-    renderTasks();
-  });
+  if (selectAllTasksInput) {
+    selectAllTasksInput.addEventListener('change', () => {
+      const filteredTasks = getFilteredTasks();
+      if (selectAllTasksInput.checked) {
+        filteredTasks.forEach(task => selectedTaskIds.add(task.id));
+      } else {
+        filteredTasks.forEach(task => selectedTaskIds.delete(task.id));
+      }
+      renderTasks();
+    });
+  }
 
-  deleteSelectedBtn.addEventListener('click', () => {
-    deleteSelectedTasks().catch(() => {});
-  });
+  if (deleteSelectedBtn) {
+    deleteSelectedBtn.addEventListener('click', () => {
+      deleteSelectedTasks().catch(() => {});
+    });
+  }
 
-  deleteAllBtn.addEventListener('click', () => {
-    deleteAllTasks().catch(() => {});
-  });
+  if (deleteAllBtn) {
+    deleteAllBtn.addEventListener('click', () => {
+      deleteAllTasks().catch(() => {});
+    });
+  }
 
   if (authLoginBtn) {
     authLoginBtn.addEventListener('click', () => {
