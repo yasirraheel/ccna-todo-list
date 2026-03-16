@@ -822,14 +822,16 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
 
-      // Handle full card click (unless clicking on specific actions)
       li.addEventListener('click', (e) => {
-        // Prevent click if clicking on a link or button
-        if (e.target.closest('a') || e.target.closest('button') || e.target.closest('input')) {
+        if (
+          e.target.closest('a') ||
+          e.target.closest('button') ||
+          e.target.closest('input') ||
+          e.target.closest('.task-check-wrap')
+        ) {
           return;
         }
-        
-        // Default action: open watch URL if available
+
         if (watchUrl) {
           window.open(watchUrl, '_blank');
         }
