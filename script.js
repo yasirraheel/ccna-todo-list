@@ -17,6 +17,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectAllTasksInput = document.getElementById('select-all-tasks');
   const deleteSelectedBtn = document.getElementById('delete-selected-btn');
   const deleteAllBtn = document.getElementById('delete-all-btn');
+  const authPanel = document.getElementById('auth-panel');
+  const appContainer = document.getElementById('app-container');
+  const authStatus = document.getElementById('auth-status');
+  const authNameInput = document.getElementById('auth-name');
+  const authEmailInput = document.getElementById('auth-email');
+  const authPasswordInput = document.getElementById('auth-password');
+  const authLoginBtn = document.getElementById('auth-login-btn');
+  const authRegisterBtn = document.getElementById('auth-register-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  const sessionEmail = document.getElementById('session-email');
 
   const browserHost = window.location.hostname || 'localhost';
   const isLocalNetworkHost =
@@ -28,10 +38,15 @@ document.addEventListener('DOMContentLoaded', () => {
   let API_BASE = '/api/tasks';
   let IMPORT_API = '/api/import/youtube-playlist';
   let BULK_DELETE_API = '/api/tasks/bulk-delete';
+  let AUTH_LOGIN_API = '/api/auth/login';
+  let AUTH_REGISTER_API = '/api/auth/register';
+  let AUTH_ME_API = '/api/auth/me';
   const IMPORT_LIMIT = 300;
+  const AUTH_TOKEN_KEY = 'todo_auth_token';
   let tasks = [];
   let currentFilter = 'all';
   const selectedTaskIds = new Set();
+  let authToken = localStorage.getItem(AUTH_TOKEN_KEY) || '';
 
   const options = { weekday: 'long', month: 'short', day: 'numeric' };
   dateDisplay.textContent = new Date().toLocaleDateString('en-US', options);
@@ -74,6 +89,18 @@ document.addEventListener('DOMContentLoaded', () => {
     deleteAllTasks().catch(() => {});
   });
 
+  authLoginBtn.addEventListener('click', () => {
+    loginUser().catch(() => {});
+  });
+
+  authRegisterBtn.addEventListener('click', () => {
+    registerUser().catch(() => {});
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    logoutUser();
+  });
+
   function buildApiBase(originOrPath) {
     const value = String(originOrPath || '').trim().replace(/\/+$/, '');
     if (!value) return '/api/tasks';
@@ -84,8 +111,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateApiEndpoints(base) {
     API_BASE = buildApiBase(base);
-    IMPORT_API = `${API_BASE.replace(/\/tasks$/, '')}/import/youtube-playlist`;
+    const apiRoot = API_BASE.replace(/\/tasks$/, '');
+    IMPORT_API = `${apiRoot}/import/youtube-playlist`;
     BULK_DELETE_API = `${API_BASE}/bulk-delete`;
+    AUTH_LOGIN_API = `${apiRoot}/auth/login`;
+    AUTH_REGISTER_API = `${apiRoot}/auth/register`;
+    AUTH_ME_API = `${apiRoot}/auth/me`;
   }
 
   async function fetchWithTimeout(url, timeoutMs = 2500) {
@@ -152,15 +183,125 @@ document.addEventListener('DOMContentLoaded', () => {
     updateApiEndpoints(window.location.origin);
   }
 
+  function setAuthToken(token) {
+    authToken = String(token || '').trim();
+    if (authToken) {
+      localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+    } else {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+    }
+  }
+
+  function showAuthPanel(message = '') {
+    authPanel.classList.remove('app-hidden');
+    appContainer.classList.add('app-hidden');
+    authStatus.textContent = message;
+  }
+
+  function showAppPanel(user) {
+    authPanel.classList.add('app-hidden');
+    appContainer.classList.remove('app-hidden');
+    sessionEmail.textContent = user?.email || '';
+    authStatus.textContent = '';
+  }
+
+  async function apiFetch(url, options = {}) {
+    const headers = { ...(options.headers || {}) };
+    if (authToken) {
+      headers.Authorization = `Bearer ${authToken}`;
+    }
+    return fetch(url, { ...options, headers });
+  }
+
+  async function authenticateWithStoredToken() {
+    if (!authToken) {
+      showAuthPanel();
+      return false;
+    }
+    try {
+      const response = await apiFetch(AUTH_ME_API);
+      if (!response.ok) {
+        setAuthToken('');
+        showAuthPanel('Please login to continue');
+        return false;
+      }
+      const data = await response.json();
+      showAppPanel(data.user || {});
+      return true;
+    } catch (_error) {
+      showAuthPanel('Could not connect to auth service');
+      return false;
+    }
+  }
+
+  async function loginUser() {
+    const email = authEmailInput.value.trim();
+    const password = authPasswordInput.value;
+    if (!email || !password) {
+      authStatus.textContent = 'Email and password are required';
+      return;
+    }
+    authStatus.textContent = 'Signing in...';
+    const response = await fetch(AUTH_LOGIN_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      authStatus.textContent = data.message || 'Login failed';
+      return;
+    }
+    setAuthToken(data.token || '');
+    showAppPanel(data.user || {});
+    await loadTasks();
+    renderTasks();
+  }
+
+  async function registerUser() {
+    const name = authNameInput.value.trim();
+    const email = authEmailInput.value.trim();
+    const password = authPasswordInput.value;
+    if (!name || !email || !password) {
+      authStatus.textContent = 'Name, email and password are required';
+      return;
+    }
+    authStatus.textContent = 'Creating account...';
+    const response = await fetch(AUTH_REGISTER_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      authStatus.textContent = data.message || 'Register failed';
+      return;
+    }
+    setAuthToken(data.token || '');
+    showAppPanel(data.user || {});
+    await loadTasks();
+    renderTasks();
+  }
+
+  function logoutUser() {
+    setAuthToken('');
+    tasks = [];
+    selectedTaskIds.clear();
+    renderTasks();
+    showAuthPanel('Logged out');
+  }
+
   async function init() {
     await resolveApiBase();
+    const authed = await authenticateWithStoredToken();
+    if (!authed) return;
     await loadTasks();
     renderTasks();
   }
 
   async function loadTasks() {
     try {
-      const response = await fetch(API_BASE);
+      const response = await apiFetch(API_BASE);
       if (!response.ok) return;
       tasks = await response.json();
     } catch (_error) {
@@ -181,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     try {
-      const response = await fetch(API_BASE, {
+      const response = await apiFetch(API_BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTask)
@@ -202,12 +343,12 @@ document.addEventListener('DOMContentLoaded', () => {
     taskInput.focus();
   }
 
-  async function toggleTask(id) {
+  async function toggleTask(id, taskElement, checkboxElement) {
     const task = tasks.find(item => item.id === id);
     if (!task) return;
 
     try {
-      const response = await fetch(`${API_BASE}/${id}`, {
+      const response = await apiFetch(`${API_BASE}/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ completed: !task.completed })
@@ -216,7 +357,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const updatedTask = await response.json();
       tasks = tasks.map(item => item.id === id ? updatedTask : item);
-      renderTasks();
+      if (currentFilter === 'all' && taskElement) {
+        taskElement.classList.toggle('completed', updatedTask.completed);
+        if (checkboxElement) {
+          checkboxElement.checked = updatedTask.completed;
+        }
+        const pendingCount = tasks.filter(item => !item.completed).length;
+        taskCount.textContent = pendingCount;
+        updateBulkActionState(getFilteredTasks());
+      } else {
+        renderTasks();
+      }
     } catch (_error) {
       return;
     }
@@ -227,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setTimeout(async () => {
       try {
-        const response = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+        const response = await apiFetch(`${API_BASE}/${id}`, { method: 'DELETE' });
         if (!response.ok && response.status !== 204) return;
         tasks = tasks.filter(task => task.id !== id);
         selectedTaskIds.delete(id);
@@ -253,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
     playlistStatus.textContent = 'Importing playlist...';
 
     try {
-      const response = await fetch(IMPORT_API, {
+      const response = await apiFetch(IMPORT_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -296,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     deleteSelectedBtn.disabled = true;
     try {
-      const response = await fetch(BULK_DELETE_API, {
+      const response = await apiFetch(BULK_DELETE_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids })
@@ -317,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     deleteAllBtn.disabled = true;
     try {
-      const response = await fetch(API_BASE, { method: 'DELETE' });
+      const response = await apiFetch(API_BASE, { method: 'DELETE' });
       if (!response.ok) return;
       tasks = [];
       selectedTaskIds.clear();
@@ -343,6 +494,18 @@ document.addEventListener('DOMContentLoaded', () => {
     deleteAllBtn.disabled = tasks.length === 0;
   }
 
+  function getSafeWatchUrl(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    try {
+      const parsed = new URL(raw, window.location.origin);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return '';
+      return parsed.toString();
+    } catch (_error) {
+      return '';
+    }
+  }
+
   function renderTasks() {
     taskList.innerHTML = '';
     
@@ -354,9 +517,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     filteredTasks.forEach(task => {
       const li = document.createElement('li');
-      li.className = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''}`;
+      li.className = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''} ${selectedTaskIds.has(task.id) ? 'selected-for-delete' : ''}`;
       
       const formattedDate = task.date ? new Date(task.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : 'No date';
+      const watchUrl = getSafeWatchUrl(task.videoUrl);
+      const watchButton = watchUrl ? `<a class="watch-btn" href="${watchUrl}" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> Watch</a>` : '';
 
       li.innerHTML = `
         <input type="checkbox" class="custom-checkbox" ${task.completed ? 'checked' : ''}>
@@ -367,12 +532,15 @@ document.addEventListener('DOMContentLoaded', () => {
             <span><i class="fas fa-tag"></i> ${task.category}</span>
           </div>
         </div>
-        <button class="delete-btn"><i class="fas fa-trash"></i></button>
+        <div class="task-actions">
+          ${watchButton}
+          <button class="delete-btn"><i class="fas fa-trash"></i></button>
+        </div>
       `;
 
       const checkbox = li.querySelector('.custom-checkbox');
       checkbox.addEventListener('change', () => {
-        toggleTask(task.id).catch(() => {});
+        toggleTask(task.id, li, checkbox).catch(() => {});
       });
 
       const deleteBtn = li.querySelector('.delete-btn');

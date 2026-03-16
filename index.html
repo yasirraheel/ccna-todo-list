@@ -10,14 +10,32 @@
 </head>
 <body>
 
-  <div class="app-container">
+  <div id="auth-panel" class="auth-panel">
+    <h2>Sign In</h2>
+    <p id="auth-status" class="playlist-status"></p>
+    <div class="auth-form">
+      <input type="text" id="auth-name" placeholder="Name (for register)">
+      <input type="email" id="auth-email" placeholder="Email">
+      <input type="password" id="auth-password" placeholder="Password">
+      <div class="auth-actions">
+        <button type="button" id="auth-login-btn" class="playlist-btn">Login</button>
+        <button type="button" id="auth-register-btn" class="bulk-btn">Register</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-container" class="app-container app-hidden">
     <header>
       <div>
         <h1>My Tasks</h1>
         <p id="current-date" class="date-display"></p>
       </div>
       <div class="header-stats">
-        <span id="task-count">0</span> tasks pending
+        <div><span id="task-count">0</span> tasks pending</div>
+        <div class="session-row">
+          <span id="session-email"></span>
+          <button type="button" id="logout-btn" class="bulk-btn">Logout</button>
+        </div>
       </div>
     </header>
 
@@ -95,6 +113,6 @@
     <ul id="task-list"></ul>
   </div>
 
-  <script src="script.js?v=20260316-1"></script>
+  <script src="script.js?v=20260316-2"></script>
 </body>
 </html>

@@ -29,6 +29,48 @@ body {
   box-shadow: 0 8px 24px rgba(31, 38, 135, 0.12);
 }
 
+.app-hidden {
+  display: none;
+}
+
+.auth-panel {
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(10px);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(31, 38, 135, 0.12);
+}
+
+.auth-panel h2 {
+  margin-bottom: 12px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-form input {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.auth-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.auth-actions .playlist-btn,
+.auth-actions .bulk-btn {
+  flex: 1;
+}
+
 header {
   display: flex;
   justify-content: space-between;
@@ -54,6 +96,14 @@ header h1 {
   border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 500;
+}
+
+.session-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.75rem;
 }
 
 #todo-form {
@@ -296,7 +346,7 @@ header h1 {
   display: flex;
   align-items: center;
   gap: 15px;
-  transition: all 0.3s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, opacity 0.35s ease;
   animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
   border-left: 5px solid transparent;
 }
@@ -318,12 +368,18 @@ header h1 {
 .task-item.priority-low { border-left-color: #48dbfb; }
 
 .task-item.completed {
-  opacity: 0.6;
+  opacity: 0.72;
+  transform: scale(0.995);
 }
 
 .task-item.completed .task-content {
   text-decoration: line-through;
   color: #888;
+}
+
+.task-item.selected-for-delete {
+  background: rgba(255, 221, 87, 0.25);
+  box-shadow: 0 0 0 1px rgba(242, 181, 17, 0.35);
 }
 
 .custom-checkbox {
@@ -363,7 +419,7 @@ header h1 {
   color: #1a1a1a;
   font-weight: 500;
   margin-bottom: 5px;
-  transition: color 0.3s;
+  transition: color 0.3s, text-decoration-color 0.3s;
   overflow-wrap: anywhere;
 }
 
@@ -378,6 +434,31 @@ header h1 {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.watch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: #d90429;
+  background: rgba(217, 4, 41, 0.09);
+  border-radius: 10px;
+  padding: 7px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.watch-btn:hover {
+  background: rgba(217, 4, 41, 0.16);
+  transform: translateY(-1px);
 }
 
 .delete-btn {
@@ -544,6 +625,15 @@ header h1 {
 
   .task-item {
     align-items: flex-start;
+  }
+
+  .task-actions {
+    margin-left: auto;
+  }
+
+  .watch-btn {
+    font-size: 0.74rem;
+    padding: 6px 9px;
   }
 
   .delete-btn {
