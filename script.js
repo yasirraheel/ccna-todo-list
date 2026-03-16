@@ -429,6 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
       date: taskDate.value,
       priority: taskPriority.value,
       category: taskCategory.value,
+      playlistName: currentPlaylistFilter && currentPlaylistFilter !== 'all' ? currentPlaylistFilter : '',
       completed: false
     };
 
@@ -536,8 +537,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const importedTasks = data.tasks || [];
       tasks = [...importedTasks, ...tasks];
-      renderTasks();
+      const importedPlaylistName = playlistNameInput ? playlistNameInput.value.trim() : '';
       await loadPlaylists();
+      if (importedPlaylistName) {
+        currentPlaylistFilter = importedPlaylistName;
+        if (playlistFilterSelect) {
+          playlistFilterSelect.value = importedPlaylistName;
+        }
+        await loadTasks();
+      }
+      renderTasks();
       if (data.partial) {
         playlistStatus.textContent = `Imported ${data.importedCount} videos (${data.source || 'fallback'}). ${data.message || ''}`.trim();
       } else {
@@ -638,6 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const formattedDate = task.date ? new Date(task.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : 'No date';
       const watchUrl = getSafeWatchUrl(task.videoUrl);
       const watchButton = watchUrl ? `<a class="watch-btn" href="${watchUrl}" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> Watch</a>` : '';
+      const playlistLabel = task.playlistName ? `<span class="playlist-pill"><i class="fas fa-list"></i> ${task.playlistName}</span>` : '';
 
       li.innerHTML = `
         <input type="checkbox" class="custom-checkbox" ${task.completed ? 'checked' : ''}>
@@ -646,6 +656,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="task-meta">
             ${task.date ? `<span><i class="far fa-calendar"></i> ${formattedDate}</span>` : ''}
             <span><i class="fas fa-tag"></i> ${task.category}</span>
+            ${playlistLabel}
           </div>
         </div>
         <div class="task-actions">

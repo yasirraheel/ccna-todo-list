@@ -445,6 +445,18 @@ header h1 {
   gap: 4px;
 }
 
+.playlist-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #e0e7ff;
+  font-weight: 600;
+}
+
 .task-actions {
   display: flex;
   align-items: center;
