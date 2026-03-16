@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const authRegisterBtn = document.getElementById('auth-register-btn');
   const logoutBtn = document.getElementById('logout-btn');
   const sessionEmail = document.getElementById('session-email');
-  const appTitle = document.querySelector('.app-brand h1');
+  const appTitle = document.getElementById('app-home-link');
   const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login.html') || document.body.dataset.page === 'login';
   const scrollTopBtn = document.getElementById('scroll-top-btn');
 
@@ -387,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function redirectToApp() {
     if (isLoginPage) {
-      window.location.href = 'index.html';
+      window.location.href = '/';
     }
   }
 
