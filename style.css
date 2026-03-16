@@ -185,7 +185,7 @@ header h1 {
 
 .playlist-attributes-row {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr 1fr 0.8fr;
+  grid-template-columns: 1.1fr 1fr 1fr 1fr 1fr 0.9fr;
   gap: 10px;
 }
 
@@ -866,13 +866,16 @@ header h1 {
 #task-date,
 #task-priority,
 #task-category,
+#task-visibility,
 #playlist-url,
 #playlist-name,
 #playlist-priority,
 #playlist-type,
+#playlist-visibility,
 #playlist-date,
 .auth-form input,
-#playlist-filter {
+#playlist-filter,
+#scope-filter {
   border: 1px solid #d9e3f0;
   background: #ffffff;
   border-radius: 10px;
@@ -889,6 +892,10 @@ header h1 {
   min-width: 180px;
 }
 
+#scope-filter {
+  min-width: 140px;
+}
+
 #task-input {
   flex: 1;
 }
@@ -897,13 +904,16 @@ header h1 {
 #task-date:focus,
 #task-priority:focus,
 #task-category:focus,
+#task-visibility:focus,
 #playlist-url:focus,
 #playlist-name:focus,
 #playlist-priority:focus,
 #playlist-type:focus,
+#playlist-visibility:focus,
 #playlist-date:focus,
 .auth-form input:focus,
-#playlist-filter:focus {
+#playlist-filter:focus,
+#scope-filter:focus {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
   border-color: #93c5fd;
 }

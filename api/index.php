@@ -219,6 +219,24 @@ function resolveImportLimit($value): int {
     return min($parsed, $max);
 }
 
+function normalizeVisibility($value): string {
+    $v = strtolower(trim((string) $value));
+    return $v === 'public' ? 'public' : 'private';
+}
+
+function upsertTaskCompletion(PDO $pdo, string $taskId, int $viewerId, bool $completed): void {
+    $nowTs = (int) round(microtime(true) * 1000);
+    $stmt = $pdo->prepare('INSERT INTO `task_completions` (`task_id`, `user_id`, `completed`, `updated_at`, `created_at`) VALUES (:task_id, :user_id, :completed, :updated_at, :created_at)
+      ON DUPLICATE KEY UPDATE `completed` = VALUES(`completed`), `updated_at` = VALUES(`updated_at`)');
+    $stmt->execute([
+        ':task_id' => $taskId,
+        ':user_id' => $viewerId,
+        ':completed' => $completed ? 1 : 0,
+        ':updated_at' => $nowTs,
+        ':created_at' => $nowTs
+    ]);
+}
+
 function dbConnect(): PDO {
     static $pdo = null;
     if ($pdo instanceof PDO) return $pdo;
@@ -279,6 +297,7 @@ function ensureTables(PDO $pdo): void {
       `date` VARCHAR(32) NOT NULL DEFAULT "",
       `priority` VARCHAR(16) NOT NULL DEFAULT "medium",
       `category` VARCHAR(32) NOT NULL DEFAULT "personal",
+      `visibility` VARCHAR(16) NOT NULL DEFAULT "private",
       `playlist_name` VARCHAR(190) NOT NULL DEFAULT "",
       `video_url` TEXT NULL,
       `thumbnail_url` TEXT NULL,
@@ -288,6 +307,17 @@ function ensureTables(PDO $pdo): void {
       `created_at` BIGINT NOT NULL,
       PRIMARY KEY (`id`),
       INDEX `idx_tasks_user_created` (`user_id`, `created_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS `task_completions` (
+      `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      `task_id` VARCHAR(64) NOT NULL,
+      `user_id` BIGINT UNSIGNED NOT NULL,
+      `completed` TINYINT(1) NOT NULL DEFAULT 0,
+      `updated_at` BIGINT NOT NULL,
+      `created_at` BIGINT NOT NULL,
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `uk_task_completions_task_user` (`task_id`, `user_id`),
+      INDEX `idx_task_completions_user_id` (`user_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
     try {
         $pdo->exec('ALTER TABLE `tasks` ADD COLUMN `playlist_name` VARCHAR(190) NOT NULL DEFAULT ""');
@@ -301,21 +331,28 @@ function ensureTables(PDO $pdo): void {
     try {
         $pdo->exec('ALTER TABLE `tasks` ADD COLUMN `caption_path` TEXT NULL');
     } catch (Throwable $e) {}
+    try {
+        $pdo->exec('ALTER TABLE `tasks` ADD COLUMN `visibility` VARCHAR(16) NOT NULL DEFAULT "private"');
+    } catch (Throwable $e) {}
 }
 
 function mapTaskRow(array $row): array {
+    $resolvedCompleted = array_key_exists('viewer_completed', $row) ? (int) $row['viewer_completed'] : (int) ($row['completed'] ?? 0);
     return [
         'id' => (string) ($row['id'] ?? ''),
         'text' => (string) ($row['text'] ?? ''),
         'date' => (string) ($row['date'] ?? ''),
         'priority' => (string) ($row['priority'] ?? 'medium'),
         'category' => (string) ($row['category'] ?? 'personal'),
+        'visibility' => (string) ($row['visibility'] ?? 'private'),
         'playlistName' => (string) ($row['playlist_name'] ?? ''),
         'videoUrl' => (string) ($row['video_url'] ?? ''),
         'thumbnailUrl' => (string) ($row['thumbnail_url'] ?? ''),
         'description' => (string) ($row['description'] ?? ''),
         'captionPath' => (string) ($row['caption_path'] ?? ''),
-        'completed' => ((int) ($row['completed'] ?? 0)) === 1
+        'ownerId' => isset($row['owner_id']) ? (int) $row['owner_id'] : (isset($row['user_id']) ? (int) $row['user_id'] : 0),
+        'ownerEmail' => (string) ($row['owner_email'] ?? ''),
+        'completed' => $resolvedCompleted === 1
     ];
 }
 
@@ -466,11 +503,45 @@ if (count($segments) === 1 && $segments[0] === 'preferences' && $method === 'POS
 if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'GET') {
     $playlist = trim((string) ($_GET['playlist'] ?? ''));
     if ($playlist !== '' && strtolower($playlist) !== 'all') {
-        $stmt = $pdo->prepare('SELECT `id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `caption_path`, `completed` FROM `tasks` WHERE `user_id` = :user_id AND `playlist_name` = :playlist ORDER BY `created_at` DESC');
-        $stmt->execute([':user_id' => $userId, ':playlist' => $playlist]);
+        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`,
+            CASE WHEN t.`visibility` = "public" THEN COALESCE(tc.`completed`, 0) ELSE t.`completed` END AS `viewer_completed`
+            FROM `tasks` t
+            LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
+            WHERE t.`user_id` = :user_id AND t.`playlist_name` = :playlist
+            ORDER BY t.`created_at` DESC');
+        $stmt->execute([':viewer_id' => $userId, ':user_id' => $userId, ':playlist' => $playlist]);
     } else {
-        $stmt = $pdo->prepare('SELECT `id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `caption_path`, `completed` FROM `tasks` WHERE `user_id` = :user_id ORDER BY `created_at` DESC');
-        $stmt->execute([':user_id' => $userId]);
+        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`,
+            CASE WHEN t.`visibility` = "public" THEN COALESCE(tc.`completed`, 0) ELSE t.`completed` END AS `viewer_completed`
+            FROM `tasks` t
+            LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
+            WHERE t.`user_id` = :user_id
+            ORDER BY t.`created_at` DESC');
+        $stmt->execute([':viewer_id' => $userId, ':user_id' => $userId]);
+    }
+    jsonResponse(200, array_map('mapTaskRow', $stmt->fetchAll() ?: []));
+}
+
+if (count($segments) === 2 && $segments[0] === 'tasks' && $segments[1] === 'public' && $method === 'GET') {
+    $playlist = trim((string) ($_GET['playlist'] ?? ''));
+    if ($playlist !== '' && strtolower($playlist) !== 'all') {
+        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`,
+            COALESCE(tc.`completed`, 0) AS `viewer_completed`
+            FROM `tasks` t
+            INNER JOIN `users` u ON u.`id` = t.`user_id`
+            LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
+            WHERE t.`visibility` = "public" AND t.`playlist_name` = :playlist
+            ORDER BY t.`created_at` DESC');
+        $stmt->execute([':viewer_id' => $userId, ':playlist' => $playlist]);
+    } else {
+        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`,
+            COALESCE(tc.`completed`, 0) AS `viewer_completed`
+            FROM `tasks` t
+            INNER JOIN `users` u ON u.`id` = t.`user_id`
+            LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
+            WHERE t.`visibility` = "public"
+            ORDER BY t.`created_at` DESC');
+        $stmt->execute([':viewer_id' => $userId]);
     }
     jsonResponse(200, array_map('mapTaskRow', $stmt->fetchAll() ?: []));
 }
@@ -481,19 +552,21 @@ if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'POST') {
     $now = (int) round(microtime(true) * 1000);
     $playlistNameBody = (string) ($body['playlistName'] ?? ($body['playlist'] ?? ''));
     $playlistNameBody = trim($playlistNameBody);
+    $visibility = normalizeVisibility($body['visibility'] ?? 'private');
     $task = [
         'id' => (string) $now . '-' . bin2hex(random_bytes(3)),
         'text' => $text,
         'date' => (string) ($body['date'] ?? ''),
         'priority' => (string) ($body['priority'] ?? 'medium'),
         'category' => (string) ($body['category'] ?? 'personal'),
+        'visibility' => $visibility,
         'playlistName' => $playlistNameBody,
         'videoUrl' => (string) ($body['videoUrl'] ?? ''),
         'thumbnailUrl' => (string) ($body['thumbnailUrl'] ?? ''),
         'description' => (string) ($body['description'] ?? ''),
         'completed' => (bool) ($body['completed'] ?? false)
     ];
-    $insert = $pdo->prepare('INSERT INTO `tasks` (`id`, `user_id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `completed`, `created_at`) VALUES (:id, :user_id, :text, :date, :priority, :category, :playlist_name, :video_url, :thumbnail_url, :description, :completed, :created_at)');
+    $insert = $pdo->prepare('INSERT INTO `tasks` (`id`, `user_id`, `text`, `date`, `priority`, `category`, `visibility`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `completed`, `created_at`) VALUES (:id, :user_id, :text, :date, :priority, :category, :visibility, :playlist_name, :video_url, :thumbnail_url, :description, :completed, :created_at)');
     $insert->execute([
         ':id' => $task['id'],
         ':user_id' => $userId,
@@ -501,6 +574,7 @@ if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'POST') {
         ':date' => $task['date'],
         ':priority' => $task['priority'],
         ':category' => $task['category'],
+        ':visibility' => $task['visibility'],
         ':playlist_name' => $task['playlistName'],
         ':video_url' => $task['videoUrl'],
         ':thumbnail_url' => $task['thumbnailUrl'],
@@ -508,15 +582,25 @@ if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'POST') {
         ':completed' => $task['completed'] ? 1 : 0,
         ':created_at' => $now
     ]);
+    if ($task['visibility'] === 'public') {
+        upsertTaskCompletion($pdo, $task['id'], $userId, $task['completed']);
+    }
     jsonResponse(201, $task);
 }
 
 if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'DELETE') {
+    $ownedIdsStmt = $pdo->prepare('SELECT `id` FROM `tasks` WHERE `user_id` = :user_id');
+    $ownedIdsStmt->execute([':user_id' => $userId]);
+    $ownedIds = array_map(fn($r) => (string) ($r['id'] ?? ''), $ownedIdsStmt->fetchAll() ?: []);
     $countStmt = $pdo->prepare('SELECT COUNT(*) FROM `tasks` WHERE `user_id` = :user_id');
     $countStmt->execute([':user_id' => $userId]);
     $deletedCount = (int) $countStmt->fetchColumn();
     $deleteStmt = $pdo->prepare('DELETE FROM `tasks` WHERE `user_id` = :user_id');
     $deleteStmt->execute([':user_id' => $userId]);
+    if (count($ownedIds) > 0) {
+        $placeholders = implode(',', array_fill(0, count($ownedIds), '?'));
+        $pdo->prepare("DELETE FROM `task_completions` WHERE `task_id` IN ({$placeholders})")->execute($ownedIds);
+    }
     jsonResponse(200, ['deletedCount' => $deletedCount]);
 }
 
@@ -532,51 +616,90 @@ if (count($segments) === 2 && $segments[0] === 'tasks' && $segments[1] === 'bulk
     $deleteSql = "DELETE FROM `tasks` WHERE `user_id` = ? AND `id` IN ({$placeholders})";
     $deleteStmt = $pdo->prepare($deleteSql);
     $deleteStmt->execute(array_merge([$userId], $ids));
+    $pdo->prepare("DELETE FROM `task_completions` WHERE `task_id` IN ({$placeholders})")->execute($ids);
     jsonResponse(200, ['deletedCount' => $deletedCount]);
 }
 
 if (count($segments) === 2 && $segments[0] === 'tasks') {
     $taskId = (string) $segments[1];
-    $select = $pdo->prepare('SELECT `id`, `text`, `date`, `priority`, `category`, `video_url`, `completed` FROM `tasks` WHERE `id` = :id AND `user_id` = :user_id LIMIT 1');
-    $select->execute([':id' => $taskId, ':user_id' => $userId]);
+    $select = $pdo->prepare('SELECT `id`, `user_id`, `text`, `date`, `priority`, `category`, `visibility`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `caption_path`, `completed` FROM `tasks` WHERE `id` = :id LIMIT 1');
+    $select->execute([':id' => $taskId]);
     $current = $select->fetch();
     if (!$current) jsonResponse(404, ['message' => 'Task not found']);
+    $ownerId = (int) ($current['user_id'] ?? 0);
+    $isOwner = $ownerId === $userId;
+    $isPublic = ((string) ($current['visibility'] ?? 'private')) === 'public';
 
     if ($method === 'PATCH') {
+        $requestedVisibility = isset($body['visibility']) ? normalizeVisibility($body['visibility']) : (string) $current['visibility'];
+        $onlyCompletedToggle = array_key_exists('completed', $body) && count(array_diff(array_keys($body), ['completed'])) === 0;
+
+        if (!$isOwner) {
+            if (!$isPublic || !$onlyCompletedToggle) {
+                jsonResponse(403, ['message' => 'You can only update your own completion status on public tasks']);
+            }
+            $nextCompleted = (bool) $body['completed'];
+            upsertTaskCompletion($pdo, $taskId, $userId, $nextCompleted);
+            $current['viewer_completed'] = $nextCompleted ? 1 : 0;
+            jsonResponse(200, mapTaskRow($current));
+        }
+
         $next = [
             'text' => isset($body['text']) ? trim((string) $body['text']) : (string) $current['text'],
             'date' => isset($body['date']) ? (string) $body['date'] : (string) $current['date'],
             'priority' => isset($body['priority']) ? (string) $body['priority'] : (string) $current['priority'],
             'category' => isset($body['category']) ? (string) $body['category'] : (string) $current['category'],
+            'visibility' => $requestedVisibility,
             'video_url' => isset($body['videoUrl']) ? (string) $body['videoUrl'] : (string) ($current['video_url'] ?? ''),
+            'thumbnail_url' => isset($body['thumbnailUrl']) ? (string) $body['thumbnailUrl'] : (string) ($current['thumbnail_url'] ?? ''),
+            'description' => isset($body['description']) ? (string) $body['description'] : (string) ($current['description'] ?? ''),
             'completed' => isset($body['completed']) ? ((bool) $body['completed'] ? 1 : 0) : (int) $current['completed']
         ];
         if ($next['text'] === '') jsonResponse(400, ['message' => 'Task text is required']);
-        $update = $pdo->prepare('UPDATE `tasks` SET `text` = :text, `date` = :date, `priority` = :priority, `category` = :category, `video_url` = :video_url, `completed` = :completed WHERE `id` = :id AND `user_id` = :user_id');
+        $effectiveCompleted = $next['visibility'] === 'public' ? 0 : $next['completed'];
+        $update = $pdo->prepare('UPDATE `tasks` SET `text` = :text, `date` = :date, `priority` = :priority, `category` = :category, `visibility` = :visibility, `video_url` = :video_url, `thumbnail_url` = :thumbnail_url, `description` = :description, `completed` = :completed WHERE `id` = :id AND `user_id` = :user_id');
         $update->execute([
             ':text' => $next['text'],
             ':date' => $next['date'],
             ':priority' => $next['priority'],
             ':category' => $next['category'],
+            ':visibility' => $next['visibility'],
             ':video_url' => $next['video_url'],
-            ':completed' => $next['completed'],
+            ':thumbnail_url' => $next['thumbnail_url'],
+            ':description' => $next['description'],
+            ':completed' => $effectiveCompleted,
             ':id' => $taskId,
             ':user_id' => $userId
         ]);
-        jsonResponse(200, [
+        if ($next['visibility'] === 'public') {
+            upsertTaskCompletion($pdo, $taskId, $userId, $next['completed'] === 1);
+            $nextCompletedForViewer = $next['completed'] === 1;
+        } else {
+            $nextCompletedForViewer = $effectiveCompleted === 1;
+        }
+        $updatedRow = [
             'id' => $taskId,
+            'user_id' => $userId,
             'text' => $next['text'],
             'date' => $next['date'],
             'priority' => $next['priority'],
             'category' => $next['category'],
-            'videoUrl' => $next['video_url'],
-            'completed' => $next['completed'] === 1
-        ]);
+            'visibility' => $next['visibility'],
+            'playlist_name' => (string) ($current['playlist_name'] ?? ''),
+            'video_url' => $next['video_url'],
+            'thumbnail_url' => $next['thumbnail_url'],
+            'description' => $next['description'],
+            'caption_path' => (string) ($current['caption_path'] ?? ''),
+            'viewer_completed' => $nextCompletedForViewer ? 1 : 0
+        ];
+        jsonResponse(200, mapTaskRow($updatedRow));
     }
 
     if ($method === 'DELETE') {
+        if (!$isOwner) jsonResponse(403, ['message' => 'Only owner can delete this task']);
         $delete = $pdo->prepare('DELETE FROM `tasks` WHERE `id` = :id AND `user_id` = :user_id');
         $delete->execute([':id' => $taskId, ':user_id' => $userId]);
+        $pdo->prepare('DELETE FROM `task_completions` WHERE `task_id` = :task_id')->execute([':task_id' => $taskId]);
         http_response_code(204);
         exit;
     }
@@ -587,6 +710,7 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
     $priority = trim((string) ($body['priority'] ?? ''));
     $category = trim((string) ($body['category'] ?? ''));
     $date = (string) ($body['date'] ?? '');
+    $visibility = normalizeVisibility($body['visibility'] ?? 'private');
     $importLimit = resolveImportLimit($body['maxVideos'] ?? null);
     $playlistId = parsePlaylistId($playlistUrl);
     if ($playlistId === '') jsonResponse(400, ['message' => 'Valid YouTube playlist URL is required']);
@@ -614,7 +738,7 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
     $now = (int) round(microtime(true) * 1000);
     $imported = [];
     $index = 0;
-    $insert = $pdo->prepare('INSERT INTO `tasks` (`id`, `user_id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `caption_path`, `completed`, `created_at`) VALUES (:id, :user_id, :text, :date, :priority, :category, :playlist_name, :video_url, :thumbnail_url, :description, :caption_path, :completed, :created_at)');
+    $insert = $pdo->prepare('INSERT INTO `tasks` (`id`, `user_id`, `text`, `date`, `priority`, `category`, `visibility`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `caption_path`, `completed`, `created_at`) VALUES (:id, :user_id, :text, :date, :priority, :category, :visibility, :playlist_name, :video_url, :thumbnail_url, :description, :caption_path, :completed, :created_at)');
     foreach ($videos as $video) {
         $title = trim((string) ($video['title'] ?? ''));
         $normalized = normalizeText($title);
@@ -631,6 +755,7 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
             'date' => $date,
             'priority' => $priority,
             'category' => $category,
+            'visibility' => $visibility,
             'playlistName' => $playlistName,
             'videoUrl' => trim((string) ($video['videoUrl'] ?? '')),
             'thumbnailUrl' => (string) ($video['thumbnailUrl'] ?? ''),
@@ -645,6 +770,7 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
             ':date' => $record['date'],
             ':priority' => $record['priority'],
             ':category' => $record['category'],
+            ':visibility' => $record['visibility'],
             ':playlist_name' => $record['playlistName'],
             ':video_url' => $record['videoUrl'],
             ':thumbnail_url' => $record['thumbnailUrl'],
@@ -653,6 +779,9 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
             ':completed' => 0,
             ':created_at' => $now - $index
         ]);
+        if ($record['visibility'] === 'public') {
+            upsertTaskCompletion($pdo, $record['id'], $userId, false);
+        }
         $imported[] = $record;
         $index++;
     }

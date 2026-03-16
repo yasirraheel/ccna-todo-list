@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const taskDate = document.getElementById('task-date');
   const taskPriority = document.getElementById('task-priority');
   const taskCategory = document.getElementById('task-category');
+  const taskVisibility = document.getElementById('task-visibility');
   const taskList = document.getElementById('task-list');
   const taskCount = document.getElementById('task-count');
   const filterBtns = document.querySelectorAll('.filter-btn');
@@ -11,11 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const playlistUrlInput = document.getElementById('playlist-url');
   const playlistPriorityInput = document.getElementById('playlist-priority');
   const playlistTypeInput = document.getElementById('playlist-type');
+  const playlistVisibilityInput = document.getElementById('playlist-visibility');
   const playlistDateInput = document.getElementById('playlist-date');
   const playlistNameInput = document.getElementById('playlist-name');
   const importPlaylistBtn = document.getElementById('import-playlist-btn');
   const playlistStatus = document.getElementById('playlist-status');
   const playlistFilterSelect = document.getElementById('playlist-filter');
+  const scopeFilterSelect = document.getElementById('scope-filter');
   const playlistRenameBtn = document.getElementById('playlist-rename-btn');
   const playlistDeleteBtn = document.getElementById('playlist-delete-btn');
   const selectAllTasksInput = document.getElementById('select-all-tasks');
@@ -58,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     browserHost.startsWith('10.') ||
     browserHost.startsWith('172.');
   let API_BASE = '/api/tasks';
+  let PUBLIC_TASKS_API = '/api/tasks/public';
   let IMPORT_API = '/api/import/youtube-playlist';
   let BULK_DELETE_API = '/api/tasks/bulk-delete';
   let AUTH_LOGIN_API = '/api/auth/login';
@@ -70,11 +74,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const IMPORT_LIMIT = 300;
   const AUTH_TOKEN_KEY = 'todo_auth_token';
   const SELECTED_PLAYLIST_KEY = 'todo_selected_playlist';
+  const TASK_SCOPE_KEY = 'todo_task_scope';
   let tasks = [];
   let currentFilter = 'all';
   const selectedTaskIds = new Set();
   let authToken = localStorage.getItem(AUTH_TOKEN_KEY) || '';
   let currentPlaylistFilter = 'all';
+  let currentScope = localStorage.getItem(TASK_SCOPE_KEY) || 'my';
+  let currentUserId = null;
 
   const options = { weekday: 'long', month: 'short', day: 'numeric' };
   if (dateDisplay) {
@@ -133,6 +140,22 @@ document.addEventListener('DOMContentLoaded', () => {
     playlistFilterSelect.addEventListener('change', async () => {
       currentPlaylistFilter = playlistFilterSelect.value || 'all';
       await saveSelectedPlaylistPreference(currentPlaylistFilter);
+      await loadTasks();
+      renderTasks();
+      updatePlaylistActionState();
+    });
+  }
+
+  if (scopeFilterSelect) {
+    scopeFilterSelect.value = currentScope === 'public' ? 'public' : 'my';
+    scopeFilterSelect.addEventListener('change', async () => {
+      currentScope = scopeFilterSelect.value === 'public' ? 'public' : 'my';
+      localStorage.setItem(TASK_SCOPE_KEY, currentScope);
+      selectedTaskIds.clear();
+      currentPlaylistFilter = 'all';
+      if (playlistFilterSelect) playlistFilterSelect.value = 'all';
+      await loadPlaylists();
+      await loadSelectedPlaylistPreference();
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
@@ -216,6 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateApiEndpoints(base) {
     API_BASE = buildApiBase(base);
     const apiRoot = API_BASE.replace(/\/tasks$/, '');
+    PUBLIC_TASKS_API = `${API_BASE}/public`;
     IMPORT_API = `${apiRoot}/import/youtube-playlist`;
     BULK_DELETE_API = `${API_BASE}/bulk-delete`;
     AUTH_LOGIN_API = `${apiRoot}/auth/login`;
@@ -322,6 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (authPanel) authPanel.classList.add('app-hidden');
     if (appContainer) appContainer.classList.remove('app-hidden');
     if (sessionEmail) sessionEmail.textContent = user?.email || '';
+    currentUserId = Number(user?.id || 0) || null;
     if (authStatus) authStatus.textContent = '';
   }
 
@@ -462,9 +487,13 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadTasks() {
     try {
       const q = currentPlaylistFilter && currentPlaylistFilter !== 'all' ? `?playlist=${encodeURIComponent(currentPlaylistFilter)}` : '';
-      const response = await apiFetch(`${API_BASE}${q}`);
+      const base = currentScope === 'public' ? PUBLIC_TASKS_API : API_BASE;
+      const response = await apiFetch(`${base}${q}`);
       if (!response.ok) return;
       tasks = await response.json();
+      if (currentScope === 'public') {
+        selectedTaskIds.clear();
+      }
       updateDashboard();
     } catch (_error) {
       tasks = [];
@@ -474,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadPlaylists() {
     if (!playlistFilterSelect) return;
     try {
-      const response = await apiFetch(PLAYLISTS_API);
+      const response = await apiFetch(currentScope === 'public' ? PUBLIC_TASKS_API : PLAYLISTS_API);
       if (!response.ok) return;
       const items = await response.json();
       const prev = currentPlaylistFilter;
@@ -483,14 +512,29 @@ document.addEventListener('DOMContentLoaded', () => {
       optAll.value = 'all';
       optAll.textContent = 'All Playlists';
       playlistFilterSelect.appendChild(optAll);
-      (items || []).forEach(it => {
-        const name = String(it?.name || '');
-        const label = name || 'Unassigned';
-        const option = document.createElement('option');
-        option.value = name;
-        option.textContent = `${label} (${it?.count ?? 0})`;
-        playlistFilterSelect.appendChild(option);
-      });
+      if (currentScope === 'public') {
+        const map = new Map();
+        (items || []).forEach(task => {
+          const name = String(task?.playlistName || '');
+          map.set(name, (map.get(name) || 0) + 1);
+        });
+        Array.from(map.entries()).forEach(([name, count]) => {
+          const label = name || 'Unassigned';
+          const option = document.createElement('option');
+          option.value = name;
+          option.textContent = `${label} (${count})`;
+          playlistFilterSelect.appendChild(option);
+        });
+      } else {
+        (items || []).forEach(it => {
+          const name = String(it?.name || '');
+          const label = name || 'Unassigned';
+          const option = document.createElement('option');
+          option.value = name;
+          option.textContent = `${label} (${it?.count ?? 0})`;
+          playlistFilterSelect.appendChild(option);
+        });
+      }
       playlistFilterSelect.value = prev || 'all';
       currentPlaylistFilter = playlistFilterSelect.value || 'all';
     } catch (_e) {
@@ -499,6 +543,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadSelectedPlaylistPreference() {
+    if (currentScope === 'public') {
+      currentPlaylistFilter = 'all';
+      if (playlistFilterSelect) playlistFilterSelect.value = 'all';
+      return;
+    }
     let fromServer = '';
     try {
       const r = await apiFetch(PREFERENCES_API);
@@ -519,6 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function saveSelectedPlaylistPreference(value) {
     const v = String(value || 'all');
     localStorage.setItem(SELECTED_PLAYLIST_KEY, v);
+    if (currentScope === 'public') return;
     try {
       await apiFetch(PREFERENCES_API, {
         method: 'POST',
@@ -537,6 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
       date: taskDate.value,
       priority: taskPriority.value,
       category: taskCategory.value,
+      visibility: taskVisibility ? taskVisibility.value : 'private',
       playlistName: currentPlaylistFilter && currentPlaylistFilter !== 'all' ? currentPlaylistFilter : '',
       completed: false
     };
@@ -560,6 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
     taskDate.value = '';
     taskPriority.value = 'medium';
     taskCategory.value = 'personal';
+    if (taskVisibility) taskVisibility.value = 'private';
     taskInput.focus();
   }
 
@@ -631,6 +683,7 @@ document.addEventListener('DOMContentLoaded', () => {
           url: playlistUrl,
           priority: playlistPriority,
           category: playlistType,
+          visibility: playlistVisibilityInput ? playlistVisibilityInput.value : 'private',
           date: playlistDate,
           playlistName: playlistNameInput ? playlistNameInput.value.trim() : '',
           maxVideos: IMPORT_LIMIT
@@ -664,6 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
       playlistUrlInput.value = '';
       playlistPriorityInput.value = '';
       playlistTypeInput.value = '';
+      if (playlistVisibilityInput) playlistVisibilityInput.value = 'private';
       playlistDateInput.value = '';
       if (playlistNameInput) playlistNameInput.value = '';
     } catch (_error) {
@@ -674,6 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function deleteSelectedTasks() {
+    if (currentScope === 'public') return;
     const ids = Array.from(selectedTaskIds);
     if (ids.length === 0) return;
 
@@ -703,6 +758,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function deleteAllTasks() {
+    if (currentScope === 'public') return;
     if (tasks.length === 0) return;
 
     const confirmed = await showCustomConfirm(
@@ -733,6 +789,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateBulkActionState(filteredTasks) {
     if (!selectAllTasksInput || !deleteSelectedBtn || !deleteAllBtn) return;
+    if (currentScope === 'public') {
+      selectAllTasksInput.checked = false;
+      selectAllTasksInput.indeterminate = false;
+      selectAllTasksInput.disabled = true;
+      deleteSelectedBtn.disabled = true;
+      deleteAllBtn.disabled = true;
+      return;
+    }
+    selectAllTasksInput.disabled = false;
     const filteredIds = filteredTasks.map(task => task.id);
     const selectedVisibleCount = filteredIds.filter(id => selectedTaskIds.has(id)).length;
     selectAllTasksInput.checked = filteredIds.length > 0 && selectedVisibleCount === filteredIds.length;
@@ -769,9 +834,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const li = document.createElement('li');
       li.className = 'task-item empty-state';
       const label = currentPlaylistFilter && currentPlaylistFilter !== 'all' ? currentPlaylistFilter : 'All';
+      const hint = currentScope === 'public' ? 'No public tasks available in this filter' : `No tasks in ${label}`;
       li.innerHTML = `
         <div class="task-details">
-          <div class="task-content">No tasks in ${label}</div>
+          <div class="task-content">${hint}</div>
           <div class="task-meta"><span>Add a task or import a playlist</span></div>
         </div>
       `;
@@ -784,6 +850,8 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const formattedDate = task.date ? new Date(task.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : '';
       const watchUrl = getSafeWatchUrl(task.videoUrl);
+      const canDelete = currentScope !== 'public' || Number(task.ownerId || 0) === Number(currentUserId || 0);
+      const canToggle = currentScope !== 'public' || task.visibility === 'public' || Number(task.ownerId || 0) === Number(currentUserId || 0);
       const downloadSubUrl = task.captionPath ? `/api/captions/${task.captionPath}` : '';
       
       // YT layout components
@@ -808,15 +876,17 @@ document.addEventListener('DOMContentLoaded', () => {
               ${formattedDate ? `<span><i class="far fa-calendar"></i> ${formattedDate}</span>` : ''}
               <span><i class="fas fa-tag"></i> ${task.category}</span>
               ${task.playlistName ? `<span><i class="fas fa-list"></i> ${task.playlistName}</span>` : ''}
+              ${task.visibility ? `<span><i class="fas fa-eye"></i> ${task.visibility}</span>` : ''}
+              ${task.ownerEmail ? `<span><i class="fas fa-user"></i> ${task.ownerEmail}</span>` : ''}
             </div>
             <div class="task-actions">
               <label class="task-check-wrap" title="${task.completed ? 'Completed' : 'Mark as done'}">
-                <input type="checkbox" class="custom-checkbox" ${task.completed ? 'checked' : ''}>
+                <input type="checkbox" class="custom-checkbox" ${task.completed ? 'checked' : ''} ${canToggle ? '' : 'disabled'}>
                 <span>${task.completed ? 'Done' : 'Mark done'}</span>
               </label>
               ${watchUrl ? `<a class="watch-btn" href="${watchUrl}" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> Watch</a>` : ''}
               ${downloadSubUrl ? `<a class="sub-btn" href="${downloadSubUrl}" download title="Download Subtitles"><i class="fas fa-closed-captioning"></i> Sub</a>` : ''}
-              <button class="delete-btn" title="Delete task"><i class="fas fa-trash"></i></button>
+              ${canDelete ? '<button class="delete-btn" title="Delete task"><i class="fas fa-trash"></i></button>' : ''}
             </div>
           </div>
         </div>
@@ -844,27 +914,33 @@ document.addEventListener('DOMContentLoaded', () => {
       const checkbox = li.querySelector('.custom-checkbox');
       checkbox.addEventListener('change', (e) => {
         e.stopPropagation(); // Prevent card click
+        if (!canToggle) {
+          checkbox.checked = !!task.completed;
+          return;
+        }
         toggleTask(task.id, li, checkbox).catch(() => {});
       });
 
       const deleteBtn = li.querySelector('.delete-btn');
-      deleteBtn.addEventListener('click', async (e) => {
-        e.stopPropagation(); // Prevent card click
-        const confirmed = await showCustomConfirm(
-          'Delete Task',
-          `Are you sure you want to delete "${task.text}"?`
-        );
-        if (confirmed) {
-          deleteTask(task.id, li);
-        }
-      });
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', async (e) => {
+          e.stopPropagation(); // Prevent card click
+          const confirmed = await showCustomConfirm(
+            'Delete Task',
+            `Are you sure you want to delete "${task.text}"?`
+          );
+          if (confirmed) {
+            deleteTask(task.id, li);
+          }
+        });
+      }
 
       taskList.appendChild(li);
     });
   }
 
   function updatePlaylistActionState() {
-    const disable = !currentPlaylistFilter || currentPlaylistFilter === 'all';
+    const disable = currentScope === 'public' || !currentPlaylistFilter || currentPlaylistFilter === 'all';
     if (playlistRenameBtn) playlistRenameBtn.disabled = disable;
     if (playlistDeleteBtn) playlistDeleteBtn.disabled = disable;
   }

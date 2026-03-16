@@ -91,6 +91,13 @@
             <option value="shopping">Shopping</option>
           </select>
         </div>
+        <div class="option-group">
+          <i class="fas fa-eye"></i>
+          <select id="task-visibility">
+            <option value="private" selected>Private</option>
+            <option value="public">Public</option>
+          </select>
+        </div>
       </div>
     </form>
 
@@ -114,6 +121,10 @@
             <option value="shopping">Shopping</option>
             <option value="learning">Learning</option>
           </select>
+          <select id="playlist-visibility">
+            <option value="private" selected>Private</option>
+            <option value="public">Public</option>
+          </select>
           <input type="date" id="playlist-date">
           <button type="button" id="import-playlist-btn" class="playlist-btn">Import Playlist</button>
         </div>
@@ -123,6 +134,10 @@
 
     <div class="filters">
       <div class="playlist-toolbar">
+        <select id="scope-filter" title="Task scope">
+          <option value="my" selected>My Tasks</option>
+          <option value="public">Public Tasks</option>
+        </select>
         <select id="playlist-filter" title="Filter by playlist">
         <option value="all">All Playlists</option>
         </select>
