@@ -427,23 +427,32 @@ header h1 {
 .task-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   border-top: 1px solid #f1f5f9;
   padding-top: 10px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.task-actions::-webkit-scrollbar {
+  display: none;
 }
 
 .task-check-wrap {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
+  gap: 4px;
+  padding: 6px 8px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: #475569;
   transition: all 0.2s;
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .task-check-wrap:hover {
@@ -459,19 +468,21 @@ header h1 {
 }
 
 .watch-btn {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 86px;
   justify-content: center;
   background: #ff0000;
   color: #fff;
   border-radius: 6px;
-  padding: 8px;
-  font-size: 0.8rem;
+  padding: 7px 8px;
+  font-size: 0.72rem;
   font-weight: 600;
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   transition: background 0.2s;
+  white-space: nowrap;
 }
 
 .watch-btn:hover {
@@ -479,18 +490,20 @@ header h1 {
 }
 
 .sub-btn {
+  flex: 0 0 auto;
   background: #f1f5f9;
   color: #0f172a;
   border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 0.8rem;
+  padding: 7px 8px;
+  font-size: 0.72rem;
   font-weight: 600;
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   transition: all 0.2s;
   border: 1px solid #e2e8f0;
+  white-space: nowrap;
 }
 
 .sub-btn:hover {
@@ -503,13 +516,14 @@ header h1 {
   color: #64748b;
   border: none;
   border-radius: 6px;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
+  flex: 0 0 auto;
 }
 
 .delete-btn:hover {
@@ -1272,21 +1286,21 @@ header h1 {
   }
 
   .task-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
+    display: flex;
+    flex-wrap: nowrap;
     gap: 8px;
   }
 
   .task-check-wrap,
   .watch-btn,
   .sub-btn {
-    min-height: 40px;
+    min-height: 36px;
     justify-content: center;
   }
 
   .delete-btn {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
   }
 }
 
@@ -1313,12 +1327,9 @@ header h1 {
     grid-column: span 1;
   }
 
-  .task-actions {
-    grid-template-columns: 1fr;
-  }
-
   .delete-btn {
-    width: 100%;
+    width: 34px;
+    height: 34px;
   }
 
   .modal-content {
