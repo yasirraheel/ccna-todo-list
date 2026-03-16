@@ -30,9 +30,6 @@
         <p id="current-date" class="date-display"></p>
       </div>
       <div class="header-panel">
-        <div class="header-stats">
-          <span id="task-count">0</span> tasks pending
-        </div>
         <div class="session-row">
           <span id="session-email" class="session-email"></span>
           <button type="button" id="logout-btn" class="bulk-btn">Logout</button>
@@ -64,16 +61,6 @@
         <div class="stat-card">
           <div class="stat-label">Playlist</div>
           <div id="stat-playlist" class="stat-value small">All</div>
-        </div>
-      </div>
-      <div class="charts-grid">
-        <div class="chart-card">
-          <h3>Completion</h3>
-          <canvas id="progressChart" height="96"></canvas>
-        </div>
-        <div class="chart-card">
-          <h3>By Priority</h3>
-          <canvas id="priorityChart" height="96"></canvas>
         </div>
       </div>
     </section>
@@ -181,7 +168,6 @@
   </button>
   <div id="flash-stack" class="flash-stack" aria-live="polite" aria-atomic="true"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="" crossorigin="anonymous"></script>
   <script src="script.js?v=20260316-5"></script>
 
   <!-- Custom Confirmation Modal -->

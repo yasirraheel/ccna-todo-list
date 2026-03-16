@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const taskCategory = document.getElementById('task-category');
   const taskVisibility = document.getElementById('task-visibility');
   const taskList = document.getElementById('task-list');
-  const taskCount = document.getElementById('task-count');
   const filterBtns = document.querySelectorAll('.filter-btn');
   const dateDisplay = document.getElementById('current-date');
   const playlistUrlInput = document.getElementById('playlist-url');
@@ -55,8 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const statPlaylistEl = document.getElementById('stat-playlist');
   const statProgressFill = document.getElementById('stat-progress-fill');
   const statProgressLabel = document.getElementById('stat-progress-label');
-  let progressChartRef = null;
-  let priorityChartRef = null;
 
   const browserHost = window.location.hostname || 'localhost';
   const isLocalNetworkHost =
@@ -791,7 +788,6 @@ document.addEventListener('DOMContentLoaded', () => {
           checkboxElement.checked = updatedTask.completed;
         }
         const pendingCount = tasks.filter(item => !item.completed).length;
-        taskCount.textContent = pendingCount;
         updateBulkActionState(getFilteredTasks());
         updateDashboard();
       } else {
@@ -1032,13 +1028,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderTasks() {
-    if (!taskList || !taskCount) return;
+    if (!taskList) return;
     taskList.innerHTML = '';
     
     const filteredTasks = getFilteredTasks();
 
-    const pendingCount = tasks.filter(t => !t.completed).length;
-    taskCount.textContent = pendingCount;
     updateBulkActionState(filteredTasks);
     updatePlaylistActionState();
     updateDashboard();
@@ -1186,30 +1180,6 @@ document.addEventListener('DOMContentLoaded', () => {
     statPlaylistEl.textContent = currentPlaylistFilter && currentPlaylistFilter !== 'all' ? currentPlaylistFilter : 'All';
     statProgressFill.style.width = `${pct}%`;
     statProgressLabel.textContent = `${pct}%`;
-
-    const ctx1 = document.getElementById('progressChart');
-    if (ctx1 && window.Chart) {
-      const data1 = { labels: ['Completed', 'Pending'], datasets: [{ data: [done, Math.max(pending, 0)], backgroundColor: ['#22c55e', '#e2e8f0'], borderWidth: 0 }] };
-      if (progressChartRef) {
-        progressChartRef.data = data1;
-        progressChartRef.update();
-      } else {
-        progressChartRef = new Chart(ctx1, { type: 'doughnut', data: data1, options: { plugins: { legend: { display: false }, tooltip: { enabled: true } }, cutout: '70%', maintainAspectRatio: false } });
-      }
-    }
-
-    const counts = { high: 0, medium: 0, low: 0 };
-    tasks.forEach(t => { const p = String(t.priority || '').toLowerCase(); if (counts[p] !== undefined) counts[p]++; });
-    const ctx2 = document.getElementById('priorityChart');
-    if (ctx2 && window.Chart) {
-      const data2 = { labels: ['High', 'Medium', 'Low'], datasets: [{ data: [counts.high, counts.medium, counts.low], backgroundColor: ['#ef4444', '#f59e0b', '#38bdf8'], borderWidth: 0 }] };
-      if (priorityChartRef) {
-        priorityChartRef.data = data2;
-        priorityChartRef.update();
-      } else {
-        priorityChartRef = new Chart(ctx2, { type: 'bar', data: data2, options: { plugins: { legend: { display: false }, tooltip: { enabled: true } }, scales: { y: { beginAtZero: true, display: false, grid: { display: false } }, x: { ticks: { display: false }, grid: { display: false } } }, maintainAspectRatio: false } });
-      }
-    }
   }
 
   function showCustomConfirm(title, message, options = {}) {
