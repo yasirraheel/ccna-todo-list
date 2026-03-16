@@ -93,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (dateDisplay) {
     dateDisplay.textContent = new Date().toLocaleDateString('en-US', options);
   }
+  applySeoConfig({ appName });
 
   init();
 
@@ -351,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const configResponse = await fetchWithTimeout(`${origin}/api/config`);
         if (configResponse.ok) {
           const config = await configResponse.json();
-          applyAppName(config?.appName || '');
+          applySeoConfig(config || {});
           if (config?.apiBaseUrl) {
             updateApiEndpoints(config.apiBaseUrl);
             return;
@@ -416,9 +417,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function applyAppName(value) {
     const next = String(value || '').trim();
-    if (!next || !appTitle) return;
+    if (!next) return;
     appName = next;
-    appTitle.textContent = next;
+    if (appTitle) appTitle.textContent = next;
+    document.title = next;
+  }
+
+  function setMetaContent(selector, value) {
+    const text = String(value || '').trim();
+    const el = document.querySelector(selector);
+    if (!el || !text) return;
+    el.setAttribute('content', text);
+  }
+
+  function setCanonicalUrl(value) {
+    const url = String(value || '').trim() || window.location.href;
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) return;
+    canonical.setAttribute('href', url);
+  }
+
+  function applySeoConfig(config = {}) {
+    const title = String(config?.appName || appName || '').trim();
+    if (title) {
+      applyAppName(title);
+      setMetaContent('meta[property="og:site_name"]', title);
+      setMetaContent('meta[property="og:title"]', title);
+      setMetaContent('meta[name="twitter:title"]', title);
+    }
+    const description = String(config?.appDescription || '').trim();
+    if (description) {
+      setMetaContent('meta[name="description"]', description);
+      setMetaContent('meta[property="og:description"]', description);
+      setMetaContent('meta[name="twitter:description"]', description);
+    }
+    const ogImage = String(config?.appOgImageUrl || '').trim();
+    if (ogImage) {
+      setMetaContent('meta[property="og:image"]', ogImage);
+      setMetaContent('meta[name="twitter:image"]', ogImage);
+    }
+    const canonicalUrl = String(config?.appCanonicalUrl || '').trim();
+    setCanonicalUrl(canonicalUrl);
+    setMetaContent('meta[property="og:url"]', canonicalUrl || window.location.href);
   }
 
   async function readResponseMessage(response, fallback) {
