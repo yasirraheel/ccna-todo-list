@@ -18,10 +18,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const deleteSelectedBtn = document.getElementById('delete-selected-btn');
   const deleteAllBtn = document.getElementById('delete-all-btn');
 
-  const API_BASE = window.location.port === '3000' ? '/api/tasks' : 'http://localhost:3000/api/tasks';
+  const browserHost = window.location.hostname || 'localhost';
+  const isLocalNetworkHost =
+    browserHost === 'localhost' ||
+    browserHost === '127.0.0.1' ||
+    browserHost.startsWith('192.168.') ||
+    browserHost.startsWith('10.') ||
+    browserHost.startsWith('172.16.') ||
+    browserHost.startsWith('172.17.') ||
+    browserHost.startsWith('172.18.') ||
+    browserHost.startsWith('172.19.') ||
+    browserHost.startsWith('172.2') ||
+    browserHost.startsWith('172.30.') ||
+    browserHost.startsWith('172.31.');
+  const backendOrigin = window.location.port === '3000' ? '' : (isLocalNetworkHost ? `http://${browserHost}:3000` : '');
+  const API_BASE = backendOrigin ? `${backendOrigin}/api/tasks` : '/api/tasks';
   const IMPORT_API = `${API_BASE.replace(/\/tasks$/, '')}/import/youtube-playlist`;
   const BULK_DELETE_API = `${API_BASE}/bulk-delete`;
-const IMPORT_LIMIT = 300;
+  const IMPORT_LIMIT = 300;
   let tasks = [];
   let currentFilter = 'all';
   const selectedTaskIds = new Set();
@@ -198,7 +212,8 @@ const IMPORT_LIMIT = 300;
       playlistTypeInput.value = '';
       playlistDateInput.value = '';
     } catch (_error) {
-      playlistStatus.textContent = 'Could not connect to import service';
+      const backendHint = backendOrigin || window.location.origin;
+      playlistStatus.textContent = `Could not connect to import service (${backendHint})`;
     } finally {
       importPlaylistBtn.disabled = false;
     }
