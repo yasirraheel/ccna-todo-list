@@ -1454,8 +1454,26 @@ header h1 {
   .playlist-toolbar {
     width: 100%;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
+  }
+
+  #scope-filter,
+  #playlist-filter {
+    min-width: 0;
+    width: 100%;
+    min-height: 42px;
+  }
+
+  #playlist-visibility-btn,
+  #playlist-rename-btn,
+  #playlist-delete-btn {
+    min-height: 42px;
+    width: 100%;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .filter-btn {
@@ -1472,6 +1490,12 @@ header h1 {
   .bulk-btn {
     width: 100%;
     justify-content: center;
+    min-height: 42px;
+  }
+
+  #select-all-tasks {
+    width: 20px;
+    height: 20px;
   }
 
   #task-list {
@@ -1493,7 +1517,7 @@ header h1 {
 
   .task-actions {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 8px;
   }
 
@@ -1502,6 +1526,17 @@ header h1 {
   .sub-btn {
     min-height: 36px;
     justify-content: center;
+  }
+
+  .task-check-wrap {
+    flex: 1 1 100%;
+    font-size: 0.78rem;
+    padding: 9px 10px;
+  }
+
+  .custom-checkbox {
+    width: 18px;
+    height: 18px;
   }
 
   .delete-btn {
