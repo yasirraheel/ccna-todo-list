@@ -813,7 +813,7 @@ document.addEventListener('DOMContentLoaded', () => {
         progressChartRef.data = data1;
         progressChartRef.update();
       } else {
-        progressChartRef = new Chart(ctx1, { type: 'doughnut', data: data1, options: { plugins: { legend: { position: 'bottom' } }, cutout: '60%' } });
+        progressChartRef = new Chart(ctx1, { type: 'doughnut', data: data1, options: { plugins: { legend: { display: false }, tooltip: { enabled: true } }, cutout: '70%', maintainAspectRatio: false } });
       }
     }
 
@@ -826,7 +826,7 @@ document.addEventListener('DOMContentLoaded', () => {
         priorityChartRef.data = data2;
         priorityChartRef.update();
       } else {
-        priorityChartRef = new Chart(ctx2, { type: 'bar', data: data2, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+        priorityChartRef = new Chart(ctx2, { type: 'bar', data: data2, options: { plugins: { legend: { display: false }, tooltip: { enabled: true } }, scales: { y: { beginAtZero: true, display: false, grid: { display: false } }, x: { ticks: { display: false }, grid: { display: false } } }, maintainAspectRatio: false } });
       }
     }
   }
