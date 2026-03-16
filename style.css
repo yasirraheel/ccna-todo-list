@@ -206,8 +206,54 @@ header h1 {
 .playlist-status {
   min-height: 18px;
   margin-top: 8px;
-  font-size: 0.8rem;
-  color: #444;
+  font-size: 0.84rem;
+  color: #334155;
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: none;
+}
+
+.playlist-status.show {
+  display: block;
+}
+
+.playlist-status.success {
+  color: #166534;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.playlist-status.error {
+  color: #991b1b;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.playlist-btn.is-loading {
+  position: relative;
+  opacity: 0.95;
+  cursor: wait;
+}
+
+.playlist-btn.is-loading::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #ffffff;
+  border-radius: 999px;
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: -2px;
+  animation: importSpin 0.75s linear infinite;
+}
+
+@keyframes importSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .bulk-actions {

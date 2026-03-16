@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const playlistNameInput = document.getElementById('playlist-name');
   const importPlaylistBtn = document.getElementById('import-playlist-btn');
   const playlistStatus = document.getElementById('playlist-status');
+  const importBtnIdleLabel = importPlaylistBtn ? importPlaylistBtn.textContent.trim() : 'Import Playlist';
   const playlistFilterSelect = document.getElementById('playlist-filter');
   const scopeFilterSelect = document.getElementById('scope-filter');
   const playlistVisibilityBtn = document.getElementById('playlist-visibility-btn');
@@ -484,6 +485,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 2800);
   }
 
+  function setPlaylistStatus(message, type = 'info') {
+    if (!playlistStatus) return;
+    const text = String(message || '').trim();
+    playlistStatus.classList.remove('show', 'success', 'error');
+    playlistStatus.textContent = '';
+    if (!text) return;
+    playlistStatus.textContent = text;
+    playlistStatus.classList.add('show');
+    if (type === 'success') playlistStatus.classList.add('success');
+    if (type === 'error') playlistStatus.classList.add('error');
+  }
+
   async function authenticateWithStoredToken() {
     if (!authToken) {
       if (isLoginPage) {
@@ -819,13 +832,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const playlistDate = playlistDateInput.value;
     if (!playlistUrl) return;
     if (!playlistPriority || !playlistType) {
-      playlistStatus.textContent = 'Select priority and type before import';
+      setPlaylistStatus('Select priority and type before import', 'error');
       showFlash('Select priority and type before import', 'error');
       return;
     }
 
     importPlaylistBtn.disabled = true;
-    playlistStatus.textContent = 'Importing playlist...';
+    importPlaylistBtn.classList.add('is-loading');
+    importPlaylistBtn.textContent = 'Importing...';
+    setPlaylistStatus('Importing playlist...', 'info');
 
     try {
       const response = await apiFetch(IMPORT_API, {
@@ -844,7 +859,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const data = await response.json();
       if (!response.ok) {
-        playlistStatus.textContent = data.message || 'Import failed';
+        setPlaylistStatus(data.message || 'Import failed', 'error');
         showFlash(data.message || 'Import failed', 'error');
         return;
       }
@@ -863,9 +878,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       renderTasks();
       if (data.partial) {
-        playlistStatus.textContent = `Imported ${data.importedCount} videos (${data.source || 'fallback'}). ${data.message || ''}`.trim();
+        setPlaylistStatus(`Imported ${data.importedCount} videos as tasks. Some videos could not be imported.`, 'success');
       } else {
-        playlistStatus.textContent = `Imported ${data.importedCount} videos as tasks (${data.source || 'primary'}, limit ${data.requestedLimit || IMPORT_LIMIT})`;
+        setPlaylistStatus(`Imported ${data.importedCount} videos as tasks.`, 'success');
       }
       showFlash(`Imported ${data.importedCount} tasks`, 'success');
       playlistUrlInput.value = '';
@@ -875,10 +890,12 @@ document.addEventListener('DOMContentLoaded', () => {
       playlistDateInput.value = '';
       if (playlistNameInput) playlistNameInput.value = '';
     } catch (_error) {
-      playlistStatus.textContent = `Could not connect to import service (${API_BASE})`;
+      setPlaylistStatus('Could not connect to import service', 'error');
       showFlash('Could not connect to import service', 'error');
     } finally {
       importPlaylistBtn.disabled = false;
+      importPlaylistBtn.classList.remove('is-loading');
+      importPlaylistBtn.textContent = importBtnIdleLabel;
     }
   }
 
