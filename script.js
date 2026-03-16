@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const customModal = document.getElementById('custom-modal');
   const modalTitle = document.getElementById('modal-title');
   const modalMessage = document.getElementById('modal-message');
+  const modalInput = document.getElementById('modal-input');
   const modalCancel = document.getElementById('modal-cancel');
   const modalConfirm = document.getElementById('modal-confirm');
 
@@ -167,9 +168,15 @@ document.addEventListener('DOMContentLoaded', () => {
   if (playlistRenameBtn) {
     playlistRenameBtn.addEventListener('click', async () => {
       if (!currentPlaylistFilter || currentPlaylistFilter === 'all') return;
-      const next = prompt('New playlist name', currentPlaylistFilter);
-      if (!next) return;
-      const body = { fromName: currentPlaylistFilter, toName: next.trim() };
+      const next = await showCustomPrompt(
+        'Rename Playlist',
+        'Enter a new playlist name',
+        currentPlaylistFilter,
+        { confirmText: 'Save' }
+      );
+      const toName = String(next || '').trim();
+      if (!toName) return;
+      const body = { fromName: currentPlaylistFilter, toName };
       const r = await apiFetch(PLAYLIST_RENAME_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -177,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (!r.ok) return;
       await loadPlaylists();
-      currentPlaylistFilter = next.trim();
+      currentPlaylistFilter = toName;
       if (playlistFilterSelect) playlistFilterSelect.value = currentPlaylistFilter;
       await saveSelectedPlaylistPreference(currentPlaylistFilter);
       await loadTasks();
@@ -194,7 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const nextVisibility = currentVisibility === 'public' ? 'private' : 'public';
       const confirmed = await showCustomConfirm(
         'Change Playlist Visibility',
-        `Set "${currentPlaylistFilter}" to ${nextVisibility}?`
+        `Set "${currentPlaylistFilter}" to ${nextVisibility}?`,
+        { confirmText: `Set ${nextVisibility}`, confirmVariant: 'primary' }
       );
       if (!confirmed) return;
       const r = await apiFetch(PLAYLIST_VISIBILITY_API, {
@@ -215,7 +223,8 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const confirmed = await showCustomConfirm(
         'Delete Playlist',
-        `Are you sure you want to delete "${currentPlaylistFilter}"? All tasks in this playlist will be moved to "Unassigned".`
+        `Are you sure you want to delete "${currentPlaylistFilter}"? All tasks in this playlist will be moved to "Unassigned".`,
+        { confirmText: 'Delete', confirmVariant: 'danger' }
       );
       
       if (!confirmed) return;
@@ -760,7 +769,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const confirmed = await showCustomConfirm(
       'Delete Selected Tasks',
-      `Are you sure you want to delete ${ids.length} selected tasks? This action cannot be undone.`
+      `Are you sure you want to delete ${ids.length} selected tasks? This action cannot be undone.`,
+      { confirmText: 'Delete', confirmVariant: 'danger' }
     );
     
     if (!confirmed) return;
@@ -789,7 +799,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const confirmed = await showCustomConfirm(
       'Delete All Tasks',
-      'Are you sure you want to delete ALL tasks? This action is permanent.'
+      'Are you sure you want to delete ALL tasks? This action is permanent.',
+      { confirmText: 'Delete All', confirmVariant: 'danger' }
     );
     
     if (!confirmed) return;
@@ -957,7 +968,8 @@ document.addEventListener('DOMContentLoaded', () => {
           e.stopPropagation(); // Prevent card click
           const confirmed = await showCustomConfirm(
             'Delete Task',
-            `Are you sure you want to delete "${task.text}"?`
+            `Are you sure you want to delete "${task.text}"?`,
+            { confirmText: 'Delete', confirmVariant: 'danger' }
           );
           if (confirmed) {
             deleteTask(task.id, li);
@@ -1014,38 +1026,96 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /**
-   * Shows a custom confirmation dialog
-   * @param {string} title 
-   * @param {string} message 
-   * @returns {Promise<boolean>}
-   */
-  function showCustomConfirm(title, message) {
-    if (!customModal) return Promise.resolve(confirm(message));
-    
+  function showCustomConfirm(title, message, options = {}) {
+    if (!customModal || !modalTitle || !modalMessage || !modalCancel || !modalConfirm) {
+      return Promise.resolve(false);
+    }
+    const confirmText = String(options.confirmText || 'Confirm');
+    const confirmVariant = options.confirmVariant === 'primary' ? 'primary' : 'danger';
     return new Promise((resolve) => {
       modalTitle.textContent = title;
       modalMessage.textContent = message;
+      modalConfirm.textContent = confirmText;
+      modalConfirm.classList.remove('modal-btn-primary', 'modal-btn-danger');
+      modalConfirm.classList.add(confirmVariant === 'primary' ? 'modal-btn-primary' : 'modal-btn-danger');
+      if (modalInput) {
+        modalInput.classList.add('app-hidden');
+        modalInput.value = '';
+      }
       customModal.classList.add('active');
-      
       const onConfirm = () => {
         cleanup();
         resolve(true);
       };
-      
       const onCancel = () => {
         cleanup();
         resolve(false);
       };
-      
+      const onEscape = (event) => {
+        if (event.key !== 'Escape') return;
+        cleanup();
+        resolve(false);
+      };
       const cleanup = () => {
         customModal.classList.remove('active');
         modalConfirm.removeEventListener('click', onConfirm);
         modalCancel.removeEventListener('click', onCancel);
+        document.removeEventListener('keydown', onEscape);
       };
-      
       modalConfirm.addEventListener('click', onConfirm);
       modalCancel.addEventListener('click', onCancel);
+      document.addEventListener('keydown', onEscape);
+    });
+  }
+
+  function showCustomPrompt(title, message, defaultValue = '', options = {}) {
+    if (!customModal || !modalTitle || !modalMessage || !modalCancel || !modalConfirm || !modalInput) {
+      return Promise.resolve(null);
+    }
+    const confirmText = String(options.confirmText || 'Save');
+    const placeholder = String(options.placeholder || 'Enter value');
+    return new Promise((resolve) => {
+      modalTitle.textContent = title;
+      modalMessage.textContent = message;
+      modalInput.classList.remove('app-hidden');
+      modalInput.placeholder = placeholder;
+      modalInput.value = String(defaultValue || '');
+      modalConfirm.textContent = confirmText;
+      modalConfirm.classList.remove('modal-btn-danger', 'modal-btn-primary');
+      modalConfirm.classList.add('modal-btn-primary');
+      customModal.classList.add('active');
+      const onConfirm = () => {
+        const value = modalInput.value;
+        cleanup();
+        resolve(value);
+      };
+      const onCancel = () => {
+        cleanup();
+        resolve(null);
+      };
+      const onKeyDown = (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          onConfirm();
+          return;
+        }
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          onCancel();
+        }
+      };
+      const cleanup = () => {
+        customModal.classList.remove('active');
+        modalInput.classList.add('app-hidden');
+        modalInput.value = '';
+        modalConfirm.removeEventListener('click', onConfirm);
+        modalCancel.removeEventListener('click', onCancel);
+        modalInput.removeEventListener('keydown', onKeyDown);
+      };
+      modalConfirm.addEventListener('click', onConfirm);
+      modalCancel.addEventListener('click', onCancel);
+      modalInput.addEventListener('keydown', onKeyDown);
+      setTimeout(() => modalInput.focus(), 0);
     });
   }
 });

@@ -579,8 +579,26 @@ header h1 {
 .modal-message {
   font-size: 0.95rem;
   color: #64748b;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
   line-height: 1.5;
+}
+
+.modal-input {
+  width: 100%;
+  border: 1px solid #d9e3f0;
+  background: #ffffff;
+  border-radius: 10px;
+  color: #0f172a;
+  padding: 10px 12px;
+  outline: none;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  margin-bottom: 18px;
+}
+
+.modal-input:focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  border-color: #93c5fd;
 }
 
 .modal-actions {
@@ -615,6 +633,15 @@ header h1 {
 
 .modal-btn-danger:hover {
   background: #dc2626;
+}
+
+.modal-btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.modal-btn-primary:hover {
+  background: #1d4ed8;
 }
 
 @media (max-width: 640px) {
