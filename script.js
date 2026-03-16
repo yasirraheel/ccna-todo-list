@@ -46,8 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let AUTH_REGISTER_API = '/api/auth/register';
   let AUTH_ME_API = '/api/auth/me';
   let PLAYLISTS_API = '/api/playlists';
+  let PREFERENCES_API = '/api/preferences';
   const IMPORT_LIMIT = 300;
   const AUTH_TOKEN_KEY = 'todo_auth_token';
+  const SELECTED_PLAYLIST_KEY = 'todo_selected_playlist';
   let tasks = [];
   let currentFilter = 'all';
   const selectedTaskIds = new Set();
@@ -110,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (playlistFilterSelect) {
     playlistFilterSelect.addEventListener('change', async () => {
       currentPlaylistFilter = playlistFilterSelect.value || 'all';
+      await saveSelectedPlaylistPreference(currentPlaylistFilter);
       await loadTasks();
       renderTasks();
     });
@@ -149,6 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
     AUTH_REGISTER_API = `${apiRoot}/auth/register`;
     AUTH_ME_API = `${apiRoot}/auth/me`;
     PLAYLISTS_API = `${apiRoot}/playlists`;
+    PREFERENCES_API = `${apiRoot}/preferences`;
   }
 
   async function fetchWithTimeout(url, timeoutMs = 2500) {
@@ -364,6 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!authed) return;
     if (isLoginPage) return;
     await loadPlaylists();
+    await loadSelectedPlaylistPreference();
     await loadTasks();
     renderTasks();
     if (scrollTopBtn) {
@@ -418,6 +423,36 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_e) {
       // ignore
     }
+  }
+
+  async function loadSelectedPlaylistPreference() {
+    let fromServer = '';
+    try {
+      const r = await apiFetch(PREFERENCES_API);
+      if (r.ok) {
+        const d = await r.json();
+        fromServer = String(d?.selectedPlaylist || '');
+      }
+    } catch (_e) {}
+    const fromLocal = localStorage.getItem(SELECTED_PLAYLIST_KEY) || '';
+    const chosen = fromServer || fromLocal || 'all';
+    if (playlistFilterSelect) {
+      const exists = Array.from(playlistFilterSelect.options).some(o => o.value === chosen) || chosen === 'all';
+      playlistFilterSelect.value = exists ? chosen : 'all';
+    }
+    currentPlaylistFilter = (playlistFilterSelect && playlistFilterSelect.value) || chosen || 'all';
+  }
+
+  async function saveSelectedPlaylistPreference(value) {
+    const v = String(value || 'all');
+    localStorage.setItem(SELECTED_PLAYLIST_KEY, v);
+    try {
+      await apiFetch(PREFERENCES_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ selectedPlaylist: v })
+      });
+    } catch (_e) {}
   }
 
   async function addTask() {
@@ -544,6 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (playlistFilterSelect) {
           playlistFilterSelect.value = importedPlaylistName;
         }
+        await saveSelectedPlaylistPreference(currentPlaylistFilter);
         await loadTasks();
       }
       renderTasks();

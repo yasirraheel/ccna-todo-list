@@ -181,6 +181,16 @@ function ensureTables(PDO $pdo): void {
       UNIQUE KEY `uk_user_tokens_token` (`token`),
       INDEX `idx_user_tokens_user_id` (`user_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS `user_prefs` (
+      `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      `user_id` BIGINT UNSIGNED NOT NULL,
+      `pref_key` VARCHAR(128) NOT NULL,
+      `pref_value` TEXT NOT NULL,
+      `updated_at` BIGINT NOT NULL,
+      `created_at` BIGINT NOT NULL,
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `uk_user_prefs_user_key` (`user_id`, `pref_key`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
     $pdo->exec('CREATE TABLE IF NOT EXISTS `tasks` (
       `id` VARCHAR(64) NOT NULL,
       `user_id` BIGINT UNSIGNED NOT NULL,
@@ -322,6 +332,32 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'me' &
 
 $authUser = getAuthenticatedUser($pdo);
 $userId = (int) $authUser['id'];
+
+if (count($segments) === 1 && $segments[0] === 'preferences' && $method === 'GET') {
+    $stmt = $pdo->prepare('SELECT `pref_key`, `pref_value` FROM `user_prefs` WHERE `user_id` = :user_id');
+    $stmt->execute([':user_id' => $userId]);
+    $prefs = [];
+    foreach ($stmt->fetchAll() ?: [] as $row) {
+        $prefs[(string) ($row['pref_key'] ?? '')] = (string) ($row['pref_value'] ?? '');
+    }
+    $selected = (string) ($prefs['selected_playlist'] ?? 'all');
+    jsonResponse(200, ['selectedPlaylist' => $selected]);
+}
+
+if (count($segments) === 1 && $segments[0] === 'preferences' && $method === 'POST') {
+    $selected = trim((string) ($body['selectedPlaylist'] ?? 'all'));
+    $nowTs = (int) round(microtime(true) * 1000);
+    $up = $pdo->prepare('INSERT INTO `user_prefs` (`user_id`, `pref_key`, `pref_value`, `updated_at`, `created_at`) VALUES (:user_id, :pref_key, :pref_value, :updated_at, :created_at)
+      ON DUPLICATE KEY UPDATE `pref_value` = VALUES(`pref_value`), `updated_at` = VALUES(`updated_at`)');
+    $up->execute([
+        ':user_id' => $userId,
+        ':pref_key' => 'selected_playlist',
+        ':pref_value' => $selected,
+        ':updated_at' => $nowTs,
+        ':created_at' => $nowTs
+    ]);
+    jsonResponse(200, ['selectedPlaylist' => $selected]);
+}
 
 if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'GET') {
     $playlist = trim((string) ($_GET['playlist'] ?? ''));
