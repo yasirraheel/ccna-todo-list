@@ -624,21 +624,45 @@ header h1 {
   }
 
   .task-item {
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .custom-checkbox {
+    align-self: flex-start;
+    margin-bottom: 4px;
+  }
+
+  .task-details {
+    order: 1;
   }
 
   .task-actions {
-    margin-left: auto;
+    order: 2;
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid #e5ecf6;
   }
 
   .watch-btn {
-    font-size: 0.74rem;
-    padding: 6px 9px;
+    flex: 1;
+    text-align: center;
+    font-size: 0.84rem;
+    padding: 10px 12px;
+    border-radius: 12px;
   }
 
   .delete-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
     opacity: 1;
-    align-self: center;
+    align-self: stretch;
   }
 }
 
