@@ -1157,7 +1157,20 @@ header h1 {
 }
 
 .task-actions {
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.task-actions::-webkit-scrollbar {
+  display: none;
+}
+
+.task-check-wrap span {
+  max-width: 58px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 1024px) {
