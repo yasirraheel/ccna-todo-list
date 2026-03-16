@@ -60,6 +60,7 @@
           <input type="url" id="playlist-url" placeholder="Paste YouTube playlist URL" autocomplete="off">
         </div>
         <div class="playlist-attributes-row">
+          <input type="text" id="playlist-name" placeholder="Playlist name (optional)">
           <select id="playlist-priority">
             <option value="">Select Priority</option>
             <option value="low">Low Priority</option>
@@ -81,6 +82,9 @@
     </div>
 
     <div class="filters">
+      <select id="playlist-filter" title="Filter by playlist">
+        <option value="all">All Playlists</option>
+      </select>
       <button class="filter-btn active" data-filter="all">All</button>
       <button class="filter-btn" data-filter="active">Active</button>
       <button class="filter-btn" data-filter="completed">Completed</button>

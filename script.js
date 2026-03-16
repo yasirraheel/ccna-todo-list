@@ -12,8 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const playlistPriorityInput = document.getElementById('playlist-priority');
   const playlistTypeInput = document.getElementById('playlist-type');
   const playlistDateInput = document.getElementById('playlist-date');
+  const playlistNameInput = document.getElementById('playlist-name');
   const importPlaylistBtn = document.getElementById('import-playlist-btn');
   const playlistStatus = document.getElementById('playlist-status');
+  const playlistFilterSelect = document.getElementById('playlist-filter');
   const selectAllTasksInput = document.getElementById('select-all-tasks');
   const deleteSelectedBtn = document.getElementById('delete-selected-btn');
   const deleteAllBtn = document.getElementById('delete-all-btn');
@@ -43,12 +45,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let AUTH_LOGIN_API = '/api/auth/login';
   let AUTH_REGISTER_API = '/api/auth/register';
   let AUTH_ME_API = '/api/auth/me';
+  let PLAYLISTS_API = '/api/playlists';
   const IMPORT_LIMIT = 300;
   const AUTH_TOKEN_KEY = 'todo_auth_token';
   let tasks = [];
   let currentFilter = 'all';
   const selectedTaskIds = new Set();
   let authToken = localStorage.getItem(AUTH_TOKEN_KEY) || '';
+  let currentPlaylistFilter = 'all';
 
   const options = { weekday: 'long', month: 'short', day: 'numeric' };
   if (dateDisplay) {
@@ -103,6 +107,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (playlistFilterSelect) {
+    playlistFilterSelect.addEventListener('change', async () => {
+      currentPlaylistFilter = playlistFilterSelect.value || 'all';
+      await loadTasks();
+      renderTasks();
+    });
+  }
   if (authLoginBtn) {
     authLoginBtn.addEventListener('click', () => {
       loginUser().catch(() => {});
@@ -137,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     AUTH_LOGIN_API = `${apiRoot}/auth/login`;
     AUTH_REGISTER_API = `${apiRoot}/auth/register`;
     AUTH_ME_API = `${apiRoot}/auth/me`;
+    PLAYLISTS_API = `${apiRoot}/playlists`;
   }
 
   async function fetchWithTimeout(url, timeoutMs = 2500) {
@@ -351,6 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const authed = await authenticateWithStoredToken();
     if (!authed) return;
     if (isLoginPage) return;
+    await loadPlaylists();
     await loadTasks();
     renderTasks();
     if (scrollTopBtn) {
@@ -371,11 +384,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadTasks() {
     try {
-      const response = await apiFetch(API_BASE);
+      const q = currentPlaylistFilter && currentPlaylistFilter !== 'all' ? `?playlist=${encodeURIComponent(currentPlaylistFilter)}` : '';
+      const response = await apiFetch(`${API_BASE}${q}`);
       if (!response.ok) return;
       tasks = await response.json();
     } catch (_error) {
       tasks = [];
+    }
+  }
+
+  async function loadPlaylists() {
+    if (!playlistFilterSelect) return;
+    try {
+      const response = await apiFetch(PLAYLISTS_API);
+      if (!response.ok) return;
+      const items = await response.json();
+      const prev = currentPlaylistFilter;
+      playlistFilterSelect.innerHTML = '';
+      const optAll = document.createElement('option');
+      optAll.value = 'all';
+      optAll.textContent = 'All Playlists';
+      playlistFilterSelect.appendChild(optAll);
+      (items || []).forEach(it => {
+        const name = String(it?.name || '');
+        const label = name || 'Unassigned';
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = `${label} (${it?.count ?? 0})`;
+        playlistFilterSelect.appendChild(option);
+      });
+      playlistFilterSelect.value = prev || 'all';
+      currentPlaylistFilter = playlistFilterSelect.value || 'all';
+    } catch (_e) {
+      // ignore
     }
   }
 
@@ -482,6 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
           priority: playlistPriority,
           category: playlistType,
           date: playlistDate,
+          playlistName: playlistNameInput ? playlistNameInput.value.trim() : '',
           maxVideos: IMPORT_LIMIT
         })
       });
@@ -495,6 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const importedTasks = data.tasks || [];
       tasks = [...importedTasks, ...tasks];
       renderTasks();
+      await loadPlaylists();
       if (data.partial) {
         playlistStatus.textContent = `Imported ${data.importedCount} videos (${data.source || 'fallback'}). ${data.message || ''}`.trim();
       } else {
@@ -504,6 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
       playlistPriorityInput.value = '';
       playlistTypeInput.value = '';
       playlistDateInput.value = '';
+      if (playlistNameInput) playlistNameInput.value = '';
     } catch (_error) {
       playlistStatus.textContent = `Could not connect to import service (${API_BASE})`;
     } finally {

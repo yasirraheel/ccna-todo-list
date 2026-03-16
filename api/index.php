@@ -188,12 +188,18 @@ function ensureTables(PDO $pdo): void {
       `date` VARCHAR(32) NOT NULL DEFAULT "",
       `priority` VARCHAR(16) NOT NULL DEFAULT "medium",
       `category` VARCHAR(32) NOT NULL DEFAULT "personal",
+      `playlist_name` VARCHAR(190) NOT NULL DEFAULT "",
       `video_url` TEXT NULL,
       `completed` TINYINT(1) NOT NULL DEFAULT 0,
       `created_at` BIGINT NOT NULL,
       PRIMARY KEY (`id`),
       INDEX `idx_tasks_user_created` (`user_id`, `created_at`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    try {
+        $pdo->exec('ALTER TABLE `tasks` ADD COLUMN `playlist_name` VARCHAR(190) NOT NULL DEFAULT ""');
+    } catch (Throwable $e) {
+        // ignore if exists
+    }
 }
 
 function mapTaskRow(array $row): array {
@@ -203,6 +209,7 @@ function mapTaskRow(array $row): array {
         'date' => (string) ($row['date'] ?? ''),
         'priority' => (string) ($row['priority'] ?? 'medium'),
         'category' => (string) ($row['category'] ?? 'personal'),
+        'playlistName' => (string) ($row['playlist_name'] ?? ''),
         'videoUrl' => (string) ($row['video_url'] ?? ''),
         'completed' => ((int) ($row['completed'] ?? 0)) === 1
     ];
@@ -317,8 +324,14 @@ $authUser = getAuthenticatedUser($pdo);
 $userId = (int) $authUser['id'];
 
 if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'GET') {
-    $stmt = $pdo->prepare('SELECT `id`, `text`, `date`, `priority`, `category`, `video_url`, `completed` FROM `tasks` WHERE `user_id` = :user_id ORDER BY `created_at` DESC');
-    $stmt->execute([':user_id' => $userId]);
+    $playlist = trim((string) ($_GET['playlist'] ?? ''));
+    if ($playlist !== '' && strtolower($playlist) !== 'all') {
+        $stmt = $pdo->prepare('SELECT `id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `completed` FROM `tasks` WHERE `user_id` = :user_id AND `playlist_name` = :playlist ORDER BY `created_at` DESC');
+        $stmt->execute([':user_id' => $userId, ':playlist' => $playlist]);
+    } else {
+        $stmt = $pdo->prepare('SELECT `id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `completed` FROM `tasks` WHERE `user_id` = :user_id ORDER BY `created_at` DESC');
+        $stmt->execute([':user_id' => $userId]);
+    }
     jsonResponse(200, array_map('mapTaskRow', $stmt->fetchAll() ?: []));
 }
 
@@ -332,10 +345,11 @@ if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'POST') {
         'date' => (string) ($body['date'] ?? ''),
         'priority' => (string) ($body['priority'] ?? 'medium'),
         'category' => (string) ($body['category'] ?? 'personal'),
+        'playlistName' => (string) ($body['playlistName'] ?? ''),
         'videoUrl' => (string) ($body['videoUrl'] ?? ''),
         'completed' => (bool) ($body['completed'] ?? false)
     ];
-    $insert = $pdo->prepare('INSERT INTO `tasks` (`id`, `user_id`, `text`, `date`, `priority`, `category`, `video_url`, `completed`, `created_at`) VALUES (:id, :user_id, :text, :date, :priority, :category, :video_url, :completed, :created_at)');
+    $insert = $pdo->prepare('INSERT INTO `tasks` (`id`, `user_id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `completed`, `created_at`) VALUES (:id, :user_id, :text, :date, :priority, :category, :playlist_name, :video_url, :completed, :created_at)');
     $insert->execute([
         ':id' => $task['id'],
         ':user_id' => $userId,
@@ -343,6 +357,7 @@ if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'POST') {
         ':date' => $task['date'],
         ':priority' => $task['priority'],
         ':category' => $task['category'],
+        ':playlist_name' => $task['playlistName'],
         ':video_url' => $task['videoUrl'],
         ':completed' => $task['completed'] ? 1 : 0,
         ':created_at' => $now
@@ -442,8 +457,9 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
     }
     if (count($videos) === 0) jsonResponse(404, ['message' => 'No videos found in playlist']);
 
-    $existingStmt = $pdo->prepare('SELECT `text` FROM `tasks` WHERE `user_id` = :user_id');
-    $existingStmt->execute([':user_id' => $userId]);
+    $playlistName = (string) ($body['playlistName'] ?? '');
+    $existingStmt = $pdo->prepare('SELECT `text` FROM `tasks` WHERE `user_id` = :user_id AND (`playlist_name` = :playlist_name OR :playlist_name = "")');
+    $existingStmt->execute([':user_id' => $userId, ':playlist_name' => $playlistName]);
     $existingRows = $existingStmt->fetchAll();
     $existing = [];
     foreach ($existingRows as $row) $existing[normalizeText((string) ($row['text'] ?? ''))] = true;
@@ -451,7 +467,7 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
     $now = (int) round(microtime(true) * 1000);
     $imported = [];
     $index = 0;
-    $insert = $pdo->prepare('INSERT INTO `tasks` (`id`, `user_id`, `text`, `date`, `priority`, `category`, `video_url`, `completed`, `created_at`) VALUES (:id, :user_id, :text, :date, :priority, :category, :video_url, :completed, :created_at)');
+    $insert = $pdo->prepare('INSERT INTO `tasks` (`id`, `user_id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `completed`, `created_at`) VALUES (:id, :user_id, :text, :date, :priority, :category, :playlist_name, :video_url, :completed, :created_at)');
     foreach ($videos as $video) {
         $title = trim((string) ($video['title'] ?? ''));
         $normalized = normalizeText($title);
@@ -464,6 +480,7 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
             'date' => $date,
             'priority' => $priority,
             'category' => $category,
+            'playlistName' => $playlistName,
             'videoUrl' => trim((string) ($video['videoUrl'] ?? '')),
             'completed' => false
         ];
@@ -474,6 +491,7 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
             ':date' => $record['date'],
             ':priority' => $record['priority'],
             ':category' => $record['category'],
+            ':playlist_name' => $record['playlistName'],
             ':video_url' => $record['videoUrl'],
             ':completed' => 0,
             ':created_at' => $now - $index
@@ -489,6 +507,20 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
         'source' => $source,
         'message' => $partial ? 'Imported available videos. Add YOUTUBE_API_KEY in .env for full playlist pagination.' : 'Playlist imported successfully'
     ]);
+}
+
+if (count($segments) === 1 && $segments[0] === 'playlists' && $method === 'GET') {
+    $stmt = $pdo->prepare('SELECT `playlist_name` AS `name`, COUNT(*) AS `count` FROM `tasks` WHERE `user_id` = :user_id GROUP BY `playlist_name` ORDER BY `name` ASC');
+    $stmt->execute([':user_id' => $userId]);
+    $rows = $stmt->fetchAll();
+    $result = [];
+    foreach ($rows as $row) {
+        $result[] = [
+            'name' => (string) ($row['name'] ?? ''),
+            'count' => (int) ($row['count'] ?? 0)
+        ];
+    }
+    jsonResponse(200, $result);
 }
 
 jsonResponse(404, ['message' => 'Not found']);
