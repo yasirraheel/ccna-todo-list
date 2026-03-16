@@ -339,13 +339,15 @@ if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'POST') {
     $text = trim((string) ($body['text'] ?? ''));
     if ($text === '') jsonResponse(400, ['message' => 'Task text is required']);
     $now = (int) round(microtime(true) * 1000);
+    $playlistNameBody = (string) ($body['playlistName'] ?? ($body['playlist'] ?? ''));
+    $playlistNameBody = trim($playlistNameBody);
     $task = [
         'id' => (string) $now . '-' . bin2hex(random_bytes(3)),
         'text' => $text,
         'date' => (string) ($body['date'] ?? ''),
         'priority' => (string) ($body['priority'] ?? 'medium'),
         'category' => (string) ($body['category'] ?? 'personal'),
-        'playlistName' => (string) ($body['playlistName'] ?? ''),
+        'playlistName' => $playlistNameBody,
         'videoUrl' => (string) ($body['videoUrl'] ?? ''),
         'completed' => (bool) ($body['completed'] ?? false)
     ];
@@ -457,7 +459,8 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
     }
     if (count($videos) === 0) jsonResponse(404, ['message' => 'No videos found in playlist']);
 
-    $playlistName = (string) ($body['playlistName'] ?? '');
+    $playlistName = (string) ($body['playlistName'] ?? ($body['playlist'] ?? ''));
+    $playlistName = trim($playlistName);
     $existingStmt = $pdo->prepare('SELECT `text` FROM `tasks` WHERE `user_id` = :user_id AND (`playlist_name` = :playlist_name OR :playlist_name = "")');
     $existingStmt->execute([':user_id' => $userId, ':playlist_name' => $playlistName]);
     $existingRows = $existingStmt->fetchAll();
