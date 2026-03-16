@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const authRegisterBtn = document.getElementById('auth-register-btn');
   const logoutBtn = document.getElementById('logout-btn');
   const sessionEmail = document.getElementById('session-email');
+  const appTitle = document.querySelector('.app-brand h1');
   const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login.html') || document.body.dataset.page === 'login';
   const scrollTopBtn = document.getElementById('scroll-top-btn');
 
@@ -45,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalInput = document.getElementById('modal-input');
   const modalCancel = document.getElementById('modal-cancel');
   const modalConfirm = document.getElementById('modal-confirm');
+  const flashStack = document.getElementById('flash-stack');
 
   const statTotalEl = document.getElementById('stat-total');
   const statCompletedEl = document.getElementById('stat-completed');
@@ -85,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentPlaylistFilter = 'all';
   let currentScope = localStorage.getItem(TASK_SCOPE_KEY) || 'my';
   let currentUserId = null;
+  let appName = 'My Tasks';
 
   const options = { weekday: 'long', month: 'short', day: 'numeric' };
   if (dateDisplay) {
@@ -106,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.classList.add('active');
       currentFilter = btn.dataset.filter;
       renderTasks();
+      showFlash(`Showing ${currentFilter} tasks`, 'info');
     });
   });
 
@@ -124,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         filteredTasks.forEach(task => selectedTaskIds.delete(task.id));
       }
       renderTasks();
+      showFlash(selectAllTasksInput.checked ? 'Selected visible tasks' : 'Selection cleared', 'info');
     });
   }
 
@@ -146,6 +151,8 @@ document.addEventListener('DOMContentLoaded', () => {
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
+      const label = currentPlaylistFilter === 'all' ? 'All Playlists' : currentPlaylistFilter;
+      showFlash(`Playlist selected: ${label}`, 'info');
     });
   }
 
@@ -162,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
+      showFlash(currentScope === 'public' ? 'Showing public tasks' : 'Showing your tasks', 'info');
     });
   }
 
@@ -182,7 +190,10 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
-      if (!r.ok) return;
+      if (!r.ok) {
+        showFlash(await readResponseMessage(r, 'Playlist rename failed'), 'error');
+        return;
+      }
       await loadPlaylists();
       currentPlaylistFilter = toName;
       if (playlistFilterSelect) playlistFilterSelect.value = currentPlaylistFilter;
@@ -190,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
+      showFlash(`Playlist renamed to ${toName}`, 'success');
     });
   }
 
@@ -210,10 +222,14 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: currentPlaylistFilter, visibility: nextVisibility })
       });
-      if (!r.ok) return;
+      if (!r.ok) {
+        showFlash(await readResponseMessage(r, 'Visibility update failed'), 'error');
+        return;
+      }
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
+      showFlash(`Playlist visibility set to ${nextVisibility}`, 'success');
     });
   }
 
@@ -234,7 +250,10 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: currentPlaylistFilter })
       });
-      if (!r.ok) return;
+      if (!r.ok) {
+        showFlash(await readResponseMessage(r, 'Playlist delete failed'), 'error');
+        return;
+      }
       await loadPlaylists();
       currentPlaylistFilter = 'all';
       if (playlistFilterSelect) playlistFilterSelect.value = 'all';
@@ -242,6 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
+      showFlash('Playlist cleared to Unassigned', 'success');
     });
   }
   if (authLoginBtn) {
@@ -331,6 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const configResponse = await fetchWithTimeout(`${origin}/api/config`);
         if (configResponse.ok) {
           const config = await configResponse.json();
+          applyAppName(config?.appName || '');
           if (config?.apiBaseUrl) {
             updateApiEndpoints(config.apiBaseUrl);
             return;
@@ -393,6 +414,36 @@ document.addEventListener('DOMContentLoaded', () => {
     return fetch(url, { ...options, headers });
   }
 
+  function applyAppName(value) {
+    const next = String(value || '').trim();
+    if (!next || !appTitle) return;
+    appName = next;
+    appTitle.textContent = next;
+  }
+
+  async function readResponseMessage(response, fallback) {
+    try {
+      const data = await response.clone().json();
+      return String(data?.message || fallback || 'Request failed');
+    } catch (_error) {
+      return String(fallback || 'Request failed');
+    }
+  }
+
+  function showFlash(message, type = 'info') {
+    const text = String(message || '').trim();
+    if (!flashStack || !text) return;
+    const tone = type === 'error' ? 'error' : (type === 'success' ? 'success' : 'info');
+    const icon = tone === 'error' ? 'fa-circle-exclamation' : (tone === 'success' ? 'fa-circle-check' : 'fa-circle-info');
+    const item = document.createElement('div');
+    item.className = `flash-item ${tone}`;
+    item.innerHTML = `<i class="fas ${icon}"></i><span>${text}</span>`;
+    flashStack.appendChild(item);
+    setTimeout(() => {
+      item.remove();
+    }, 2800);
+  }
+
   async function authenticateWithStoredToken() {
     if (!authToken) {
       if (isLoginPage) {
@@ -444,6 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const data = await response.json();
     if (!response.ok) {
       if (authStatus) authStatus.textContent = data.message || 'Login failed';
+      showFlash(data.message || 'Login failed', 'error');
       return;
     }
     setAuthToken(data.token || '');
@@ -452,6 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isLoginPage) return;
     await loadTasks();
     renderTasks();
+    showFlash('Logged in successfully', 'success');
   }
 
   async function registerUser() {
@@ -472,6 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const data = await response.json();
     if (!response.ok) {
       if (authStatus) authStatus.textContent = data.message || 'Register failed';
+      showFlash(data.message || 'Register failed', 'error');
       return;
     }
     setAuthToken(data.token || '');
@@ -480,6 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isLoginPage) return;
     await loadTasks();
     renderTasks();
+    showFlash('Account created successfully', 'success');
   }
 
   function logoutUser() {
@@ -492,6 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       redirectToLogin();
     }
+    showFlash('Logged out', 'info');
   }
 
   async function init() {
@@ -524,7 +580,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const q = currentPlaylistFilter && currentPlaylistFilter !== 'all' ? `?playlist=${encodeURIComponent(currentPlaylistFilter)}` : '';
       const base = currentScope === 'public' ? PUBLIC_TASKS_API : API_BASE;
       const response = await apiFetch(`${base}${q}`);
-      if (!response.ok) return;
+      if (!response.ok) {
+        showFlash(await readResponseMessage(response, 'Could not load tasks'), 'error');
+        return;
+      }
       tasks = await response.json();
       if (currentScope === 'public') {
         selectedTaskIds.clear();
@@ -532,6 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateDashboard();
     } catch (_error) {
       tasks = [];
+      showFlash('Could not connect to task service', 'error');
     }
   }
 
@@ -633,12 +693,17 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTask)
       });
-      if (!response.ok) return;
+      if (!response.ok) {
+        showFlash(await readResponseMessage(response, 'Could not add task'), 'error');
+        return;
+      }
 
       const createdTask = await response.json();
       tasks.unshift(createdTask);
       renderTasks();
+      showFlash('Task added', 'success');
     } catch (_error) {
+      showFlash('Could not connect to add task', 'error');
       return;
     }
 
@@ -660,7 +725,10 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ completed: !task.completed })
       });
-      if (!response.ok) return;
+      if (!response.ok) {
+        showFlash(await readResponseMessage(response, 'Could not update task'), 'error');
+        return;
+      }
 
       const updatedTask = await response.json();
       tasks = tasks.map(item => item.id === id ? updatedTask : item);
@@ -675,7 +743,9 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         renderTasks();
       }
+      showFlash(updatedTask.completed ? 'Task marked done' : 'Task marked active', 'success');
     } catch (_error) {
+      showFlash('Could not update task', 'error');
       return;
     }
   }
@@ -686,11 +756,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(async () => {
       try {
         const response = await apiFetch(`${API_BASE}/${id}`, { method: 'DELETE' });
-        if (!response.ok && response.status !== 204) return;
+        if (!response.ok && response.status !== 204) {
+          showFlash(await readResponseMessage(response, 'Could not delete task'), 'error');
+          return;
+        }
         tasks = tasks.filter(task => task.id !== id);
         selectedTaskIds.delete(id);
         renderTasks();
+        showFlash('Task deleted', 'success');
       } catch (_error) {
+        showFlash('Could not delete task', 'error');
         return;
       }
     }, 300);
@@ -704,6 +779,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!playlistUrl) return;
     if (!playlistPriority || !playlistType) {
       playlistStatus.textContent = 'Select priority and type before import';
+      showFlash('Select priority and type before import', 'error');
       return;
     }
 
@@ -728,6 +804,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
       if (!response.ok) {
         playlistStatus.textContent = data.message || 'Import failed';
+        showFlash(data.message || 'Import failed', 'error');
         return;
       }
 
@@ -749,6 +826,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         playlistStatus.textContent = `Imported ${data.importedCount} videos as tasks (${data.source || 'primary'}, limit ${data.requestedLimit || IMPORT_LIMIT})`;
       }
+      showFlash(`Imported ${data.importedCount} tasks`, 'success');
       playlistUrlInput.value = '';
       playlistPriorityInput.value = '';
       playlistTypeInput.value = '';
@@ -757,6 +835,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (playlistNameInput) playlistNameInput.value = '';
     } catch (_error) {
       playlistStatus.textContent = `Could not connect to import service (${API_BASE})`;
+      showFlash('Could not connect to import service', 'error');
     } finally {
       importPlaylistBtn.disabled = false;
     }
@@ -782,12 +861,16 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids })
       });
-      if (!response.ok) return;
+      if (!response.ok) {
+        showFlash(await readResponseMessage(response, 'Could not delete selected tasks'), 'error');
+        return;
+      }
 
       const idsSet = new Set(ids);
       tasks = tasks.filter(task => !idsSet.has(task.id));
       ids.forEach(id => selectedTaskIds.delete(id));
       renderTasks();
+      showFlash(`Deleted ${ids.length} selected tasks`, 'success');
     } finally {
       deleteSelectedBtn.disabled = false;
     }
@@ -808,10 +891,14 @@ document.addEventListener('DOMContentLoaded', () => {
     deleteAllBtn.disabled = true;
     try {
       const response = await apiFetch(API_BASE, { method: 'DELETE' });
-      if (!response.ok) return;
+      if (!response.ok) {
+        showFlash(await readResponseMessage(response, 'Could not delete all tasks'), 'error');
+        return;
+      }
       tasks = [];
       selectedTaskIds.clear();
       renderTasks();
+      showFlash('All tasks deleted', 'success');
     } finally {
       deleteAllBtn.disabled = false;
     }

@@ -410,6 +410,7 @@ $projectRoot = dirname(__DIR__);
 loadEnvFile($projectRoot . DIRECTORY_SEPARATOR . '.env');
 $publicApiBase = rtrim(envValue('PUBLIC_API_BASE_URL', ''), '/');
 $youtubeApiKey = trim(envValue('YOUTUBE_API_KEY', ''));
+$appName = trim(envValue('APP_NAME', 'My Tasks'));
 $pdo = dbConnect();
 ensureTables($pdo);
 
@@ -418,7 +419,7 @@ $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 $body = getJsonBody();
 
 if (count($segments) === 1 && $segments[0] === 'config' && $method === 'GET') {
-    jsonResponse(200, ['apiBaseUrl' => $publicApiBase, 'runtime' => 'php']);
+    jsonResponse(200, ['apiBaseUrl' => $publicApiBase, 'runtime' => 'php', 'appName' => $appName !== '' ? $appName : 'My Tasks']);
 }
 
 if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'register' && $method === 'POST') {
