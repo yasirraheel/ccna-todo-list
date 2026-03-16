@@ -64,6 +64,7 @@ body {
 .auth-actions {
   display: flex;
   gap: 10px;
+  margin-top: 10px;
 }
 
 .auth-actions .playlist-btn,
@@ -119,21 +120,7 @@ header h1 {
   margin-bottom: 15px;
 }
 
-#task-input {
-  flex: 1;
-  padding: 12px 15px;
-  border: none;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.8);
-  font-size: 1rem;
-  outline: none;
-  transition: all 0.3s ease;
-}
-
-#task-input:focus {
-  background: #ffffff;
-  box-shadow: 0 0 0 2px rgba(116, 235, 213, 0.5);
-}
+/* Simplified unified styles at the bottom handle all inputs/selects */
 
 .add-btn {
   background: #1a1a1a;
@@ -163,26 +150,20 @@ header h1 {
 .option-group {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.7);
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-size: 0.85rem;
+  gap: 10px;
   flex: 1;
-  min-width: 120px;
+  min-width: 140px;
 }
 
 .option-group i {
-  margin-right: 8px;
-  color: #666;
+  color: #64748b;
+  font-size: 0.9rem;
+  width: 16px;
+  text-align: center;
 }
 
 .option-group input, .option-group select {
-  border: none;
-  background: transparent;
-  outline: none;
-  width: 100%;
-  color: #333;
-  cursor: pointer;
+  /* Styles are now inherited from the unified field block below */
 }
 
 .playlist-import {
@@ -208,33 +189,7 @@ header h1 {
   gap: 10px;
 }
 
-#playlist-url {
-  width: 100%;
-  padding: 10px 12px;
-  border: none;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.85);
-  outline: none;
-}
-
-#playlist-url:focus {
-  background: #ffffff;
-  box-shadow: 0 0 0 2px rgba(116, 235, 213, 0.5);
-}
-
-#playlist-name, #playlist-priority, #playlist-type, #playlist-date {
-  padding: 10px 12px;
-  border: 1px solid #d9e3f0;
-  border-radius: 10px;
-  background: #ffffff;
-  outline: none;
-  width: 100%;
-}
-
-#playlist-name:focus, #playlist-priority:focus, #playlist-type:focus, #playlist-date:focus {
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-  border-color: #93c5fd;
-}
+/* Simplified unified styles at bottom */
 
 .playlist-btn {
   border: none;
@@ -314,14 +269,7 @@ header h1 {
   padding: 10px;
 }
 
-#playlist-filter {
-  border: 1px solid #d9e3f0;
-  background: #ffffff;
-  color: #0f172a;
-  border-radius: 10px;
-  padding: 10px 12px;
-  min-width: 180px;
-}
+/* Simplified unified styles at bottom */
 
 .playlist-toolbar {
   display: flex;
@@ -772,23 +720,47 @@ header h1 {
 }
 
 #task-input,
+#task-date,
+#task-priority,
+#task-category,
 #playlist-url,
+#playlist-name,
 #playlist-priority,
 #playlist-type,
 #playlist-date,
-.auth-form input {
+.auth-form input,
+#playlist-filter {
   border: 1px solid #d9e3f0;
   background: #ffffff;
   border-radius: 10px;
   color: #0f172a;
+  padding: 10px 12px;
+  outline: none;
+  font-size: 0.9rem;
+  width: 100%;
+  transition: all 0.2s ease;
+  min-width: 140px;
+}
+
+#playlist-filter {
+  min-width: 180px;
+}
+
+#task-input {
+  flex: 1;
 }
 
 #task-input:focus,
+#task-date:focus,
+#task-priority:focus,
+#task-category:focus,
 #playlist-url:focus,
+#playlist-name:focus,
 #playlist-priority:focus,
 #playlist-type:focus,
 #playlist-date:focus,
-.auth-form input:focus {
+.auth-form input:focus,
+#playlist-filter:focus {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
   border-color: #93c5fd;
 }
