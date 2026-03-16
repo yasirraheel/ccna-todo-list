@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs/promises');
@@ -9,10 +11,18 @@ const port = process.env.PORT || 3000;
 const dbPath = path.join(__dirname, 'db.json');
 const DEFAULT_IMPORT_LIMIT = 300;
 const MAX_IMPORT_LIMIT = 500;
+const PUBLIC_API_BASE_URL = String(process.env.PUBLIC_API_BASE_URL || '').trim().replace(/\/+$/, '');
 
 app.use(express.json());
 app.use(cors());
 app.use(express.static(__dirname));
+
+app.get('/api/config', (_req, res) => {
+  return res.json({
+    apiBaseUrl: PUBLIC_API_BASE_URL || '',
+    port
+  });
+});
 
 async function readDb() {
   const file = await fs.readFile(dbPath, 'utf8');

@@ -24,17 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
     browserHost === '127.0.0.1' ||
     browserHost.startsWith('192.168.') ||
     browserHost.startsWith('10.') ||
-    browserHost.startsWith('172.16.') ||
-    browserHost.startsWith('172.17.') ||
-    browserHost.startsWith('172.18.') ||
-    browserHost.startsWith('172.19.') ||
-    browserHost.startsWith('172.2') ||
-    browserHost.startsWith('172.30.') ||
-    browserHost.startsWith('172.31.');
-  const backendOrigin = window.location.port === '3000' ? '' : (isLocalNetworkHost ? `http://${browserHost}:3000` : '');
-  const API_BASE = backendOrigin ? `${backendOrigin}/api/tasks` : '/api/tasks';
-  const IMPORT_API = `${API_BASE.replace(/\/tasks$/, '')}/import/youtube-playlist`;
-  const BULK_DELETE_API = `${API_BASE}/bulk-delete`;
+    browserHost.startsWith('172.');
+  let API_BASE = '/api/tasks';
+  let IMPORT_API = '/api/import/youtube-playlist';
+  let BULK_DELETE_API = '/api/tasks/bulk-delete';
   const IMPORT_LIMIT = 300;
   let tasks = [];
   let currentFilter = 'all';
@@ -81,7 +74,73 @@ document.addEventListener('DOMContentLoaded', () => {
     deleteAllTasks().catch(() => {});
   });
 
+  function buildApiBase(originOrPath) {
+    const value = String(originOrPath || '').trim().replace(/\/+$/, '');
+    if (!value) return '/api/tasks';
+    if (value.endsWith('/api/tasks')) return value;
+    if (value.endsWith('/api')) return `${value}/tasks`;
+    return `${value}/api/tasks`;
+  }
+
+  function updateApiEndpoints(base) {
+    API_BASE = buildApiBase(base);
+    IMPORT_API = `${API_BASE.replace(/\/tasks$/, '')}/import/youtube-playlist`;
+    BULK_DELETE_API = `${API_BASE}/bulk-delete`;
+  }
+
+  async function fetchWithTimeout(url, timeoutMs = 2500) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function resolveApiBase() {
+    if (window.location.port === '3000') {
+      updateApiEndpoints(window.location.origin);
+      return;
+    }
+
+    if (window.__TODO_API_BASE) {
+      updateApiEndpoints(window.__TODO_API_BASE);
+      return;
+    }
+
+    const candidates = [window.location.origin];
+    if (isLocalNetworkHost) candidates.push(`http://${browserHost}:3000`);
+    candidates.push('http://localhost:3000', 'http://127.0.0.1:3000');
+
+    const uniqueCandidates = Array.from(new Set(candidates));
+
+    for (const origin of uniqueCandidates) {
+      try {
+        const configResponse = await fetchWithTimeout(`${origin}/api/config`);
+        if (configResponse.ok) {
+          const config = await configResponse.json();
+          if (config?.apiBaseUrl) {
+            updateApiEndpoints(config.apiBaseUrl);
+            return;
+          }
+          updateApiEndpoints(origin);
+          return;
+        }
+      } catch (_error) {
+      }
+    }
+
+    if (isLocalNetworkHost) {
+      updateApiEndpoints(`http://${browserHost}:3000`);
+      return;
+    }
+
+    updateApiEndpoints(window.location.origin);
+  }
+
   async function init() {
+    await resolveApiBase();
     await loadTasks();
     renderTasks();
   }
@@ -212,8 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
       playlistTypeInput.value = '';
       playlistDateInput.value = '';
     } catch (_error) {
-      const backendHint = backendOrigin || window.location.origin;
-      playlistStatus.textContent = `Could not connect to import service (${backendHint})`;
+      playlistStatus.textContent = `Could not connect to import service (${API_BASE})`;
     } finally {
       importPlaylistBtn.disabled = false;
     }
