@@ -1000,6 +1000,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function formatOwnerLabel(email) {
+    const raw = String(email || '').trim();
+    if (!raw) return '';
+    const base = raw.split('@')[0] || '';
+    if (!base) return '';
+    return base
+      .split(/[._\-\s]+/)
+      .filter(Boolean)
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(' ');
+  }
+
   async function trackTaskView(taskId) {
     const id = String(taskId || '').trim();
     if (!id) return;
@@ -1055,6 +1067,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const formattedDate = task.date ? new Date(task.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : '';
       const watchUrl = getSafeWatchUrl(task.videoUrl);
+      const ownerLabel = formatOwnerLabel(task.ownerEmail);
       const canDelete = currentScope !== 'public' || Number(task.ownerId || 0) === Number(currentUserId || 0);
       const canToggle = currentScope !== 'public' || task.visibility === 'public' || Number(task.ownerId || 0) === Number(currentUserId || 0);
       const downloadSubUrl = task.captionPath ? `/api/captions/${task.captionPath}` : '';
@@ -1083,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', () => {
               ${task.playlistName ? `<span><i class="fas fa-list"></i> ${task.playlistName}</span>` : ''}
               <span><i class="fas fa-chart-line"></i> ${Number(task.views || 0)} views</span>
               ${task.visibility ? `<span><i class="fas fa-eye"></i> ${task.visibility}</span>` : ''}
-              ${task.ownerEmail ? `<span><i class="fas fa-user"></i> ${task.ownerEmail}</span>` : ''}
+              ${ownerLabel ? `<span><i class="fas fa-user"></i> ${ownerLabel}</span>` : ''}
             </div>
             <div class="task-actions">
               <label class="task-check-wrap" title="${task.completed ? 'Completed' : 'Mark as done'}">
