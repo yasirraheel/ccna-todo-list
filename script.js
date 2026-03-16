@@ -780,6 +780,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const pendingCount = tasks.filter(item => !item.completed).length;
         taskCount.textContent = pendingCount;
         updateBulkActionState(getFilteredTasks());
+        updateDashboard();
       } else {
         renderTasks();
       }
