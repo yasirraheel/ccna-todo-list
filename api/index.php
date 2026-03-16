@@ -80,7 +80,9 @@ function extractPlaylistVideosFromFeed(string $playlistId): array {
         }
         $videos[] = [
             'title' => $title,
-            'videoUrl' => $videoId !== '' ? 'https://www.youtube.com/watch?v=' . urlencode($videoId) : ''
+            'videoUrl' => $videoId !== '' ? 'https://www.youtube.com/watch?v=' . urlencode($videoId) : '',
+            'thumbnailUrl' => $videoId !== '' ? 'https://i.ytimg.com/vi/' . $videoId . '/mqdefault.jpg' : '',
+            'description' => ''
         ];
     }
     return $videos;
@@ -104,12 +106,25 @@ function extractPlaylistVideosFromYouTubeApi(string $playlistId, int $limit, str
         $decoded = json_decode($raw, true);
         if (!is_array($decoded) || !isset($decoded['items']) || !is_array($decoded['items'])) break;
         foreach ($decoded['items'] as $item) {
-            $title = trim((string) ($item['snippet']['title'] ?? ''));
+            $snippet = $item['snippet'] ?? [];
+            $title = trim((string) ($snippet['title'] ?? ''));
             if ($title === '' || $title === 'Private video' || $title === 'Deleted video') continue;
-            $videoId = (string) ($item['snippet']['resourceId']['videoId'] ?? '');
+            $videoId = (string) ($snippet['resourceId']['videoId'] ?? '');
+            
+            // Get best thumbnail
+            $thumbnails = $snippet['thumbnails'] ?? [];
+            $thumbUrl = '';
+            if (isset($thumbnails['maxres'])) $thumbUrl = $thumbnails['maxres']['url'];
+            elseif (isset($thumbnails['standard'])) $thumbUrl = $thumbnails['standard']['url'];
+            elseif (isset($thumbnails['high'])) $thumbUrl = $thumbnails['high']['url'];
+            elseif (isset($thumbnails['medium'])) $thumbUrl = $thumbnails['medium']['url'];
+            elseif (isset($thumbnails['default'])) $thumbUrl = $thumbnails['default']['url'];
+
             $videos[] = [
                 'title' => $title,
-                'videoUrl' => $videoId !== '' ? 'https://www.youtube.com/watch?v=' . urlencode($videoId) : ''
+                'videoUrl' => $videoId !== '' ? 'https://www.youtube.com/watch?v=' . urlencode($videoId) : '',
+                'thumbnailUrl' => $thumbUrl,
+                'description' => (string) ($snippet['description'] ?? '')
             ];
             if (count($videos) >= $limit) break;
         }
@@ -200,6 +215,8 @@ function ensureTables(PDO $pdo): void {
       `category` VARCHAR(32) NOT NULL DEFAULT "personal",
       `playlist_name` VARCHAR(190) NOT NULL DEFAULT "",
       `video_url` TEXT NULL,
+      `thumbnail_url` TEXT NULL,
+      `description` TEXT NULL,
       `completed` TINYINT(1) NOT NULL DEFAULT 0,
       `created_at` BIGINT NOT NULL,
       PRIMARY KEY (`id`),
@@ -207,9 +224,13 @@ function ensureTables(PDO $pdo): void {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
     try {
         $pdo->exec('ALTER TABLE `tasks` ADD COLUMN `playlist_name` VARCHAR(190) NOT NULL DEFAULT ""');
-    } catch (Throwable $e) {
-        // ignore if exists
-    }
+    } catch (Throwable $e) {}
+    try {
+        $pdo->exec('ALTER TABLE `tasks` ADD COLUMN `thumbnail_url` TEXT NULL');
+    } catch (Throwable $e) {}
+    try {
+        $pdo->exec('ALTER TABLE `tasks` ADD COLUMN `description` TEXT NULL');
+    } catch (Throwable $e) {}
 }
 
 function mapTaskRow(array $row): array {
@@ -221,6 +242,8 @@ function mapTaskRow(array $row): array {
         'category' => (string) ($row['category'] ?? 'personal'),
         'playlistName' => (string) ($row['playlist_name'] ?? ''),
         'videoUrl' => (string) ($row['video_url'] ?? ''),
+        'thumbnailUrl' => (string) ($row['thumbnail_url'] ?? ''),
+        'description' => (string) ($row['description'] ?? ''),
         'completed' => ((int) ($row['completed'] ?? 0)) === 1
     ];
 }
@@ -362,10 +385,10 @@ if (count($segments) === 1 && $segments[0] === 'preferences' && $method === 'POS
 if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'GET') {
     $playlist = trim((string) ($_GET['playlist'] ?? ''));
     if ($playlist !== '' && strtolower($playlist) !== 'all') {
-        $stmt = $pdo->prepare('SELECT `id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `completed` FROM `tasks` WHERE `user_id` = :user_id AND `playlist_name` = :playlist ORDER BY `created_at` DESC');
+        $stmt = $pdo->prepare('SELECT `id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `completed` FROM `tasks` WHERE `user_id` = :user_id AND `playlist_name` = :playlist ORDER BY `created_at` DESC');
         $stmt->execute([':user_id' => $userId, ':playlist' => $playlist]);
     } else {
-        $stmt = $pdo->prepare('SELECT `id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `completed` FROM `tasks` WHERE `user_id` = :user_id ORDER BY `created_at` DESC');
+        $stmt = $pdo->prepare('SELECT `id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `completed` FROM `tasks` WHERE `user_id` = :user_id ORDER BY `created_at` DESC');
         $stmt->execute([':user_id' => $userId]);
     }
     jsonResponse(200, array_map('mapTaskRow', $stmt->fetchAll() ?: []));
@@ -385,9 +408,11 @@ if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'POST') {
         'category' => (string) ($body['category'] ?? 'personal'),
         'playlistName' => $playlistNameBody,
         'videoUrl' => (string) ($body['videoUrl'] ?? ''),
+        'thumbnailUrl' => (string) ($body['thumbnailUrl'] ?? ''),
+        'description' => (string) ($body['description'] ?? ''),
         'completed' => (bool) ($body['completed'] ?? false)
     ];
-    $insert = $pdo->prepare('INSERT INTO `tasks` (`id`, `user_id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `completed`, `created_at`) VALUES (:id, :user_id, :text, :date, :priority, :category, :playlist_name, :video_url, :completed, :created_at)');
+    $insert = $pdo->prepare('INSERT INTO `tasks` (`id`, `user_id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `completed`, `created_at`) VALUES (:id, :user_id, :text, :date, :priority, :category, :playlist_name, :video_url, :thumbnail_url, :description, :completed, :created_at)');
     $insert->execute([
         ':id' => $task['id'],
         ':user_id' => $userId,
@@ -397,6 +422,8 @@ if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'POST') {
         ':category' => $task['category'],
         ':playlist_name' => $task['playlistName'],
         ':video_url' => $task['videoUrl'],
+        ':thumbnail_url' => $task['thumbnailUrl'],
+        ':description' => $task['description'],
         ':completed' => $task['completed'] ? 1 : 0,
         ':created_at' => $now
     ]);
@@ -506,7 +533,7 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
     $now = (int) round(microtime(true) * 1000);
     $imported = [];
     $index = 0;
-    $insert = $pdo->prepare('INSERT INTO `tasks` (`id`, `user_id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `completed`, `created_at`) VALUES (:id, :user_id, :text, :date, :priority, :category, :playlist_name, :video_url, :completed, :created_at)');
+    $insert = $pdo->prepare('INSERT INTO `tasks` (`id`, `user_id`, `text`, `date`, `priority`, `category`, `playlist_name`, `video_url`, `thumbnail_url`, `description`, `completed`, `created_at`) VALUES (:id, :user_id, :text, :date, :priority, :category, :playlist_name, :video_url, :thumbnail_url, :description, :completed, :created_at)');
     foreach ($videos as $video) {
         $title = trim((string) ($video['title'] ?? ''));
         $normalized = normalizeText($title);
@@ -521,6 +548,8 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
             'category' => $category,
             'playlistName' => $playlistName,
             'videoUrl' => trim((string) ($video['videoUrl'] ?? '')),
+            'thumbnailUrl' => (string) ($video['thumbnailUrl'] ?? ''),
+            'description' => (string) ($video['description'] ?? ''),
             'completed' => false
         ];
         $insert->execute([
@@ -532,6 +561,8 @@ if (count($segments) === 2 && $segments[0] === 'import' && $segments[1] === 'you
             ':category' => $record['category'],
             ':playlist_name' => $record['playlistName'],
             ':video_url' => $record['videoUrl'],
+            ':thumbnail_url' => $record['thumbnailUrl'],
+            ':description' => $record['description'],
             ':completed' => 0,
             ':created_at' => $now - $index
         ]);

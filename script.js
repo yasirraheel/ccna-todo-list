@@ -754,24 +754,40 @@ document.addEventListener('DOMContentLoaded', () => {
       const li = document.createElement('li');
       li.className = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''} ${selectedTaskIds.has(task.id) ? 'selected-for-delete' : ''}`;
       
-      const formattedDate = task.date ? new Date(task.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : 'No date';
+      const formattedDate = task.date ? new Date(task.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : '';
       const watchUrl = getSafeWatchUrl(task.videoUrl);
-      const watchButton = watchUrl ? `<a class="watch-btn" href="${watchUrl}" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> Watch</a>` : '';
-      const playlistLabel = task.playlistName ? `<span class="playlist-pill"><i class="fas fa-list"></i> ${task.playlistName}</span>` : '';
+      
+      // YT layout components
+      const thumbnailHtml = task.thumbnailUrl 
+        ? `<img src="${task.thumbnailUrl}" class="task-thumbnail" alt="${task.text}" loading="lazy">`
+        : `<div class="task-thumbnail-placeholder"><i class="fab fa-youtube"></i></div>`;
+
+      const descriptionHtml = task.description 
+        ? `<div class="task-description">${task.description}</div>`
+        : '';
 
       li.innerHTML = `
-        <input type="checkbox" class="custom-checkbox" ${task.completed ? 'checked' : ''}>
-        <div class="task-details">
-          <div class="task-content">${task.text}</div>
-          <div class="task-meta">
-            ${task.date ? `<span><i class="far fa-calendar"></i> ${formattedDate}</span>` : ''}
-            <span><i class="fas fa-tag"></i> ${task.category}</span>
-            ${playlistLabel}
+        <div class="task-thumbnail-wrapper">
+          ${thumbnailHtml}
+          <div class="task-status-overlay">
+            <input type="checkbox" class="custom-checkbox" ${task.completed ? 'checked' : ''}>
           </div>
+          <div class="task-priority-badge">${task.priority}</div>
         </div>
-        <div class="task-actions">
-          ${watchButton}
-          <button class="delete-btn"><i class="fas fa-trash"></i></button>
+        <div class="task-body">
+          <div class="task-content" title="${task.text}">${task.text}</div>
+          ${descriptionHtml}
+          <div class="task-footer">
+            <div class="task-meta">
+              ${formattedDate ? `<span><i class="far fa-calendar"></i> ${formattedDate}</span>` : ''}
+              <span><i class="fas fa-tag"></i> ${task.category}</span>
+              ${task.playlistName ? `<span><i class="fas fa-list"></i> ${task.playlistName}</span>` : ''}
+            </div>
+            <div class="task-actions">
+              ${watchUrl ? `<a class="watch-btn" href="${watchUrl}" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> Watch</a>` : ''}
+              <button class="delete-btn" title="Delete task"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
         </div>
       `;
 

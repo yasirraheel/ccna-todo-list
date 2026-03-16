@@ -297,100 +297,126 @@ header h1 {
 
 #task-list {
   list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
 }
 
 .task-item {
-  background: rgba(255, 255, 255, 0.78);
-  border-radius: 16px;
-  padding: 15px;
+  background: #ffffff;
+  border: 1px solid #e5ecf6;
+  border-radius: 12px;
   display: flex;
-  align-items: center;
-  gap: 15px;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, opacity 0.35s ease;
-  animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  border-left: 5px solid transparent;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
 }
 
 .task-item:hover {
-  background: rgba(255, 255, 255, 0.9);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
 }
 
-@media (min-width: 1100px) {
-  #todo-form, .playlist-import, .filters, .bulk-actions {
-    max-width: 1040px;
-  }
-}
-
-.task-item.priority-high { border-left-color: #ff6b6b; }
-.task-item.priority-medium { border-left-color: #feca57; }
-.task-item.priority-low { border-left-color: #48dbfb; }
-
-.task-item.completed {
-  opacity: 0.72;
-  transform: scale(0.995);
-}
-
-.task-item.completed .task-content {
-  text-decoration: line-through;
-  color: #888;
-}
-
-.task-item.selected-for-delete {
-  background: rgba(255, 221, 87, 0.25);
-  box-shadow: 0 0 0 1px rgba(242, 181, 17, 0.35);
-}
-
-.custom-checkbox {
-  appearance: none;
-  width: 22px;
-  height: 22px;
-  border: 2px solid #a0a0a0;
-  border-radius: 6px;
-  cursor: pointer;
+.task-thumbnail-wrapper {
   position: relative;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #f1f5f9;
+  overflow: hidden;
 }
 
-.custom-checkbox:checked {
-  background: #1a1a1a;
-  border-color: #1a1a1a;
+.task-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-.custom-checkbox:checked::after {
-  content: '✓';
-  color: white;
+.task-item:hover .task-thumbnail {
+  transform: scale(1.05);
+}
+
+.task-thumbnail-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  color: #94a3b8;
+  font-size: 2rem;
+}
+
+.task-status-overlay {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 12px;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
 }
 
-.task-details {
+.task-priority-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #fff;
+  z-index: 10;
+}
+
+.task-item.priority-high .task-priority-badge { background: #ef4444; }
+.task-item.priority-medium .task-priority-badge { background: #f59e0b; }
+.task-item.priority-low .task-priority-badge { background: #3b82f6; }
+
+.task-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
   flex: 1;
-  min-width: 0;
+  gap: 8px;
 }
 
 .task-content {
-  font-size: 1.05rem;
-  color: #1a1a1a;
-  font-weight: 500;
-  margin-bottom: 5px;
-  transition: color 0.3s, text-decoration-color 0.3s;
-  overflow-wrap: anywhere;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.task-description {
+  font-size: 0.8rem;
+  color: #64748b;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.task-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .task-meta {
   display: flex;
-  gap: 15px;
-  font-size: 0.75rem;
-  color: #666;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.7rem;
+  color: #94a3b8;
 }
 
 .task-meta span {
@@ -399,61 +425,73 @@ header h1 {
   gap: 4px;
 }
 
-.playlist-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #eef2ff;
-  color: #3730a3;
-  border: 1px solid #e0e7ff;
-  font-weight: 600;
-}
-
 .task-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
 }
 
 .watch-btn {
-  display: inline-flex;
+  flex: 1;
+  justify-content: center;
+  background: #ff0000;
+  color: #fff;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: flex;
   align-items: center;
   gap: 6px;
-  text-decoration: none;
-  color: #d90429;
-  background: rgba(217, 4, 41, 0.09);
-  border-radius: 10px;
-  padding: 7px 10px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  transition: background 0.2s;
 }
 
 .watch-btn:hover {
-  background: rgba(217, 4, 41, 0.16);
-  transform: translateY(-1px);
+  background: #cc0000;
 }
 
 .delete-btn {
-  background: transparent;
+  background: #f1f5f9;
+  color: #64748b;
   border: none;
-  color: #ff6b6b;
+  border-radius: 6px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  opacity: 0.5;
-}
-
-.task-item:hover .delete-btn {
-  opacity: 1;
+  transition: all 0.2s;
 }
 
 .delete-btn:hover {
-  background: rgba(255, 107, 107, 0.1);
-  transform: scale(1.1);
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.task-item.completed {
+  opacity: 0.8;
+}
+
+.task-item.completed .task-content {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+.custom-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #0f172a;
+}
+
+@media (max-width: 640px) {
+  #task-list {
+    grid-template-columns: 1fr;
+  }
 }
 
 @keyframes slideIn {
@@ -888,4 +926,14 @@ header h1 {
   .app-container {
     min-height: auto;
   }
+}
+
+@media (min-width: 1100px) {
+  #todo-form, .playlist-import, .filters, .bulk-actions {
+    max-width: 1040px;
+  }
+}
+
+.task-item.selected-for-delete {
+  box-shadow: 0 0 0 3px #f59e0b !important;
 }
