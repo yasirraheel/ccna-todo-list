@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const importPlaylistBtn = document.getElementById('import-playlist-btn');
   const playlistStatus = document.getElementById('playlist-status');
   const playlistFilterSelect = document.getElementById('playlist-filter');
+  const playlistRenameBtn = document.getElementById('playlist-rename-btn');
+  const playlistDeleteBtn = document.getElementById('playlist-delete-btn');
   const selectAllTasksInput = document.getElementById('select-all-tasks');
   const deleteSelectedBtn = document.getElementById('delete-selected-btn');
   const deleteAllBtn = document.getElementById('delete-all-btn');
@@ -47,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let AUTH_ME_API = '/api/auth/me';
   let PLAYLISTS_API = '/api/playlists';
   let PREFERENCES_API = '/api/preferences';
+  let PLAYLIST_RENAME_API = '/api/playlists/rename';
+  let PLAYLIST_DELETE_API = '/api/playlists/delete';
   const IMPORT_LIMIT = 300;
   const AUTH_TOKEN_KEY = 'todo_auth_token';
   const SELECTED_PLAYLIST_KEY = 'todo_selected_playlist';
@@ -115,6 +119,50 @@ document.addEventListener('DOMContentLoaded', () => {
       await saveSelectedPlaylistPreference(currentPlaylistFilter);
       await loadTasks();
       renderTasks();
+      updatePlaylistActionState();
+    });
+  }
+
+  if (playlistRenameBtn) {
+    playlistRenameBtn.addEventListener('click', async () => {
+      if (!currentPlaylistFilter || currentPlaylistFilter === 'all') return;
+      const next = prompt('New playlist name', currentPlaylistFilter);
+      if (!next) return;
+      const body = { fromName: currentPlaylistFilter, toName: next.trim() };
+      const r = await apiFetch(PLAYLIST_RENAME_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!r.ok) return;
+      await loadPlaylists();
+      currentPlaylistFilter = next.trim();
+      if (playlistFilterSelect) playlistFilterSelect.value = currentPlaylistFilter;
+      await saveSelectedPlaylistPreference(currentPlaylistFilter);
+      await loadTasks();
+      renderTasks();
+      updatePlaylistActionState();
+    });
+  }
+
+  if (playlistDeleteBtn) {
+    playlistDeleteBtn.addEventListener('click', async () => {
+      if (!currentPlaylistFilter || currentPlaylistFilter === 'all') return;
+      const yes = confirm(`Delete playlist "${currentPlaylistFilter}"? Tasks will move to Unassigned.`);
+      if (!yes) return;
+      const r = await apiFetch(PLAYLIST_DELETE_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: currentPlaylistFilter })
+      });
+      if (!r.ok) return;
+      await loadPlaylists();
+      currentPlaylistFilter = 'all';
+      if (playlistFilterSelect) playlistFilterSelect.value = 'all';
+      await saveSelectedPlaylistPreference(currentPlaylistFilter);
+      await loadTasks();
+      renderTasks();
+      updatePlaylistActionState();
     });
   }
   if (authLoginBtn) {
@@ -153,6 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
     AUTH_ME_API = `${apiRoot}/auth/me`;
     PLAYLISTS_API = `${apiRoot}/playlists`;
     PREFERENCES_API = `${apiRoot}/preferences`;
+    PLAYLIST_RENAME_API = `${apiRoot}/playlists/rename`;
+    PLAYLIST_DELETE_API = `${apiRoot}/playlists/delete`;
   }
 
   async function fetchWithTimeout(url, timeoutMs = 2500) {
@@ -675,7 +725,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const pendingCount = tasks.filter(t => !t.completed).length;
     taskCount.textContent = pendingCount;
     updateBulkActionState(filteredTasks);
+    updatePlaylistActionState();
 
+    if (filteredTasks.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'task-item empty-state';
+      const label = currentPlaylistFilter && currentPlaylistFilter !== 'all' ? currentPlaylistFilter : 'All';
+      li.innerHTML = `
+        <div class="task-details">
+          <div class="task-content">No tasks in ${label}</div>
+          <div class="task-meta"><span>Add a task or import a playlist</span></div>
+        </div>
+      `;
+      taskList.appendChild(li);
+      return;
+    }
     filteredTasks.forEach(task => {
       const li = document.createElement('li');
       li.className = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''} ${selectedTaskIds.has(task.id) ? 'selected-for-delete' : ''}`;
@@ -711,5 +775,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       taskList.appendChild(li);
     });
+  }
+
+  function updatePlaylistActionState() {
+    const disable = !currentPlaylistFilter || currentPlaylistFilter === 'all';
+    if (playlistRenameBtn) playlistRenameBtn.disabled = disable;
+    if (playlistDeleteBtn) playlistDeleteBtn.disabled = disable;
   }
 });

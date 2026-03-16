@@ -562,4 +562,36 @@ if (count($segments) === 1 && $segments[0] === 'playlists' && $method === 'GET')
     jsonResponse(200, $result);
 }
 
+if (count($segments) === 2 && $segments[0] === 'playlists' && $segments[1] === 'rename' && $method === 'POST') {
+    $fromName = trim((string) ($body['fromName'] ?? ''));
+    $toName = trim((string) ($body['toName'] ?? ''));
+    if ($fromName === '' || $toName === '') jsonResponse(400, ['message' => 'Both fromName and toName are required']);
+    $upd = $pdo->prepare('UPDATE `tasks` SET `playlist_name` = :to WHERE `user_id` = :user_id AND `playlist_name` = :from');
+    $upd->execute([':to' => $toName, ':user_id' => $userId, ':from' => $fromName]);
+    $count = $upd->rowCount();
+    $nowTs = (int) round(microtime(true) * 1000);
+    $prefUpd = $pdo->prepare('INSERT INTO `user_prefs` (`user_id`, `pref_key`, `pref_value`, `updated_at`, `created_at`) VALUES (:user_id, :k, :v, :u, :c)
+      ON DUPLICATE KEY UPDATE `pref_value` = VALUES(`pref_value`), `updated_at` = VALUES(`updated_at`)');
+    $sel = $pdo->prepare('SELECT `pref_value` FROM `user_prefs` WHERE `user_id` = :user_id AND `pref_key` = :k LIMIT 1');
+    $sel->execute([':user_id' => $userId, ':k' => 'selected_playlist']);
+    $pv = $sel->fetch();
+    if ($pv && (string) ($pv['pref_value'] ?? '') === $fromName) {
+        $prefUpd->execute([':user_id' => $userId, ':k' => 'selected_playlist', ':v' => $toName, ':u' => $nowTs, ':c' => $nowTs]);
+    }
+    jsonResponse(200, ['renamed' => $count, 'from' => $fromName, 'to' => $toName]);
+}
+
+if (count($segments) === 2 && $segments[0] === 'playlists' && $segments[1] === 'delete' && $method === 'POST') {
+    $name = trim((string) ($body['name'] ?? ''));
+    if ($name === '') jsonResponse(400, ['message' => 'name is required']);
+    $upd = $pdo->prepare('UPDATE `tasks` SET `playlist_name` = "" WHERE `user_id` = :user_id AND `playlist_name` = :name');
+    $upd->execute([':user_id' => $userId, ':name' => $name]);
+    $cleared = $upd->rowCount();
+    $nowTs = (int) round(microtime(true) * 1000);
+    $prefUpd = $pdo->prepare('INSERT INTO `user_prefs` (`user_id`, `pref_key`, `pref_value`, `updated_at`, `created_at`) VALUES (:user_id, :k, :v, :u, :c)
+      ON DUPLICATE KEY UPDATE `pref_value` = VALUES(`pref_value`), `updated_at` = VALUES(`updated_at`)');
+    $prefUpd->execute([':user_id' => $userId, ':k' => 'selected_playlist', ':v' => 'all', ':u' => $nowTs, ':c' => $nowTs]);
+    jsonResponse(200, ['cleared' => $cleared, 'name' => $name]);
+}
+
 jsonResponse(404, ['message' => 'Not found']);

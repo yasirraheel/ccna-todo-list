@@ -323,6 +323,12 @@ header h1 {
   min-width: 180px;
 }
 
+.playlist-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .filter-btn {
   background: transparent;
   border: 1px solid rgba(255,255,255,0.5);
@@ -829,6 +835,12 @@ header h1 {
 .task-item:hover {
   background: #ffffff;
   transform: translateY(-1px);
+}
+
+.task-item.empty-state {
+  justify-content: center;
+  text-align: center;
+  border-left-color: transparent;
 }
 
 .task-content {
