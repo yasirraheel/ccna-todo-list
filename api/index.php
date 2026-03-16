@@ -147,26 +147,54 @@ function getApiPathSegments(): array {
 }
 
 function downloadCaptions(string $videoId): ?string {
-    $apiUrl = "https://www.youtube.com/api/timedtext?v=" . urlencode($videoId) . "&lang=en&fmt=srv3";
-    $context = stream_context_create(['http' => ['timeout' => 10, 'ignore_errors' => true]]);
-    $content = @file_get_contents($apiUrl, false, $context);
+    if ($videoId === '') return null;
     
-    if (!$content || str_contains($content, '<error')) {
-        // Try fallback without lang=en to see available
-        $listUrl = "https://www.youtube.com/api/timedtext?v=" . urlencode($videoId) . "&type=list";
-        $list = @file_get_contents($listUrl, false, $context);
-        if ($list && preg_match('/lang_code="([^"]+)"/', $list, $m)) {
-            $apiUrl = "https://www.youtube.com/api/timedtext?v=" . urlencode($videoId) . "&lang=" . $m[1] . "&fmt=srv3";
-            $content = @file_get_contents($apiUrl, false, $context);
+    // YouTube internal caption API - needs User-Agent to avoid blocks
+    $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+    $contextOptions = [
+        'http' => [
+            'timeout' => 15,
+            'ignore_errors' => true,
+            'header' => "User-Agent: {$userAgent}\r\nAccept-Language: en-US,en;q=0.9\r\n"
+        ]
+    ];
+    $context = stream_context_create($contextOptions);
+    
+    // Attempt 1: Get the list of available languages first
+    $listUrl = "https://www.youtube.com/api/timedtext?v=" . urlencode($videoId) . "&type=list";
+    $listXml = @file_get_contents($listUrl, false, $context);
+    
+    $langCode = 'en'; // Default to English
+    if ($listXml && preg_match('/lang_code="([^"]+)"/', $listXml, $m)) {
+        // Use the first available language if English isn't explicitly there
+        if (!str_contains($listXml, 'lang_code="en"')) {
+            $langCode = $m[1];
         }
     }
 
-    if ($content && !str_contains($content, '<error')) {
+    // Attempt 2: Download the actual captions (srv3 is easy to parse, or just save as xml)
+    $apiUrl = "https://www.youtube.com/api/timedtext?v=" . urlencode($videoId) . "&lang=" . $langCode . "&fmt=srv3";
+    $content = @file_get_contents($apiUrl, false, $context);
+    
+    // If still failing, try the video.google.com alternative endpoint
+    if (!$content || str_contains($content, '<error')) {
+        $altUrl = "https://video.google.com/timedtext?v=" . urlencode($videoId) . "&lang=" . $langCode;
+        $content = @file_get_contents($altUrl, false, $context);
+    }
+
+    if ($content && !str_contains($content, '<error') && strlen($content) > 100) {
         $fileName = "captions_" . $videoId . "_" . time() . ".xml";
         $dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'captions';
-        if (!is_dir($dir)) mkdir($dir, 0777, true);
+        
+        if (!is_dir($dir)) {
+            if (!@mkdir($dir, 0777, true)) {
+                // If mkdir fails, we might have a permissions issue
+                return null;
+            }
+        }
+        
         $filePath = $dir . DIRECTORY_SEPARATOR . $fileName;
-        if (file_put_contents($filePath, $content)) {
+        if (@file_put_contents($filePath, $content)) {
             return $fileName;
         }
     }
