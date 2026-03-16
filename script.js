@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const playlistStatus = document.getElementById('playlist-status');
   const playlistFilterSelect = document.getElementById('playlist-filter');
   const scopeFilterSelect = document.getElementById('scope-filter');
+  const playlistVisibilityBtn = document.getElementById('playlist-visibility-btn');
   const playlistRenameBtn = document.getElementById('playlist-rename-btn');
   const playlistDeleteBtn = document.getElementById('playlist-delete-btn');
   const selectAllTasksInput = document.getElementById('select-all-tasks');
@@ -69,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let AUTH_ME_API = '/api/auth/me';
   let PLAYLISTS_API = '/api/playlists';
   let PREFERENCES_API = '/api/preferences';
+  let PLAYLIST_VISIBILITY_API = '/api/playlists/visibility';
   let PLAYLIST_RENAME_API = '/api/playlists/rename';
   let PLAYLIST_DELETE_API = '/api/playlists/delete';
   const IMPORT_LIMIT = 300;
@@ -184,6 +186,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (playlistVisibilityBtn) {
+    playlistVisibilityBtn.addEventListener('click', async () => {
+      if (!currentPlaylistFilter || currentPlaylistFilter === 'all' || currentScope === 'public') return;
+      const playlistTasks = tasks.filter(t => String(t.playlistName || '') === currentPlaylistFilter);
+      const currentVisibility = playlistTasks.some(t => String(t.visibility || '') === 'public') ? 'public' : 'private';
+      const nextVisibility = currentVisibility === 'public' ? 'private' : 'public';
+      const confirmed = await showCustomConfirm(
+        'Change Playlist Visibility',
+        `Set "${currentPlaylistFilter}" to ${nextVisibility}?`
+      );
+      if (!confirmed) return;
+      const r = await apiFetch(PLAYLIST_VISIBILITY_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: currentPlaylistFilter, visibility: nextVisibility })
+      });
+      if (!r.ok) return;
+      await loadTasks();
+      renderTasks();
+      updatePlaylistActionState();
+    });
+  }
+
   if (playlistDeleteBtn) {
     playlistDeleteBtn.addEventListener('click', async () => {
       if (!currentPlaylistFilter || currentPlaylistFilter === 'all') return;
@@ -247,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     AUTH_ME_API = `${apiRoot}/auth/me`;
     PLAYLISTS_API = `${apiRoot}/playlists`;
     PREFERENCES_API = `${apiRoot}/preferences`;
+    PLAYLIST_VISIBILITY_API = `${apiRoot}/playlists/visibility`;
     PLAYLIST_RENAME_API = `${apiRoot}/playlists/rename`;
     PLAYLIST_DELETE_API = `${apiRoot}/playlists/delete`;
   }
@@ -834,11 +860,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const li = document.createElement('li');
       li.className = 'task-item empty-state';
       const label = currentPlaylistFilter && currentPlaylistFilter !== 'all' ? currentPlaylistFilter : 'All';
-      const hint = currentScope === 'public' ? 'No public tasks available in this filter' : `No tasks in ${label}`;
+      const heading = currentScope === 'public' ? 'No public tasks found' : `No tasks in ${label}`;
+      const description = currentScope === 'public'
+        ? 'Try changing playlist filter or switch to My Tasks.'
+        : 'Add a task or import a playlist to get started.';
       li.innerHTML = `
-        <div class="task-details">
-          <div class="task-content">${hint}</div>
-          <div class="task-meta"><span>Add a task or import a playlist</span></div>
+        <div class="empty-state-card">
+          <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+          <div class="empty-state-title">${heading}</div>
+          <div class="empty-state-text">${description}</div>
         </div>
       `;
       taskList.appendChild(li);
@@ -941,6 +971,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updatePlaylistActionState() {
     const disable = currentScope === 'public' || !currentPlaylistFilter || currentPlaylistFilter === 'all';
+    if (playlistVisibilityBtn) playlistVisibilityBtn.disabled = disable;
     if (playlistRenameBtn) playlistRenameBtn.disabled = disable;
     if (playlistDeleteBtn) playlistDeleteBtn.disabled = disable;
   }

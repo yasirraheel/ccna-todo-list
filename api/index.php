@@ -828,6 +828,27 @@ if (count($segments) === 2 && $segments[0] === 'playlists' && $segments[1] === '
     jsonResponse(200, ['renamed' => $count, 'from' => $fromName, 'to' => $toName]);
 }
 
+if (count($segments) === 2 && $segments[0] === 'playlists' && $segments[1] === 'visibility' && $method === 'POST') {
+    $name = trim((string) ($body['name'] ?? ''));
+    if ($name === '') jsonResponse(400, ['message' => 'name is required']);
+    $visibility = normalizeVisibility($body['visibility'] ?? 'private');
+    $upd = $pdo->prepare('UPDATE `tasks` SET `visibility` = :visibility WHERE `user_id` = :user_id AND `playlist_name` = :name');
+    $upd->execute([':visibility' => $visibility, ':user_id' => $userId, ':name' => $name]);
+    $updated = $upd->rowCount();
+    if ($visibility === 'public') {
+        $sel = $pdo->prepare('SELECT `id` FROM `tasks` WHERE `user_id` = :user_id AND `playlist_name` = :name');
+        $sel->execute([':user_id' => $userId, ':name' => $name]);
+        $rows = $sel->fetchAll() ?: [];
+        foreach ($rows as $row) {
+            $taskId = (string) ($row['id'] ?? '');
+            if ($taskId !== '') {
+                upsertTaskCompletion($pdo, $taskId, $userId, false);
+            }
+        }
+    }
+    jsonResponse(200, ['updated' => $updated, 'name' => $name, 'visibility' => $visibility]);
+}
+
 if (count($segments) === 2 && $segments[0] === 'playlists' && $segments[1] === 'delete' && $method === 'POST') {
     $name = trim((string) ($body['name'] ?? ''));
     if ($name === '') jsonResponse(400, ['message' => 'name is required']);
