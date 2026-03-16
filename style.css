@@ -1029,6 +1029,12 @@ header h1 {
   box-shadow: 0 0 0 3px #f59e0b !important;
 }
 
+@media (min-width: 1280px) {
+  #task-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .app-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

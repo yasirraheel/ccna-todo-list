@@ -832,6 +832,10 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
+        if (task.completed) {
+          return;
+        }
+
         if (watchUrl) {
           window.open(watchUrl, '_blank');
         }
