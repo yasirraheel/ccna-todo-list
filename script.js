@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const authRegisterBtn = document.getElementById('auth-register-btn');
   const logoutBtn = document.getElementById('logout-btn');
   const sessionEmail = document.getElementById('session-email');
+  const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login.html') || document.body.dataset.page === 'login';
 
   const browserHost = window.location.hostname || 'localhost';
   const isLocalNetworkHost =
@@ -89,17 +90,23 @@ document.addEventListener('DOMContentLoaded', () => {
     deleteAllTasks().catch(() => {});
   });
 
-  authLoginBtn.addEventListener('click', () => {
-    loginUser().catch(() => {});
-  });
+  if (authLoginBtn) {
+    authLoginBtn.addEventListener('click', () => {
+      loginUser().catch(() => {});
+    });
+  }
 
-  authRegisterBtn.addEventListener('click', () => {
-    registerUser().catch(() => {});
-  });
+  if (authRegisterBtn) {
+    authRegisterBtn.addEventListener('click', () => {
+      registerUser().catch(() => {});
+    });
+  }
 
-  logoutBtn.addEventListener('click', () => {
-    logoutUser();
-  });
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      logoutUser();
+    });
+  }
 
   function buildApiBase(originOrPath) {
     const value = String(originOrPath || '').trim().replace(/\/+$/, '');
@@ -192,17 +199,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function redirectToLogin() {
+    if (!isLoginPage) {
+      window.location.href = 'login.html';
+    }
+  }
+
+  function redirectToApp() {
+    if (isLoginPage) {
+      window.location.href = 'index.html';
+    }
+  }
+
   function showAuthPanel(message = '') {
-    authPanel.classList.remove('app-hidden');
-    appContainer.classList.add('app-hidden');
-    authStatus.textContent = message;
+    if (authPanel) authPanel.classList.remove('app-hidden');
+    if (appContainer) appContainer.classList.add('app-hidden');
+    if (authStatus) authStatus.textContent = message;
   }
 
   function showAppPanel(user) {
-    authPanel.classList.add('app-hidden');
-    appContainer.classList.remove('app-hidden');
-    sessionEmail.textContent = user?.email || '';
-    authStatus.textContent = '';
+    if (authPanel) authPanel.classList.add('app-hidden');
+    if (appContainer) appContainer.classList.remove('app-hidden');
+    if (sessionEmail) sessionEmail.textContent = user?.email || '';
+    if (authStatus) authStatus.textContent = '';
   }
 
   async function apiFetch(url, options = {}) {
@@ -215,33 +234,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function authenticateWithStoredToken() {
     if (!authToken) {
-      showAuthPanel();
+      if (isLoginPage) {
+        showAuthPanel();
+      } else {
+        redirectToLogin();
+      }
       return false;
     }
     try {
       const response = await apiFetch(AUTH_ME_API);
       if (!response.ok) {
         setAuthToken('');
-        showAuthPanel('Please login to continue');
+        if (isLoginPage) {
+          showAuthPanel('Please login to continue');
+        } else {
+          redirectToLogin();
+        }
         return false;
       }
       const data = await response.json();
       showAppPanel(data.user || {});
+      if (isLoginPage) {
+        redirectToApp();
+      }
       return true;
     } catch (_error) {
-      showAuthPanel('Could not connect to auth service');
+      if (isLoginPage) {
+        showAuthPanel('Could not connect to auth service');
+      }
       return false;
     }
   }
 
   async function loginUser() {
+    if (!authEmailInput || !authPasswordInput) return;
     const email = authEmailInput.value.trim();
     const password = authPasswordInput.value;
     if (!email || !password) {
-      authStatus.textContent = 'Email and password are required';
+      if (authStatus) authStatus.textContent = 'Email and password are required';
       return;
     }
-    authStatus.textContent = 'Signing in...';
+    if (authStatus) authStatus.textContent = 'Signing in...';
     const response = await fetch(AUTH_LOGIN_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -249,24 +282,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     const data = await response.json();
     if (!response.ok) {
-      authStatus.textContent = data.message || 'Login failed';
+      if (authStatus) authStatus.textContent = data.message || 'Login failed';
       return;
     }
     setAuthToken(data.token || '');
     showAppPanel(data.user || {});
+    redirectToApp();
+    if (isLoginPage) return;
     await loadTasks();
     renderTasks();
   }
 
   async function registerUser() {
+    if (!authNameInput || !authEmailInput || !authPasswordInput) return;
     const name = authNameInput.value.trim();
     const email = authEmailInput.value.trim();
     const password = authPasswordInput.value;
     if (!name || !email || !password) {
-      authStatus.textContent = 'Name, email and password are required';
+      if (authStatus) authStatus.textContent = 'Name, email and password are required';
       return;
     }
-    authStatus.textContent = 'Creating account...';
+    if (authStatus) authStatus.textContent = 'Creating account...';
     const response = await fetch(AUTH_REGISTER_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -274,11 +310,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     const data = await response.json();
     if (!response.ok) {
-      authStatus.textContent = data.message || 'Register failed';
+      if (authStatus) authStatus.textContent = data.message || 'Register failed';
       return;
     }
     setAuthToken(data.token || '');
     showAppPanel(data.user || {});
+    redirectToApp();
+    if (isLoginPage) return;
     await loadTasks();
     renderTasks();
   }
@@ -288,13 +326,18 @@ document.addEventListener('DOMContentLoaded', () => {
     tasks = [];
     selectedTaskIds.clear();
     renderTasks();
-    showAuthPanel('Logged out');
+    if (isLoginPage) {
+      showAuthPanel('Logged out');
+    } else {
+      redirectToLogin();
+    }
   }
 
   async function init() {
     await resolveApiBase();
     const authed = await authenticateWithStoredToken();
     if (!authed) return;
+    if (isLoginPage) return;
     await loadTasks();
     renderTasks();
   }
