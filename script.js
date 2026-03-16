@@ -98,6 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function getApiBaseFromMeta() {
+    const metaTag = document.querySelector('meta[name="todo-api-base"]');
+    if (!metaTag) return '';
+    return String(metaTag.getAttribute('content') || '').trim();
+  }
+
   async function resolveApiBase() {
     if (window.location.port === '3000') {
       updateApiEndpoints(window.location.origin);
@@ -109,9 +115,16 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const metaApiBase = getApiBaseFromMeta();
+    if (metaApiBase) {
+      updateApiEndpoints(metaApiBase);
+      return;
+    }
+
     const candidates = [window.location.origin];
-    if (isLocalNetworkHost) candidates.push(`http://${browserHost}:3000`);
-    candidates.push('http://localhost:3000', 'http://127.0.0.1:3000');
+    if (isLocalNetworkHost) {
+      candidates.push(`http://${browserHost}:3000`, 'http://localhost:3000', 'http://127.0.0.1:3000');
+    }
 
     const uniqueCandidates = Array.from(new Set(candidates));
 
