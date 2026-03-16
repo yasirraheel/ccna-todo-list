@@ -36,6 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const logoutBtn = document.getElementById('logout-btn');
   const sessionEmail = document.getElementById('session-email');
   const appTitle = document.getElementById('app-home-link');
+  const footerTitle = document.getElementById('footer-title');
+  const footerDescription = document.getElementById('footer-description');
+  const footerYear = document.getElementById('footer-year');
   const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login.html') || document.body.dataset.page === 'login';
   const scrollTopBtn = document.getElementById('scroll-top-btn');
 
@@ -91,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (dateDisplay) {
     dateDisplay.textContent = new Date().toLocaleDateString('en-US', options);
   }
+  if (footerYear) footerYear.textContent = String(new Date().getFullYear());
   applySeoConfig({ appName });
 
   init();
@@ -427,6 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!next) return;
     appName = next;
     if (appTitle) appTitle.textContent = next;
+    if (footerTitle) footerTitle.textContent = `© ${new Date().getFullYear()} ${next}`;
     document.title = next;
   }
 
@@ -457,6 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setMetaContent('meta[name="description"]', description);
       setMetaContent('meta[property="og:description"]', description);
       setMetaContent('meta[name="twitter:description"]', description);
+      if (footerDescription) footerDescription.textContent = description;
     }
     const ogImage = String(config?.appOgImageUrl || '').trim();
     if (ogImage) {

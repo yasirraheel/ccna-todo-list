@@ -1301,6 +1301,25 @@ header h1 {
   overflow-wrap: anywhere;
 }
 
+.app-footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e5ecf6;
+  display: grid;
+  gap: 4px;
+}
+
+.app-footer-title {
+  font-size: 0.82rem;
+  color: #334155;
+  font-weight: 600;
+}
+
+.app-footer-description {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
 .filters,
 .bulk-actions,
 #todo-form,
@@ -1428,6 +1447,10 @@ header h1 {
   .session-email {
     max-width: 100%;
     flex: 1;
+  }
+
+  .app-footer {
+    margin-top: 14px;
   }
 
   .stats-grid {
