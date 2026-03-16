@@ -149,55 +149,64 @@ function getApiPathSegments(): array {
 function downloadCaptions(string $videoId): ?string {
     if ($videoId === '') return null;
     
-    // YouTube internal caption API - needs User-Agent to avoid blocks
     $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-    $contextOptions = [
+    $context = stream_context_create([
         'http' => [
-            'timeout' => 15,
-            'ignore_errors' => true,
+            'timeout' => 10,
             'header' => "User-Agent: {$userAgent}\r\nAccept-Language: en-US,en;q=0.9\r\n"
         ]
-    ];
-    $context = stream_context_create($contextOptions);
-    
-    // Attempt 1: Get the list of available languages first
-    $listUrl = "https://www.youtube.com/api/timedtext?v=" . urlencode($videoId) . "&type=list";
-    $listXml = @file_get_contents($listUrl, false, $context);
-    
-    $langCode = 'en'; // Default to English
-    if ($listXml && preg_match('/lang_code="([^"]+)"/', $listXml, $m)) {
-        // Use the first available language if English isn't explicitly there
-        if (!str_contains($listXml, 'lang_code="en"')) {
-            $langCode = $m[1];
+    ]);
+
+    // Step 1: Fetch the video page to find the caption tracks JSON
+    $videoUrl = "https://www.youtube.com/watch?v=" . $videoId;
+    $html = @file_get_contents($videoUrl, false, $context);
+    if (!$html) return null;
+
+    // Look for player response JSON which contains caption info
+    if (preg_match('/"captionTracks":\s*(\[.*?\])/', $html, $matches)) {
+        $tracks = json_decode($matches[1], true);
+        if ($tracks && is_array($tracks)) {
+            // Prefer English, then first available
+            $targetTrack = null;
+            foreach ($tracks as $track) {
+                if (($track['languageCode'] ?? '') === 'en') {
+                    $targetTrack = $track;
+                    break;
+                }
+            }
+            if (!$targetTrack) $targetTrack = $tracks[0];
+
+            if (isset($targetTrack['baseUrl'])) {
+                $captionUrl = $targetTrack['baseUrl'] . "&fmt=srv3"; // Use srv3 for easier XML
+                $content = @file_get_contents($captionUrl, false, $context);
+                
+                if ($content && strlen($content) > 100) {
+                    $fileName = "captions_" . $videoId . "_" . time() . ".xml";
+                    $dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'captions';
+                    if (!is_dir($dir)) @mkdir($dir, 0777, true);
+                    
+                    $filePath = $dir . DIRECTORY_SEPARATOR . $fileName;
+                    if (@file_put_contents($filePath, $content)) {
+                        return $fileName;
+                    }
+                }
+            }
         }
     }
-
-    // Attempt 2: Download the actual captions (srv3 is easy to parse, or just save as xml)
-    $apiUrl = "https://www.youtube.com/api/timedtext?v=" . urlencode($videoId) . "&lang=" . $langCode . "&fmt=srv3";
-    $content = @file_get_contents($apiUrl, false, $context);
     
-    // If still failing, try the video.google.com alternative endpoint
-    if (!$content || str_contains($content, '<error')) {
-        $altUrl = "https://video.google.com/timedtext?v=" . urlencode($videoId) . "&lang=" . $langCode;
-        $content = @file_get_contents($altUrl, false, $context);
-    }
-
+    // Fallback to old internal API if scraping fails
+    $oldApiUrl = "https://www.youtube.com/api/timedtext?v=" . urlencode($videoId) . "&lang=en&fmt=srv3";
+    $content = @file_get_contents($oldApiUrl, false, $context);
     if ($content && !str_contains($content, '<error') && strlen($content) > 100) {
         $fileName = "captions_" . $videoId . "_" . time() . ".xml";
         $dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'captions';
-        
-        if (!is_dir($dir)) {
-            if (!@mkdir($dir, 0777, true)) {
-                // If mkdir fails, we might have a permissions issue
-                return null;
-            }
-        }
-        
+        if (!is_dir($dir)) @mkdir($dir, 0777, true);
         $filePath = $dir . DIRECTORY_SEPARATOR . $fileName;
         if (@file_put_contents($filePath, $content)) {
             return $fileName;
         }
     }
+
     return null;
 }
 
