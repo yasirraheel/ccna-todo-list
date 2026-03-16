@@ -10,15 +10,17 @@
 </head>
 <body>
   <div id="app-container" class="app-container">
-    <header>
-      <div>
+    <header class="app-header">
+      <div class="app-brand">
         <h1>My Tasks</h1>
         <p id="current-date" class="date-display"></p>
       </div>
-      <div class="header-stats">
-        <div><span id="task-count">0</span> tasks pending</div>
+      <div class="header-panel">
+        <div class="header-stats">
+          <span id="task-count">0</span> tasks pending
+        </div>
         <div class="session-row">
-          <span id="session-email"></span>
+          <span id="session-email" class="session-email"></span>
           <button type="button" id="logout-btn" class="bulk-btn">Logout</button>
         </div>
       </div>

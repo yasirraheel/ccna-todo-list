@@ -1028,3 +1028,277 @@ header h1 {
 .task-item.selected-for-delete {
   box-shadow: 0 0 0 3px #f59e0b !important;
 }
+
+.app-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.app-brand {
+  min-width: 0;
+}
+
+.app-brand h1 {
+  font-size: 2rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.header-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.header-stats {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.session-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.session-email {
+  max-width: 240px;
+  font-size: 0.78rem;
+  color: #475569;
+  padding: 6px 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  overflow-wrap: anywhere;
+}
+
+.filters,
+.bulk-actions,
+#todo-form,
+.playlist-import,
+.dashboard {
+  width: 100%;
+}
+
+.playlist-toolbar {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+#playlist-filter {
+  min-width: 180px;
+  max-width: 100%;
+}
+
+.task-content,
+.task-description,
+.playlist-status,
+.modal-message {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.task-item {
+  min-width: 0;
+}
+
+.task-actions {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1024px) {
+  .app-container {
+    padding: 18px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .stats-grid .stat-card:nth-child(4),
+  .stats-grid .stat-card:nth-child(5) {
+    grid-column: span 1;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .app-container {
+    padding: 14px;
+    border-radius: 14px;
+    min-height: auto;
+  }
+
+  .app-header {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .app-brand h1 {
+    font-size: 1.55rem;
+  }
+
+  .date-display {
+    font-size: 0.82rem;
+  }
+
+  .header-panel {
+    align-items: stretch;
+  }
+
+  .header-stats {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .session-row {
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .session-email {
+    max-width: 100%;
+    flex: 1;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .stats-grid .stat-card:nth-child(4),
+  .stats-grid .stat-card:nth-child(5) {
+    grid-column: span 2;
+  }
+
+  .filters {
+    position: static;
+    margin: 0 0 12px 0;
+    border-radius: 12px;
+    overflow-x: visible;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .playlist-toolbar {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+  }
+
+  .filter-btn {
+    width: 100%;
+  }
+
+  .bulk-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .select-all-wrap,
+  .bulk-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  #task-list {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .task-item {
+    margin: 0;
+    border-radius: 12px;
+    border-right: 1px solid #e5ecf6;
+    border-left-width: 4px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+  }
+
+  .task-body {
+    padding: 12px;
+  }
+
+  .task-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 8px;
+  }
+
+  .task-check-wrap,
+  .watch-btn,
+  .sub-btn {
+    min-height: 40px;
+    justify-content: center;
+  }
+
+  .delete-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 8px;
+  }
+
+  .app-container {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .app-brand h1 {
+    font-size: 1.4rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid .stat-card:nth-child(4),
+  .stats-grid .stat-card:nth-child(5) {
+    grid-column: span 1;
+  }
+
+  .task-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .delete-btn {
+    width: 100%;
+  }
+
+  .modal-content {
+    max-width: calc(100% - 24px);
+    padding: 18px;
+  }
+}
