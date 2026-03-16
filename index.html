@@ -24,6 +24,44 @@
       </div>
     </header>
 
+    <section class="dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total</div>
+          <div id="stat-total" class="stat-value">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Completed</div>
+          <div id="stat-completed" class="stat-value">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending</div>
+          <div id="stat-pending" class="stat-value">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Progress</div>
+          <div class="progress-wrap">
+            <div class="progress-bar"><div id="stat-progress-fill" class="progress-fill" style="width:0%"></div></div>
+            <div id="stat-progress-label" class="progress-label">0%</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Playlist</div>
+          <div id="stat-playlist" class="stat-value small">All</div>
+        </div>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Completion</h3>
+          <canvas id="progressChart" height="160"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>By Priority</h3>
+          <canvas id="priorityChart" height="160"></canvas>
+        </div>
+      </div>
+    </section>
+
     <form id="todo-form">
       <div class="main-input-wrapper">
         <input type="text" id="task-input" placeholder="What needs to be done?" required autocomplete="off">
@@ -110,6 +148,7 @@
     <i class="fas fa-arrow-up"></i>
   </button>
 
-  <script src="script.js?v=20260316-4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="" crossorigin="anonymous"></script>
+  <script src="script.js?v=20260316-5"></script>
 </body>
 </html>

@@ -33,6 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const sessionEmail = document.getElementById('session-email');
   const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login.html') || document.body.dataset.page === 'login';
   const scrollTopBtn = document.getElementById('scroll-top-btn');
+  const statTotalEl = document.getElementById('stat-total');
+  const statCompletedEl = document.getElementById('stat-completed');
+  const statPendingEl = document.getElementById('stat-pending');
+  const statPlaylistEl = document.getElementById('stat-playlist');
+  const statProgressFill = document.getElementById('stat-progress-fill');
+  const statProgressLabel = document.getElementById('stat-progress-label');
+  let progressChartRef = null;
+  let priorityChartRef = null;
 
   const browserHost = window.location.hostname || 'localhost';
   const isLocalNetworkHost =
@@ -443,6 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await apiFetch(`${API_BASE}${q}`);
       if (!response.ok) return;
       tasks = await response.json();
+      updateDashboard();
     } catch (_error) {
       tasks = [];
     }
@@ -726,6 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
     taskCount.textContent = pendingCount;
     updateBulkActionState(filteredTasks);
     updatePlaylistActionState();
+    updateDashboard();
 
     if (filteredTasks.length === 0) {
       const li = document.createElement('li');
@@ -781,5 +791,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const disable = !currentPlaylistFilter || currentPlaylistFilter === 'all';
     if (playlistRenameBtn) playlistRenameBtn.disabled = disable;
     if (playlistDeleteBtn) playlistDeleteBtn.disabled = disable;
+  }
+
+  function updateDashboard() {
+    if (!statTotalEl || !statCompletedEl || !statPendingEl || !statPlaylistEl || !statProgressFill || !statProgressLabel) return;
+    const total = tasks.length;
+    const done = tasks.filter(t => t.completed).length;
+    const pending = total - done;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    statTotalEl.textContent = String(total);
+    statCompletedEl.textContent = String(done);
+    statPendingEl.textContent = String(pending);
+    statPlaylistEl.textContent = currentPlaylistFilter && currentPlaylistFilter !== 'all' ? currentPlaylistFilter : 'All';
+    statProgressFill.style.width = `${pct}%`;
+    statProgressLabel.textContent = `${pct}%`;
+
+    const ctx1 = document.getElementById('progressChart');
+    if (ctx1 && window.Chart) {
+      const data1 = { labels: ['Completed', 'Pending'], datasets: [{ data: [done, Math.max(pending, 0)], backgroundColor: ['#22c55e', '#e2e8f0'], borderWidth: 0 }] };
+      if (progressChartRef) {
+        progressChartRef.data = data1;
+        progressChartRef.update();
+      } else {
+        progressChartRef = new Chart(ctx1, { type: 'doughnut', data: data1, options: { plugins: { legend: { position: 'bottom' } }, cutout: '60%' } });
+      }
+    }
+
+    const counts = { high: 0, medium: 0, low: 0 };
+    tasks.forEach(t => { const p = String(t.priority || '').toLowerCase(); if (counts[p] !== undefined) counts[p]++; });
+    const ctx2 = document.getElementById('priorityChart');
+    if (ctx2 && window.Chart) {
+      const data2 = { labels: ['High', 'Medium', 'Low'], datasets: [{ data: [counts.high, counts.medium, counts.low], backgroundColor: ['#ef4444', '#f59e0b', '#38bdf8'], borderWidth: 0 }] };
+      if (priorityChartRef) {
+        priorityChartRef.data = data2;
+        priorityChartRef.update();
+      } else {
+        priorityChartRef = new Chart(ctx2, { type: 'bar', data: data2, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+      }
+    }
   }
 });
