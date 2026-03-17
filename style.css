@@ -1729,6 +1729,13 @@ body {
   gap: 20px !important;
 }
 
+.entry-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
 .stat-card {
   background: var(--surface) !important;
   border: 1px solid var(--border) !important;
@@ -1793,6 +1800,10 @@ body {
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
+.option-group {
+  min-height: 42px;
+}
+
 .filters {
   display: grid !important;
   grid-template-columns: auto 1fr;
@@ -1853,6 +1864,10 @@ body {
 }
 
 @media (max-width: 1200px) {
+  .entry-grid {
+    grid-template-columns: 1fr;
+  }
+
   .playlist-attributes-row {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1888,9 +1903,23 @@ body {
     padding: 16px !important;
   }
 
+  .main-input-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .add-btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+  }
+
   .advanced-options,
   .playlist-attributes-row {
     grid-template-columns: 1fr;
+  }
+
+  .option-group {
+    min-height: 44px;
   }
 
   .playlist-toolbar {
