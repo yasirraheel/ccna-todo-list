@@ -1291,14 +1291,16 @@ header h1 {
 }
 
 .session-email {
-  max-width: 240px;
-  font-size: 0.78rem;
-  color: #475569;
-  padding: 6px 10px;
+  max-width: 320px;
+  font-size: 0.84rem;
+  color: #334155;
+  padding: 10px 12px;
   background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 999px;
-  overflow-wrap: anywhere;
+  border: 1px solid #d9e3f0;
+  border-radius: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .app-footer {
@@ -1826,13 +1828,24 @@ body {
   display: grid !important;
   grid-template-columns: 1fr;
   gap: 12px;
+  width: 100%;
 }
 
 .playlist-toolbar {
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) repeat(3, minmax(44px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
   width: 100%;
+}
+
+.playlist-toolbar > * {
+  width: 100%;
+  min-width: 0;
+}
+
+#scope-filter,
+#playlist-filter {
+  min-width: 0;
 }
 
 .status-filters {
@@ -1866,6 +1879,12 @@ body {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   align-items: center;
+  width: 100%;
+}
+
+.bulk-actions > * {
+  width: 100%;
+  min-width: 0;
 }
 
 .select-all-wrap {
