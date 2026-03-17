@@ -80,9 +80,9 @@
 
     <section class="entry-grid">
       <form id="todo-form">
+        <h3 class="section-title">Add New Task</h3>
         <div class="main-input-wrapper">
           <input type="text" id="task-input" placeholder="What needs to be done?" required autocomplete="off">
-          <button type="submit" class="add-btn"><i class="fas fa-plus"></i></button>
         </div>
         
         <div class="advanced-options">
@@ -113,10 +113,12 @@
               <option value="public">Public</option>
             </select>
           </div>
+          <button type="submit" class="add-btn task-submit-btn">Add Task</button>
         </div>
       </form>
 
       <div class="playlist-import">
+        <h3 class="section-title">Import YouTube Playlist</h3>
         <div class="playlist-input-wrapper">
           <div class="playlist-url-row">
             <input type="url" id="playlist-url" placeholder="Paste YouTube playlist URL" autocomplete="off">

@@ -1776,7 +1776,7 @@ body {
 
 .main-input-wrapper {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
@@ -1793,7 +1793,7 @@ body {
 }
 
 .advanced-options {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .playlist-attributes-row {
@@ -1814,6 +1814,18 @@ body {
   min-height: 42px;
 }
 
+.section-title {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.task-submit-btn {
+  width: 100%;
+  min-height: 44px;
+}
+
 .filters {
   display: grid !important;
   grid-template-columns: 1fr;
@@ -1822,29 +1834,37 @@ body {
 
 .playlist-toolbar {
   display: grid !important;
-  grid-template-columns: minmax(0, 180px) minmax(0, 220px) repeat(3, 42px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) repeat(3, minmax(44px, 1fr));
   gap: 8px;
+  width: 100%;
 }
 
 .status-filters {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+  width: 100%;
 }
 
 .filter-btn {
   min-height: 38px;
+  width: 100%;
 }
 
 .bulk-actions {
   display: grid !important;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   align-items: center;
 }
 
 .select-all-wrap {
   min-height: 42px;
+  width: 100%;
+}
+
+.bulk-btn {
+  width: 100%;
 }
 
 #task-list {
@@ -1883,6 +1903,10 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .advanced-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .playlist-attributes-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1918,10 +1942,6 @@ body {
     padding: 16px !important;
   }
 
-  .main-input-wrapper {
-    grid-template-columns: 1fr;
-  }
-
   .add-btn {
     width: 100%;
     min-width: 0;
@@ -1942,8 +1962,7 @@ body {
   }
 
   .status-filters {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .bulk-actions {
