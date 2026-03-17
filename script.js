@@ -83,10 +83,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const SELECTED_PLAYLIST_KEY = 'todo_selected_playlist';
   const SELECTED_PUBLIC_PLAYLIST_KEY = 'todo_selected_public_playlist';
   const TASK_SCOPE_KEY = 'todo_task_scope';
+  const TASK_STATUS_FILTER_KEY = 'todo_task_status_filter';
   const TASKS_PAGE_SIZE = 18;
   let tasks = [];
   let visibleTaskCount = TASKS_PAGE_SIZE;
-  let currentFilter = 'all';
+  let isLoadingMore = false;
+  let currentFilter = localStorage.getItem(TASK_STATUS_FILTER_KEY) || 'all';
+  if (!['all', 'active', 'completed'].includes(currentFilter)) currentFilter = 'all';
   const selectedTaskIds = new Set();
   let authToken = localStorage.getItem(AUTH_TOKEN_KEY) || '';
   let currentPlaylistFilter = 'all';
@@ -100,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if (footerYear) footerYear.textContent = String(new Date().getFullYear());
   applySeoConfig({ appName });
+  syncFilterButtons();
 
   init();
 
@@ -112,9 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
       currentFilter = btn.dataset.filter;
+      localStorage.setItem(TASK_STATUS_FILTER_KEY, currentFilter);
+      syncFilterButtons();
       visibleTaskCount = TASKS_PAGE_SIZE;
       renderTasks();
       showFlash(`Showing ${currentFilter} tasks`, 'info');
@@ -153,9 +157,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (loadMoreBtn) {
-    loadMoreBtn.addEventListener('click', () => {
+    loadMoreBtn.addEventListener('click', async () => {
+      if (isLoadingMore) return;
+      isLoadingMore = true;
+      loadMoreBtn.classList.add('is-loading');
+      loadMoreBtn.disabled = true;
+      await new Promise(resolve => setTimeout(resolve, 220));
       visibleTaskCount += TASKS_PAGE_SIZE;
+      isLoadingMore = false;
+      loadMoreBtn.classList.remove('is-loading');
+      loadMoreBtn.disabled = false;
       renderTasks();
+    });
+  }
+
+  function syncFilterButtons() {
+    filterBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.filter === currentFilter);
     });
   }
 
@@ -1216,6 +1234,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loadMoreBtn) {
       const hasMore = filteredTasks.length > visibleTasks.length;
       loadMoreBtn.style.display = hasMore ? 'inline-flex' : 'none';
+      loadMoreBtn.classList.remove('is-loading');
+      loadMoreBtn.disabled = false;
       loadMoreBtn.textContent = hasMore
         ? `Load More (${filteredTasks.length - visibleTasks.length} remaining)`
         : 'Load More';

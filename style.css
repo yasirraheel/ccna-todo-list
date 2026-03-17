@@ -1968,6 +1968,27 @@ body[data-page="login"] .auth-panel {
 
 #load-more-btn {
   width: min(360px, 100%) !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+}
+
+#load-more-btn.is-loading {
+  cursor: wait;
+}
+
+#load-more-btn.is-loading::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #ffffff;
+  border-radius: 999px;
+  display: inline-block;
+  margin-right: 8px;
+  animation: importSpin 0.75s linear infinite;
 }
 
 .task-item {
