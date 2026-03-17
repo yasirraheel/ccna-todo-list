@@ -23,43 +23,56 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <div id="app-container" class="app-container">
-    <header class="app-header">
-      <div class="app-brand">
-        <h1><a id="app-home-link" href="/">My Tasks</a></h1>
-        <p id="current-date" class="date-display"></p>
+  <header class="saas-header">
+    <div class="saas-header-left">
+      <a id="app-home-link" href="/" class="saas-logo">Team Hifsa</a>
+      <nav class="saas-nav">
+        <a href="/" class="saas-nav-item active">Dashboard</a>
+        <a href="#todo-form" class="saas-nav-item">Tasks</a>
+        <a href="#playlist-url" class="saas-nav-item">Playlists</a>
+      </nav>
+    </div>
+    <div class="saas-header-center">
+      <div class="saas-search-wrap">
+        <i class="fas fa-search"></i>
+        <input type="search" placeholder="Search tasks or playlists" aria-label="Search">
       </div>
-      <div class="header-panel">
-        <div class="session-row">
-          <span id="session-email" class="session-email"></span>
-          <button type="button" id="logout-btn" class="bulk-btn">Logout</button>
-        </div>
-      </div>
-    </header>
+    </div>
+    <div class="saas-header-right">
+      <span id="session-email" class="session-email"></span>
+      <button type="button" id="logout-btn" class="bulk-btn">Logout</button>
+    </div>
+  </header>
+
+  <main id="app-container" class="app-container">
+    <section class="page-title-row">
+      <h1 class="page-title">Dashboard</h1>
+      <p id="current-date" class="date-display"></p>
+    </section>
 
     <section class="dashboard">
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-label">Total</div>
+          <div class="stat-label"><i class="fas fa-layer-group"></i> Total</div>
           <div id="stat-total" class="stat-value">0</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Completed</div>
+          <div class="stat-label"><i class="fas fa-circle-check"></i> Completed</div>
           <div id="stat-completed" class="stat-value">0</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Pending</div>
+          <div class="stat-label"><i class="fas fa-hourglass-half"></i> Pending</div>
           <div id="stat-pending" class="stat-value">0</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Progress</div>
+          <div class="stat-label"><i class="fas fa-chart-simple"></i> Progress</div>
           <div class="progress-wrap">
             <div class="progress-bar"><div id="stat-progress-fill" class="progress-fill" style="width:0%"></div></div>
             <div id="stat-progress-label" class="progress-label">0%</div>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Playlist</div>
+          <div class="stat-label"><i class="fas fa-list"></i> Active Playlist</div>
           <div id="stat-playlist" class="stat-value small">All</div>
         </div>
       </div>
@@ -165,7 +178,7 @@
       <p id="footer-title" class="app-footer-title">© <span id="footer-year"></span> My Tasks</p>
       <p id="footer-description" class="app-footer-description">Simple workspace for tasks, playlists, and team progress.</p>
     </footer>
-  </div>
+  </main>
 
   <button id="scroll-top-btn" class="scroll-top-btn" aria-label="Scroll to top" title="Scroll to top">
     <i class="fas fa-arrow-up"></i>
