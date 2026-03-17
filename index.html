@@ -81,39 +81,28 @@
     <section class="entry-grid">
       <form id="todo-form">
         <h3 class="section-title">Add New Task</h3>
-        <div class="main-input-wrapper">
-          <input type="text" id="task-input" placeholder="What needs to be done?" required autocomplete="off">
-        </div>
-        
-        <div class="advanced-options">
-          <div class="option-group">
-            <i class="far fa-calendar-alt"></i>
-            <input type="date" id="task-date">
+        <div class="playlist-input-wrapper">
+          <div class="playlist-url-row">
+            <input type="text" id="task-input" placeholder="What needs to be done?" required autocomplete="off">
           </div>
-          <div class="option-group">
-            <i class="fas fa-flag"></i>
+          <div class="playlist-attributes-row">
+            <input type="date" id="task-date">
             <select id="task-priority">
               <option value="low">Low Priority</option>
               <option value="medium" selected>Medium Priority</option>
               <option value="high">High Priority</option>
             </select>
-          </div>
-          <div class="option-group">
-            <i class="fas fa-tag"></i>
             <select id="task-category">
               <option value="personal">Personal</option>
               <option value="work">Work</option>
               <option value="shopping">Shopping</option>
             </select>
-          </div>
-          <div class="option-group">
-            <i class="fas fa-eye"></i>
             <select id="task-visibility">
               <option value="private" selected>Private</option>
               <option value="public">Public</option>
             </select>
+            <button type="submit" id="add-task-btn" class="playlist-btn">Add Task</button>
           </div>
-          <button type="submit" class="add-btn task-submit-btn">Add Task</button>
         </div>
       </form>
 

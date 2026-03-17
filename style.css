@@ -1804,7 +1804,8 @@ body {
   min-width: 0;
 }
 
-#import-playlist-btn {
+#import-playlist-btn,
+#add-task-btn {
   grid-column: 1 / -1;
   width: 100%;
   min-height: 44px;
@@ -1819,11 +1820,6 @@ body {
   font-size: 18px;
   line-height: 1.2;
   color: var(--text);
-}
-
-.task-submit-btn {
-  width: 100%;
-  min-height: 44px;
 }
 
 .filters {
