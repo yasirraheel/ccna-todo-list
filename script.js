@@ -80,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const IMPORT_LIMIT = 300;
   const AUTH_TOKEN_KEY = 'todo_auth_token';
   const SELECTED_PLAYLIST_KEY = 'todo_selected_playlist';
+  const SELECTED_PUBLIC_PLAYLIST_KEY = 'todo_selected_public_playlist';
   const TASK_SCOPE_KEY = 'todo_task_scope';
   let tasks = [];
   let currentFilter = 'all';
@@ -708,8 +709,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadSelectedPlaylistPreference() {
     if (currentScope === 'public') {
-      currentPlaylistFilter = 'all';
-      if (playlistFilterSelect) playlistFilterSelect.value = 'all';
+      const selectedPublic = localStorage.getItem(SELECTED_PUBLIC_PLAYLIST_KEY) || 'all';
+      if (playlistFilterSelect) {
+        const exists = Array.from(playlistFilterSelect.options).some(o => o.value === selectedPublic) || selectedPublic === 'all';
+        playlistFilterSelect.value = exists ? selectedPublic : 'all';
+      }
+      currentPlaylistFilter = (playlistFilterSelect && playlistFilterSelect.value) || selectedPublic || 'all';
       return;
     }
     let fromServer = '';
@@ -731,8 +736,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function saveSelectedPlaylistPreference(value) {
     const v = String(value || 'all');
+    if (currentScope === 'public') {
+      localStorage.setItem(SELECTED_PUBLIC_PLAYLIST_KEY, v);
+      return;
+    }
     localStorage.setItem(SELECTED_PLAYLIST_KEY, v);
-    if (currentScope === 'public') return;
     try {
       await apiFetch(PREFERENCES_API, {
         method: 'POST',
