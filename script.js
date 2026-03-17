@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectAllTasksInput = document.getElementById('select-all-tasks');
   const deleteSelectedBtn = document.getElementById('delete-selected-btn');
   const deleteAllBtn = document.getElementById('delete-all-btn');
+  const loadMoreBtn = document.getElementById('load-more-btn');
   const authPanel = document.getElementById('auth-panel');
   const appContainer = document.getElementById('app-container');
   const authStatus = document.getElementById('auth-status');
@@ -82,7 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const SELECTED_PLAYLIST_KEY = 'todo_selected_playlist';
   const SELECTED_PUBLIC_PLAYLIST_KEY = 'todo_selected_public_playlist';
   const TASK_SCOPE_KEY = 'todo_task_scope';
+  const TASKS_PAGE_SIZE = 18;
   let tasks = [];
+  let visibleTaskCount = TASKS_PAGE_SIZE;
   let currentFilter = 'all';
   const selectedTaskIds = new Set();
   let authToken = localStorage.getItem(AUTH_TOKEN_KEY) || '';
@@ -112,6 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
       filterBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentFilter = btn.dataset.filter;
+      visibleTaskCount = TASKS_PAGE_SIZE;
       renderTasks();
       showFlash(`Showing ${currentFilter} tasks`, 'info');
     });
@@ -148,10 +152,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', () => {
+      visibleTaskCount += TASKS_PAGE_SIZE;
+      renderTasks();
+    });
+  }
+
   if (playlistFilterSelect) {
     playlistFilterSelect.addEventListener('change', async () => {
       currentPlaylistFilter = playlistFilterSelect.value || 'all';
       await saveSelectedPlaylistPreference(currentPlaylistFilter);
+      visibleTaskCount = TASKS_PAGE_SIZE;
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
@@ -167,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem(TASK_SCOPE_KEY, currentScope);
       selectedTaskIds.clear();
       currentPlaylistFilter = 'all';
+      visibleTaskCount = TASKS_PAGE_SIZE;
       if (playlistFilterSelect) playlistFilterSelect.value = 'all';
       await loadPlaylists();
       await loadSelectedPlaylistPreference();
@@ -570,6 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
     redirectToApp();
     if (isLoginPage) return;
     await loadPlaylists();
+    visibleTaskCount = TASKS_PAGE_SIZE;
     await loadTasks();
     renderTasks();
     showFlash('Logged in successfully', 'success');
@@ -602,6 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
     redirectToApp();
     if (isLoginPage) return;
     await loadPlaylists();
+    visibleTaskCount = TASKS_PAGE_SIZE;
     await loadTasks();
     renderTasks();
     showFlash('Account created successfully', 'success');
@@ -630,18 +645,27 @@ document.addEventListener('DOMContentLoaded', () => {
     await loadTasks();
     renderTasks();
     if (scrollTopBtn) {
-      const onScroll = () => {
+      let ticking = false;
+      const updateScrollButton = () => {
         if (window.scrollY > 300) {
           scrollTopBtn.classList.add('visible');
         } else {
           scrollTopBtn.classList.remove('visible');
         }
       };
+      const onScroll = () => {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(() => {
+          updateScrollButton();
+          ticking = false;
+        });
+      };
       window.addEventListener('scroll', onScroll, { passive: true });
       scrollTopBtn.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
-      onScroll();
+      updateScrollButton();
     }
   }
 
@@ -655,6 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       tasks = await response.json();
+      visibleTaskCount = TASKS_PAGE_SIZE;
       if (currentScope === 'public') {
         selectedTaskIds.clear();
       }
@@ -1060,7 +1085,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const filteredTasks = getFilteredTasks();
 
-    updateBulkActionState(filteredTasks);
+    const visibleTasks = filteredTasks.slice(0, visibleTaskCount);
+    updateBulkActionState(visibleTasks);
     updatePlaylistActionState();
     updateDashboard();
 
@@ -1082,7 +1108,7 @@ document.addEventListener('DOMContentLoaded', () => {
       taskList.appendChild(li);
       return;
     }
-    filteredTasks.forEach(task => {
+    visibleTasks.forEach(task => {
       const li = document.createElement('li');
       li.className = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''} ${selectedTaskIds.has(task.id) ? 'selected-for-delete' : ''}`;
       
@@ -1186,6 +1212,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       taskList.appendChild(li);
     });
+
+    if (loadMoreBtn) {
+      const hasMore = filteredTasks.length > visibleTasks.length;
+      loadMoreBtn.style.display = hasMore ? 'inline-flex' : 'none';
+      loadMoreBtn.textContent = hasMore
+        ? `Load More (${filteredTasks.length - visibleTasks.length} remaining)`
+        : 'Load More';
+    }
   }
 
   function updatePlaylistActionState() {

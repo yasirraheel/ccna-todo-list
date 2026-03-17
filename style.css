@@ -1593,6 +1593,7 @@ body {
   display: block !important;
   background: var(--bg) !important;
   color: var(--text);
+  scroll-behavior: smooth;
 }
 
 body[data-page="login"] {
@@ -1957,6 +1958,16 @@ body[data-page="login"] .auth-panel {
   list-style: none;
   display: grid;
   gap: 12px;
+}
+
+.load-more-wrap {
+  display: flex;
+  justify-content: center;
+  padding-top: 6px;
+}
+
+#load-more-btn {
+  width: min(360px, 100%) !important;
 }
 
 .task-item {
