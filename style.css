@@ -1595,6 +1595,25 @@ body {
   color: var(--text);
 }
 
+body[data-page="login"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh;
+  padding: 24px !important;
+  background: radial-gradient(circle at 20% 10%, #e2ebff 0%, #f8fafc 52%, #eef2ff 100%) !important;
+}
+
+body[data-page="login"] .auth-panel {
+  width: min(460px, 100%);
+  margin: 0 auto;
+  padding: 26px;
+  border-radius: 14px;
+  border: 1px solid #dbe5f2;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+
 .saas-header {
   position: fixed;
   top: 0;
@@ -2046,7 +2065,8 @@ body {
   }
 
   .playlist-toolbar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
   }
 
   .status-filters {
@@ -2054,7 +2074,15 @@ body {
   }
 
   .bulk-actions {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+  }
+
+  .playlist-toolbar .bulk-btn,
+  .playlist-toolbar select,
+  .status-filters .filter-btn,
+  .bulk-actions .bulk-btn,
+  .bulk-actions .select-all-wrap {
+    width: 100% !important;
   }
 
   .task-actions {
@@ -2087,6 +2115,16 @@ body {
 
   .status-filters {
     grid-template-columns: 1fr;
+  }
+
+  body[data-page="login"] {
+    padding: 14px !important;
+  }
+
+  body[data-page="login"] .auth-panel {
+    width: 100%;
+    padding: 20px;
+    border-radius: 12px;
   }
 }
 
