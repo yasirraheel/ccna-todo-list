@@ -1984,6 +1984,26 @@ body {
 }
 
 @media (max-width: 768px) {
+  .entry-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .entry-grid > #todo-form,
+  .entry-grid > .playlist-import {
+    width: 100% !important;
+  }
+
+  #todo-form .playlist-input-wrapper,
+  .playlist-import .playlist-input-wrapper {
+    gap: 10px;
+  }
+
+  .playlist-url-row input,
+  #task-input {
+    min-height: 44px;
+  }
+
   .saas-header {
     grid-template-columns: 1fr auto;
     gap: 10px;
@@ -2017,7 +2037,8 @@ body {
 
   .advanced-options,
   .playlist-attributes-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 10px;
   }
 
   .option-group {
@@ -2042,6 +2063,20 @@ body {
 }
 
 @media (max-width: 480px) {
+  .entry-grid {
+    gap: 10px !important;
+  }
+
+  #todo-form,
+  .playlist-import {
+    padding: 14px !important;
+  }
+
+  .section-title {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
   .page-title {
     font-size: 20px;
   }
