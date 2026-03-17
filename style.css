@@ -1797,7 +1797,17 @@ body {
 }
 
 .playlist-attributes-row {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.playlist-attributes-row > * {
+  min-width: 0;
+}
+
+#import-playlist-btn {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 44px;
 }
 
 .option-group {
@@ -1806,14 +1816,19 @@ body {
 
 .filters {
   display: grid !important;
-  grid-template-columns: auto 1fr;
-  align-items: center;
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
 .playlist-toolbar {
   display: grid !important;
   grid-template-columns: minmax(0, 180px) minmax(0, 220px) repeat(3, 42px);
+  gap: 8px;
+}
+
+.status-filters {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -1869,7 +1884,7 @@ body {
   }
 
   .playlist-attributes-row {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .filters {
@@ -1926,6 +1941,11 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .status-filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .bulk-actions {
     grid-template-columns: 1fr;
   }
@@ -1942,6 +1962,10 @@ body {
 
   .session-email {
     display: none;
+  }
+
+  .status-filters {
+    grid-template-columns: 1fr;
   }
 }
 
