@@ -577,6 +577,140 @@ header h1 {
   color: #ef4444;
 }
 
+.task-note-toggle-btn {
+  flex: 0 0 auto;
+  border: 1px solid #dbe4f0;
+  background: #ffffff;
+  color: #334155;
+  border-radius: 6px;
+  padding: 7px 9px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.task-note-toggle-btn:hover {
+  background: #f8fafc;
+}
+
+.task-notes {
+  margin-top: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.task-notes-list {
+  display: grid;
+  gap: 6px;
+}
+
+.task-note-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 7px 8px;
+}
+
+.task-note-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  color: #64748b;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.task-note-visibility {
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 0.64rem;
+  color: #475569;
+  background: #f8fafc;
+}
+
+.task-note-text {
+  font-size: 0.75rem;
+  color: #0f172a;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.task-note-empty {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.task-note-form {
+  display: grid;
+  gap: 7px;
+}
+
+.task-note-input {
+  width: 100%;
+  min-height: 62px;
+  border: 1px solid #dbe4f0;
+  border-radius: 8px;
+  padding: 8px 9px;
+  font-size: 0.78rem;
+  resize: vertical;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.task-note-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.task-note-row select {
+  border: 1px solid #dbe4f0;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 0.74rem;
+  padding: 7px 8px;
+  color: #334155;
+}
+
+.task-note-save-btn {
+  border: none;
+  background: #0f172a;
+  color: #ffffff;
+  border-radius: 8px;
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.task-note-save-btn.is-loading::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #ffffff;
+  border-radius: 999px;
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: -2px;
+  animation: importSpin 0.75s linear infinite;
+}
+
+.task-note-hint {
+  font-size: 0.68rem;
+  color: #64748b;
+}
+
 /* Custom Modal Styles */
 .modal-overlay {
   position: fixed;
@@ -2119,6 +2253,10 @@ body[data-page="login"] .auth-panel {
 
   .task-actions {
     flex-wrap: wrap;
+  }
+
+  .task-note-row {
+    grid-template-columns: 1fr;
   }
 }
 

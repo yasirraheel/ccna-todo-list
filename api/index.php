@@ -320,6 +320,19 @@ function ensureTables(PDO $pdo): void {
       UNIQUE KEY `uk_task_completions_task_user` (`task_id`, `user_id`),
       INDEX `idx_task_completions_user_id` (`user_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS `task_notes` (
+      `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      `task_id` VARCHAR(64) NOT NULL,
+      `author_user_id` BIGINT UNSIGNED NOT NULL,
+      `note_text` TEXT NOT NULL,
+      `visibility` VARCHAR(16) NOT NULL DEFAULT "private",
+      `updated_at` BIGINT NOT NULL,
+      `created_at` BIGINT NOT NULL,
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `uk_task_notes_task_author` (`task_id`, `author_user_id`),
+      INDEX `idx_task_notes_task` (`task_id`),
+      INDEX `idx_task_notes_author` (`author_user_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
     try {
         $pdo->exec('ALTER TABLE `tasks` ADD COLUMN `playlist_name` VARCHAR(190) NOT NULL DEFAULT ""');
     } catch (Throwable $e) {}
@@ -358,6 +371,19 @@ function mapTaskRow(array $row): array {
         'ownerId' => isset($row['owner_id']) ? (int) $row['owner_id'] : (isset($row['user_id']) ? (int) $row['user_id'] : 0),
         'ownerEmail' => (string) ($row['owner_email'] ?? ''),
         'completed' => $resolvedCompleted === 1
+    ];
+}
+
+function mapTaskNoteRow(array $row, int $viewerId): array {
+    return [
+        'id' => isset($row['id']) ? (int) $row['id'] : 0,
+        'taskId' => (string) ($row['task_id'] ?? ''),
+        'text' => (string) ($row['note_text'] ?? ''),
+        'visibility' => normalizeVisibility($row['visibility'] ?? 'private'),
+        'authorUserId' => isset($row['author_user_id']) ? (int) $row['author_user_id'] : 0,
+        'isOwn' => isset($row['author_user_id']) ? ((int) $row['author_user_id'] === $viewerId) : false,
+        'updatedAt' => isset($row['updated_at']) ? (int) $row['updated_at'] : 0,
+        'createdAt' => isset($row['created_at']) ? (int) $row['created_at'] : 0
     ];
 }
 
@@ -636,6 +662,53 @@ if (count($segments) === 2 && $segments[0] === 'tasks' && $segments[1] === 'bulk
     $deleteStmt->execute(array_merge([$userId], $ids));
     $pdo->prepare("DELETE FROM `task_completions` WHERE `task_id` IN ({$placeholders})")->execute($ids);
     jsonResponse(200, ['deletedCount' => $deletedCount]);
+}
+
+if (count($segments) === 3 && $segments[0] === 'tasks' && $segments[2] === 'notes') {
+    $taskId = (string) $segments[1];
+    $taskStmt = $pdo->prepare('SELECT `id`, `user_id`, `visibility` FROM `tasks` WHERE `id` = :id LIMIT 1');
+    $taskStmt->execute([':id' => $taskId]);
+    $task = $taskStmt->fetch();
+    if (!$task) jsonResponse(404, ['message' => 'Task not found']);
+    $taskOwnerId = (int) ($task['user_id'] ?? 0);
+    $taskVisibility = normalizeVisibility($task['visibility'] ?? 'private');
+    $canViewTask = $taskOwnerId === $userId || $taskVisibility === 'public';
+    if (!$canViewTask) jsonResponse(403, ['message' => 'Not allowed']);
+
+    if ($method === 'GET') {
+        $notesStmt = $pdo->prepare('SELECT `id`, `task_id`, `author_user_id`, `note_text`, `visibility`, `updated_at`, `created_at`
+          FROM `task_notes`
+          WHERE `task_id` = :task_id AND (`author_user_id` = :viewer_id OR `visibility` = "public")
+          ORDER BY `updated_at` DESC');
+        $notesStmt->execute([':task_id' => $taskId, ':viewer_id' => $userId]);
+        $notes = array_map(fn($row) => mapTaskNoteRow($row, $userId), $notesStmt->fetchAll() ?: []);
+        jsonResponse(200, $notes);
+    }
+
+    if ($method === 'POST') {
+        $text = trim((string) ($body['text'] ?? ''));
+        if ($text === '') jsonResponse(400, ['message' => 'Note text is required']);
+        $requestedVisibility = normalizeVisibility($body['visibility'] ?? 'private');
+        $effectiveVisibility = $taskVisibility === 'public' ? 'private' : $requestedVisibility;
+        $nowTs = (int) round(microtime(true) * 1000);
+        $upsert = $pdo->prepare('INSERT INTO `task_notes` (`task_id`, `author_user_id`, `note_text`, `visibility`, `updated_at`, `created_at`)
+          VALUES (:task_id, :author_user_id, :note_text, :visibility, :updated_at, :created_at)
+          ON DUPLICATE KEY UPDATE `note_text` = VALUES(`note_text`), `visibility` = VALUES(`visibility`), `updated_at` = VALUES(`updated_at`)');
+        $upsert->execute([
+            ':task_id' => $taskId,
+            ':author_user_id' => $userId,
+            ':note_text' => $text,
+            ':visibility' => $effectiveVisibility,
+            ':updated_at' => $nowTs,
+            ':created_at' => $nowTs
+        ]);
+        $selectNote = $pdo->prepare('SELECT `id`, `task_id`, `author_user_id`, `note_text`, `visibility`, `updated_at`, `created_at`
+          FROM `task_notes` WHERE `task_id` = :task_id AND `author_user_id` = :author_user_id LIMIT 1');
+        $selectNote->execute([':task_id' => $taskId, ':author_user_id' => $userId]);
+        $saved = $selectNote->fetch();
+        if (!$saved) jsonResponse(500, ['message' => 'Failed to save note']);
+        jsonResponse(200, mapTaskNoteRow($saved, $userId));
+    }
 }
 
 if (count($segments) === 2 && $segments[0] === 'tasks') {

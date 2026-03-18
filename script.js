@@ -88,6 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let tasks = [];
   let visibleTaskCount = TASKS_PAGE_SIZE;
   let isLoadingMore = false;
+  const taskNotesCache = new Map();
+  const taskNotesLoading = new Set();
   let currentFilter = localStorage.getItem(TASK_STATUS_FILTER_KEY) || 'all';
   if (!['all', 'active', 'completed'].includes(currentFilter)) currentFilter = 'all';
   const selectedTaskIds = new Set();
@@ -697,6 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       tasks = await response.json();
+      taskNotesCache.clear();
       visibleTaskCount = TASKS_PAGE_SIZE;
       if (currentScope === 'public') {
         selectedTaskIds.clear();
@@ -1097,6 +1100,61 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function formatNoteTime(value) {
+    const ts = Number(value || 0);
+    if (!ts) return '';
+    try {
+      return new Date(ts).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    } catch (_error) {
+      return '';
+    }
+  }
+
+  function renderTaskNotesList(taskId, listEl) {
+    if (!listEl) return;
+    const notes = taskNotesCache.get(taskId) || [];
+    if (notes.length === 0) {
+      listEl.innerHTML = '<div class="task-note-empty">No notes yet.</div>';
+      return;
+    }
+    listEl.innerHTML = notes.map(note => {
+      const when = formatNoteTime(note.updatedAt || note.createdAt);
+      const tone = note.visibility === 'public' ? 'public' : 'private';
+      const owner = note.isOwn ? 'You' : 'Shared';
+      const visibilityLabel = note.visibility === 'public' ? 'Public' : 'Private';
+      return `
+        <div class="task-note-item ${tone}">
+          <div class="task-note-head">
+            <span class="task-note-owner">${owner}</span>
+            <span class="task-note-visibility">${visibilityLabel}</span>
+            ${when ? `<span class="task-note-time">${when}</span>` : ''}
+          </div>
+          <div class="task-note-text">${String(note.text || '')}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function loadTaskNotes(taskId, listEl) {
+    if (!taskId || taskNotesLoading.has(taskId)) return;
+    taskNotesLoading.add(taskId);
+    if (listEl) listEl.innerHTML = '<div class="task-note-empty">Loading notes...</div>';
+    try {
+      const response = await apiFetch(`${API_BASE}/${encodeURIComponent(taskId)}/notes`);
+      if (!response.ok) {
+        if (listEl) listEl.innerHTML = '<div class="task-note-empty">Could not load notes.</div>';
+        return;
+      }
+      const notes = await response.json();
+      taskNotesCache.set(taskId, Array.isArray(notes) ? notes : []);
+      renderTaskNotesList(taskId, listEl);
+    } catch (_error) {
+      if (listEl) listEl.innerHTML = '<div class="task-note-empty">Could not load notes.</div>';
+    } finally {
+      taskNotesLoading.delete(taskId);
+    }
+  }
+
   function renderTasks() {
     if (!taskList) return;
     taskList.innerHTML = '';
@@ -1168,9 +1226,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 <input type="checkbox" class="custom-checkbox" ${task.completed ? 'checked' : ''} ${canToggle ? '' : 'disabled'}>
                 <span>${task.completed ? 'Done' : 'Mark done'}</span>
               </label>
+              <button class="task-note-toggle-btn" title="Notes"><i class="far fa-note-sticky"></i> Notes</button>
               ${watchUrl ? `<a class="watch-btn" href="${watchUrl}" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> Watch</a>` : ''}
               ${downloadSubUrl ? `<a class="sub-btn" href="${downloadSubUrl}" download title="Download Subtitles"><i class="fas fa-closed-captioning"></i> Sub</a>` : ''}
               ${canDelete ? '<button class="delete-btn" title="Delete task"><i class="fas fa-trash"></i></button>' : ''}
+            </div>
+            <div class="task-notes app-hidden">
+              <div class="task-notes-list"></div>
+              <div class="task-note-form">
+                <textarea class="task-note-input" rows="2" placeholder="Add a note..."></textarea>
+                <div class="task-note-row">
+                  <select class="task-note-visibility">
+                    <option value="private" selected>Private note</option>
+                    <option value="public" ${task.visibility === 'public' ? 'disabled' : ''}>Public note</option>
+                  </select>
+                  <button class="task-note-save-btn" type="button">Save Note</button>
+                </div>
+                ${task.visibility === 'public' ? '<div class="task-note-hint">Public tasks only allow private notes.</div>' : ''}
+              </div>
             </div>
           </div>
         </div>
@@ -1225,6 +1298,61 @@ document.addEventListener('DOMContentLoaded', () => {
       if (watchBtn) {
         watchBtn.addEventListener('click', () => {
           trackTaskView(task.id).catch(() => {});
+        });
+      }
+
+      const noteToggleBtn = li.querySelector('.task-note-toggle-btn');
+      const notesPanel = li.querySelector('.task-notes');
+      const notesListEl = li.querySelector('.task-notes-list');
+      const noteInputEl = li.querySelector('.task-note-input');
+      const noteVisibilityEl = li.querySelector('.task-note-visibility');
+      const noteSaveBtn = li.querySelector('.task-note-save-btn');
+
+      if (noteToggleBtn && notesPanel) {
+        noteToggleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const opening = notesPanel.classList.contains('app-hidden');
+          notesPanel.classList.toggle('app-hidden');
+          if (opening) {
+            loadTaskNotes(task.id, notesListEl).catch(() => {});
+          }
+        });
+      }
+
+      if (noteSaveBtn && noteInputEl && noteVisibilityEl) {
+        noteSaveBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const text = noteInputEl.value.trim();
+          if (!text) {
+            showFlash('Write a note first', 'error');
+            return;
+          }
+          const requestedVisibility = task.visibility === 'public' ? 'private' : (noteVisibilityEl.value || 'private');
+          noteSaveBtn.disabled = true;
+          noteSaveBtn.classList.add('is-loading');
+          try {
+            const response = await apiFetch(`${API_BASE}/${encodeURIComponent(task.id)}/notes`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text, visibility: requestedVisibility })
+            });
+            if (!response.ok) {
+              showFlash(await readResponseMessage(response, 'Could not save note'), 'error');
+              return;
+            }
+            const saved = await response.json();
+            const currentNotes = taskNotesCache.get(task.id) || [];
+            const nextNotes = [saved, ...currentNotes.filter(note => !note.isOwn)];
+            taskNotesCache.set(task.id, nextNotes);
+            renderTaskNotesList(task.id, notesListEl);
+            noteInputEl.value = '';
+            showFlash('Note saved', 'success');
+          } catch (_error) {
+            showFlash('Could not save note', 'error');
+          } finally {
+            noteSaveBtn.disabled = false;
+            noteSaveBtn.classList.remove('is-loading');
+          }
         });
       }
 
