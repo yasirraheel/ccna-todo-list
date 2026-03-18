@@ -1205,12 +1205,12 @@ document.addEventListener('DOMContentLoaded', () => {
         : '';
 
       li.innerHTML = `
-        <div class="task-thumbnail-wrapper">
+        <div class="task-thumbnail-wrapper ${watchUrl ? 'task-open-link' : ''}">
           ${thumbnailHtml}
           <div class="task-priority-badge">${task.priority}</div>
         </div>
         <div class="task-body">
-          <div class="task-content" title="${task.text}">${task.text}</div>
+          <div class="task-content ${watchUrl ? 'task-open-link' : ''}" title="${task.text}">${task.text}</div>
           ${descriptionHtml}
           <div class="task-footer">
             <div class="task-meta">
@@ -1249,26 +1249,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
 
-      li.addEventListener('click', (e) => {
-        if (
-          e.target.closest('a') ||
-          e.target.closest('button') ||
-          e.target.closest('input') ||
-          e.target.closest('.task-check-wrap')
-        ) {
-          return;
-        }
-
-        if (task.completed) {
-          return;
-        }
-
-        if (watchUrl) {
-          trackTaskView(task.id).catch(() => {});
-          window.open(watchUrl, '_blank');
-        }
-      });
-
       const checkbox = li.querySelector('.custom-checkbox');
       checkbox.addEventListener('change', (e) => {
         e.stopPropagation(); // Prevent card click
@@ -1299,6 +1279,18 @@ document.addEventListener('DOMContentLoaded', () => {
         watchBtn.addEventListener('click', () => {
           trackTaskView(task.id).catch(() => {});
         });
+      }
+
+      if (watchUrl) {
+        const thumbnailWrapEl = li.querySelector('.task-thumbnail-wrapper');
+        const titleEl = li.querySelector('.task-content');
+        const openVideo = (e) => {
+          e.stopPropagation();
+          trackTaskView(task.id).catch(() => {});
+          window.open(watchUrl, '_blank');
+        };
+        if (thumbnailWrapEl) thumbnailWrapEl.addEventListener('click', openVideo);
+        if (titleEl) titleEl.addEventListener('click', openVideo);
       }
 
       const noteToggleBtn = li.querySelector('.task-note-toggle-btn');

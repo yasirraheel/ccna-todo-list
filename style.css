@@ -438,6 +438,18 @@ header h1 {
   margin-bottom: 4px;
 }
 
+.task-open-link {
+  cursor: pointer;
+}
+
+.task-content.task-open-link:hover {
+  text-decoration: underline;
+}
+
+.task-thumbnail-wrapper.task-open-link:hover .task-thumbnail {
+  transform: scale(1.03);
+}
+
 .task-description {
   font-size: 0.8rem;
   color: #64748b;
