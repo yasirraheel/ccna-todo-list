@@ -329,7 +329,6 @@ function ensureTables(PDO $pdo): void {
       `updated_at` BIGINT NOT NULL,
       `created_at` BIGINT NOT NULL,
       PRIMARY KEY (`id`),
-      UNIQUE KEY `uk_task_notes_task_author` (`task_id`, `author_user_id`),
       INDEX `idx_task_notes_task` (`task_id`),
       INDEX `idx_task_notes_author` (`author_user_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
@@ -351,6 +350,9 @@ function ensureTables(PDO $pdo): void {
     try {
         $pdo->exec('ALTER TABLE `tasks` ADD COLUMN `views` BIGINT NOT NULL DEFAULT 0');
     } catch (Throwable $e) {}
+    try {
+        $pdo->exec('ALTER TABLE `task_notes` DROP INDEX `uk_task_notes_task_author`');
+    } catch (Throwable $e) {}
 }
 
 function mapTaskRow(array $row): array {
@@ -370,6 +372,7 @@ function mapTaskRow(array $row): array {
         'views' => (int) ($row['views'] ?? 0),
         'ownerId' => isset($row['owner_id']) ? (int) $row['owner_id'] : (isset($row['user_id']) ? (int) $row['user_id'] : 0),
         'ownerEmail' => (string) ($row['owner_email'] ?? ''),
+        'hasNote' => isset($row['viewer_has_note']) ? ((int) $row['viewer_has_note'] === 1) : false,
         'completed' => $resolvedCompleted === 1
     ];
 }
@@ -546,20 +549,22 @@ if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'GET') {
     $playlist = trim((string) ($_GET['playlist'] ?? ''));
     if ($playlist !== '' && strtolower($playlist) !== 'all') {
         $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`,
-            CASE WHEN t.`visibility` = "public" THEN COALESCE(tc.`completed`, 0) ELSE t.`completed` END AS `viewer_completed`
+            CASE WHEN t.`visibility` = "public" THEN COALESCE(tc.`completed`, 0) ELSE t.`completed` END AS `viewer_completed`,
+            CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
             FROM `tasks` t
             LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`user_id` = :user_id AND t.`playlist_name` = :playlist
             ORDER BY t.`created_at` DESC');
-        $stmt->execute([':viewer_id' => $userId, ':user_id' => $userId, ':playlist' => $playlist]);
+        $stmt->execute([':viewer_id' => $userId, ':viewer_id_note' => $userId, ':user_id' => $userId, ':playlist' => $playlist]);
     } else {
         $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`,
-            CASE WHEN t.`visibility` = "public" THEN COALESCE(tc.`completed`, 0) ELSE t.`completed` END AS `viewer_completed`
+            CASE WHEN t.`visibility` = "public" THEN COALESCE(tc.`completed`, 0) ELSE t.`completed` END AS `viewer_completed`,
+            CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
             FROM `tasks` t
             LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`user_id` = :user_id
             ORDER BY t.`created_at` DESC');
-        $stmt->execute([':viewer_id' => $userId, ':user_id' => $userId]);
+        $stmt->execute([':viewer_id' => $userId, ':viewer_id_note' => $userId, ':user_id' => $userId]);
     }
     jsonResponse(200, array_map('mapTaskRow', $stmt->fetchAll() ?: []));
 }
@@ -568,22 +573,24 @@ if (count($segments) === 2 && $segments[0] === 'tasks' && $segments[1] === 'publ
     $playlist = trim((string) ($_GET['playlist'] ?? ''));
     if ($playlist !== '' && strtolower($playlist) !== 'all') {
         $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`,
-            COALESCE(tc.`completed`, 0) AS `viewer_completed`
+            COALESCE(tc.`completed`, 0) AS `viewer_completed`,
+            CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
             FROM `tasks` t
             INNER JOIN `users` u ON u.`id` = t.`user_id`
             LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`visibility` = "public" AND t.`playlist_name` = :playlist
             ORDER BY t.`created_at` DESC');
-        $stmt->execute([':viewer_id' => $userId, ':playlist' => $playlist]);
+        $stmt->execute([':viewer_id' => $userId, ':viewer_id_note' => $userId, ':playlist' => $playlist]);
     } else {
         $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`,
-            COALESCE(tc.`completed`, 0) AS `viewer_completed`
+            COALESCE(tc.`completed`, 0) AS `viewer_completed`,
+            CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
             FROM `tasks` t
             INNER JOIN `users` u ON u.`id` = t.`user_id`
             LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`visibility` = "public"
             ORDER BY t.`created_at` DESC');
-        $stmt->execute([':viewer_id' => $userId]);
+        $stmt->execute([':viewer_id' => $userId, ':viewer_id_note' => $userId]);
     }
     jsonResponse(200, array_map('mapTaskRow', $stmt->fetchAll() ?: []));
 }
@@ -691,10 +698,9 @@ if (count($segments) === 3 && $segments[0] === 'tasks' && $segments[2] === 'note
         $requestedVisibility = normalizeVisibility($body['visibility'] ?? 'private');
         $effectiveVisibility = $taskVisibility === 'public' ? 'private' : $requestedVisibility;
         $nowTs = (int) round(microtime(true) * 1000);
-        $upsert = $pdo->prepare('INSERT INTO `task_notes` (`task_id`, `author_user_id`, `note_text`, `visibility`, `updated_at`, `created_at`)
-          VALUES (:task_id, :author_user_id, :note_text, :visibility, :updated_at, :created_at)
-          ON DUPLICATE KEY UPDATE `note_text` = VALUES(`note_text`), `visibility` = VALUES(`visibility`), `updated_at` = VALUES(`updated_at`)');
-        $upsert->execute([
+        $insert = $pdo->prepare('INSERT INTO `task_notes` (`task_id`, `author_user_id`, `note_text`, `visibility`, `updated_at`, `created_at`)
+          VALUES (:task_id, :author_user_id, :note_text, :visibility, :updated_at, :created_at)');
+        $insert->execute([
             ':task_id' => $taskId,
             ':author_user_id' => $userId,
             ':note_text' => $text,
@@ -702,9 +708,10 @@ if (count($segments) === 3 && $segments[0] === 'tasks' && $segments[2] === 'note
             ':updated_at' => $nowTs,
             ':created_at' => $nowTs
         ]);
+        $noteId = (int) $pdo->lastInsertId();
         $selectNote = $pdo->prepare('SELECT `id`, `task_id`, `author_user_id`, `note_text`, `visibility`, `updated_at`, `created_at`
-          FROM `task_notes` WHERE `task_id` = :task_id AND `author_user_id` = :author_user_id LIMIT 1');
-        $selectNote->execute([':task_id' => $taskId, ':author_user_id' => $userId]);
+          FROM `task_notes` WHERE `id` = :id LIMIT 1');
+        $selectNote->execute([':id' => $noteId]);
         $saved = $selectNote->fetch();
         if (!$saved) jsonResponse(500, ['message' => 'Failed to save note']);
         jsonResponse(200, mapTaskNoteRow($saved, $userId));

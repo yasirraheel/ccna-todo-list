@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const taskNotesCache = new Map();
   const taskNotesLoading = new Set();
   let currentFilter = localStorage.getItem(TASK_STATUS_FILTER_KEY) || 'all';
-  if (!['all', 'active', 'completed'].includes(currentFilter)) currentFilter = 'all';
+  if (!['all', 'active', 'completed', 'has-notes'].includes(currentFilter)) currentFilter = 'all';
   const selectedTaskIds = new Set();
   let authToken = localStorage.getItem(AUTH_TOKEN_KEY) || '';
   let currentPlaylistFilter = 'all';
@@ -123,7 +123,8 @@ document.addEventListener('DOMContentLoaded', () => {
       syncFilterButtons();
       visibleTaskCount = TASKS_PAGE_SIZE;
       renderTasks();
-      showFlash(`Showing ${currentFilter} tasks`, 'info');
+      const filterLabel = currentFilter === 'has-notes' ? 'tasks with notes' : `${currentFilter} tasks`;
+      showFlash(`Showing ${filterLabel}`, 'info');
     });
   });
 
@@ -1035,6 +1036,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let filteredTasks = tasks;
     if (currentFilter === 'active') filteredTasks = tasks.filter(t => !t.completed);
     if (currentFilter === 'completed') filteredTasks = tasks.filter(t => t.completed);
+    if (currentFilter === 'has-notes') filteredTasks = tasks.filter(t => Boolean(t?.hasNote));
     return filteredTasks;
   }
 
@@ -1334,8 +1336,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const saved = await response.json();
             const currentNotes = taskNotesCache.get(task.id) || [];
-            const nextNotes = [saved, ...currentNotes.filter(note => !note.isOwn)];
+            const nextNotes = [saved, ...currentNotes];
             taskNotesCache.set(task.id, nextNotes);
+            task.hasNote = true;
             renderTaskNotesList(task.id, notesListEl);
             noteInputEl.value = '';
             showFlash('Note saved', 'success');
