@@ -1233,7 +1233,7 @@ document.addEventListener('DOMContentLoaded', () => {
               ${downloadSubUrl ? `<a class="sub-btn" href="${downloadSubUrl}" download title="Download Subtitles"><i class="fas fa-closed-captioning"></i> Sub</a>` : ''}
               ${canDelete ? '<button class="delete-btn" title="Delete task"><i class="fas fa-trash"></i></button>' : ''}
             </div>
-            <div class="task-notes app-hidden">
+            <div class="task-notes ${task.hasNote ? '' : 'app-hidden'}">
               <div class="task-notes-list"></div>
               <div class="task-note-form">
                 <textarea class="task-note-input" rows="2" placeholder="Add a note..."></textarea>
@@ -1311,6 +1311,14 @@ document.addEventListener('DOMContentLoaded', () => {
             loadTaskNotes(task.id, notesListEl).catch(() => {});
           }
         });
+      }
+
+      if (notesPanel && !notesPanel.classList.contains('app-hidden')) {
+        if (taskNotesCache.has(task.id)) {
+          renderTaskNotesList(task.id, notesListEl);
+        } else {
+          loadTaskNotes(task.id, notesListEl).catch(() => {});
+        }
       }
 
       if (noteSaveBtn && noteInputEl && noteVisibilityEl) {
