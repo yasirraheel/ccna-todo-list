@@ -1047,7 +1047,26 @@ if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'sett
     $stmt = $pdo->prepare('INSERT INTO `site_settings` (`setting_key`, `setting_value`, `updated_at`) VALUES (:key, :value, :updated_at)
         ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`), `updated_at` = VALUES(`updated_at`)');
     
+    // Handle File Uploads first
+    $uploadsDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads';
+    if (!is_dir($uploadsDir)) @mkdir($uploadsDir, 0777, true);
+
+    foreach (['LOGO_FILE', 'FAVICON_FILE'] as $fileKey) {
+        if (isset($_FILES[$fileKey]) && $_FILES[$fileKey]['error'] === UPLOAD_ERR_OK) {
+            $ext = pathinfo($_FILES[$fileKey]['name'], PATHINFO_EXTENSION);
+            $fileName = strtolower($fileKey) . '_' . time() . '.' . $ext;
+            $targetPath = $uploadsDir . DIRECTORY_SEPARATOR . $fileName;
+            if (move_uploaded_file($_FILES[$fileKey]['tmp_name'], $targetPath)) {
+                $settingKey = str_replace('_FILE', '_URL', $fileKey);
+                $body[$settingKey] = '/uploads/' . $fileName;
+            }
+        }
+    }
+
     foreach ($body as $key => $value) {
+        // Skip files keys
+        if (str_ends_with($key, '_FILE')) continue;
+        
         $stmt->execute([
             ':key' => (string) $key,
             ':value' => (string) $value,
@@ -1055,6 +1074,20 @@ if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'sett
         ]);
     }
     jsonResponse(200, ['message' => 'Settings updated successfully']);
+}
+
+if (count($segments) === 2 && $segments[0] === 'uploads' && $method === 'GET') {
+    $fileName = basename((string) $segments[1]);
+    $filePath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $fileName;
+    if (!file_exists($filePath)) jsonResponse(404, ['message' => 'File not found']);
+    
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $filePath);
+    finfo_close($finfo);
+    
+    header("Content-Type: $mime");
+    readfile($filePath);
+    exit;
 }
 
 if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'users' && $method === 'GET') {

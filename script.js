@@ -589,6 +589,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (authToken) {
       headers.Authorization = `Bearer ${authToken}`;
     }
+    
+    // Don't set Content-Type if it's FormData, let browser handle it
+    if (options.body instanceof FormData) {
+      if (headers['Content-Type']) delete headers['Content-Type'];
+    } else if (options.body && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+
     return fetch(url, { ...options, headers });
   }
 
@@ -913,17 +921,14 @@ document.addEventListener('DOMContentLoaded', () => {
       adminSettingsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(adminSettingsForm);
-        const settings = {};
-        formData.forEach((value, key) => { settings[key] = value; });
         
         const r = await apiFetch(ADMIN_SETTINGS_API, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(settings)
+          body: formData // Let the browser set the boundary for multipart/form-data
         });
         if (r.ok) {
           showFlash('Settings saved successfully', 'success');
-          // Reload to apply changes if app name was changed
+          // Reload to apply changes
           setTimeout(() => window.location.reload(), 1000);
         } else {
           showFlash('Failed to save settings', 'error');
