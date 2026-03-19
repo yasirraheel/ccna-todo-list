@@ -1590,23 +1590,76 @@ header h1 {
   text-overflow: ellipsis;
 }
 
+.pagination-footer {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+  margin-top: 32px !important;
+  margin-bottom: 40px !important;
+}
+
 .app-footer {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid #e5ecf6;
-  display: grid;
-  gap: 4px;
+  margin-top: 60px !important;
+  padding: 40px 0 !important;
+  border-top: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+  width: 100% !important;
+  display: block !important;
 }
 
-.app-footer-title {
-  font-size: 0.82rem;
-  color: #334155;
-  font-weight: 600;
+.footer-content {
+  max-width: 1100px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 0 24px !important;
+  width: 100% !important;
 }
 
-.app-footer-description {
-  font-size: 0.78rem;
-  color: #64748b;
+.footer-brand {
+  text-align: left !important;
+}
+
+.footer-brand h3 {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin-bottom: 4px !important;
+}
+
+.footer-brand p {
+  font-size: 0.9rem !important;
+  color: #64748b !important;
+  margin: 0 !important;
+}
+
+.footer-links {
+  display: flex !important;
+  gap: 24px !important;
+}
+
+.footer-links a {
+  font-size: 0.9rem !important;
+  color: #64748b !important;
+  text-decoration: none !important;
+  font-weight: 500 !important;
+  transition: color 0.2s !important;
+}
+
+.footer-links a:hover {
+  color: #0f172a !important;
+}
+
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column !important;
+    gap: 20px !important;
+    text-align: center !important;
+  }
+  .footer-brand {
+    text-align: center !important;
+  }
 }
 
 .filters,
@@ -2354,21 +2407,6 @@ body[data-page="login"] .auth-switch-btn {
   font-size: 14px;
 }
 
-.app-footer {
-  display: grid;
-  gap: 6px;
-}
-
-.app-footer-title {
-  margin: 0;
-  font-size: 14px;
-}
-
-.app-footer-description {
-  margin: 0;
-  font-size: 14px;
-}
-
 @media (max-width: 1200px) {
   .entry-grid {
     grid-template-columns: 1fr;
@@ -2428,8 +2466,7 @@ body[data-page="login"] .auth-switch-btn {
   .playlist-import,
   .filters,
   .bulk-actions,
-  #task-list,
-  .app-footer {
+  #task-list {
     padding: 16px !important;
   }
 
