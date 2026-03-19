@@ -19,7 +19,7 @@
   <meta name="twitter:title" content="My Tasks">
   <meta name="twitter:description" content="Manage tasks, playlists, and progress in one place.">
   <meta name="twitter:image" content="">
-  <link rel="stylesheet" href="style.css?v=20260317-27">
+  <link rel="stylesheet" href="style.css?v=20260317-28">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -218,6 +218,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-27"></script>
+  <script src="script.js?v=20260317-28"></script>
 </body>
 </html>

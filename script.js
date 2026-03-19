@@ -1044,11 +1044,28 @@ document.addEventListener('DOMContentLoaded', () => {
       const originEl = document.getElementById('origin-url');
       const callbackEl = document.getElementById('callback-url');
       if (originEl) originEl.textContent = window.location.origin;
-      if (callbackEl) callbackEl.textContent = `${window.location.origin}/login`;
+      
+      if (callbackEl) {
+        // Correctly handle subdirectories for the callback URL
+        const path = window.location.pathname.replace('admin.php', '').replace('/admin', '');
+        const base = window.location.origin + (path.endsWith('/') ? path : path + '/');
+        callbackEl.textContent = `${base}login`;
+      }
     }
 
     hidePageLoader();
   }
+
+  window.copyToClipboard = (elementId) => {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const text = el.textContent || el.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      showFlash('URL copied to clipboard', 'success');
+    }).catch(() => {
+      showFlash('Failed to copy URL', 'error');
+    });
+  };
 
   function switchAdminSection(sectionId) {
     adminNavItems.forEach(i => i.classList.toggle('active', i.dataset.section === sectionId));

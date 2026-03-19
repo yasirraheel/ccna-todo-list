@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="todo-api-base" content="">
   <title>Admin Panel | Team Hifsa</title>
-  <link rel="stylesheet" href="style.css?v=20260317-26">
+  <link rel="stylesheet" href="style.css?v=20260317-28">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="admin-layout">
@@ -189,14 +189,24 @@
           <!-- OAuth Settings -->
           <div class="admin-settings-card">
             <h3 class="section-title">Google OAuth Settings</h3>
-            <div style="background: #f1f5f9; padding: 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.85rem; color: #475569;">
+            <div style="background: #f1f5f9; padding: 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.85rem; color: #475569; border: 1px solid #e2e8f0;">
               <p><strong>Instructions:</strong></p>
-              <ol style="margin-left: 18px; margin-top: 8px; display: flex; flex-direction: column; gap: 4px;">
-                <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+              <ol style="margin-left: 18px; margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+                <li>Go to <a href="https://console.cloud.google.com/" target="_blank" style="color: #2563eb; text-decoration: underline;">Google Cloud Console</a></li>
                 <li>Create a project and go to <strong>APIs & Services > Credentials</strong></li>
                 <li>Create an <strong>OAuth 2.0 Client ID</strong> (Web application)</li>
-                <li>Add this URL to <strong>Authorized JavaScript origins</strong>: <br><code id="origin-url"></code></li>
-                <li>Add this URL to <strong>Authorized redirect URIs</strong>: <br><code id="callback-url"></code></li>
+                <li>Add this URL to <strong>Authorized JavaScript origins</strong>:
+                  <div style="display: flex; gap: 8px; margin-top: 4px;">
+                    <code id="origin-url" style="background: #fff; padding: 4px 8px; border-radius: 4px; border: 1px solid #cbd5e1; flex: 1;">...</code>
+                    <button type="button" class="bulk-btn" onclick="copyToClipboard('origin-url')" title="Copy"><i class="fas fa-copy"></i></button>
+                  </div>
+                </li>
+                <li>Add this URL to <strong>Authorized redirect URIs</strong>:
+                  <div style="display: flex; gap: 8px; margin-top: 4px;">
+                    <code id="callback-url" style="background: #fff; padding: 4px 8px; border-radius: 4px; border: 1px solid #cbd5e1; flex: 1;">...</code>
+                    <button type="button" class="bulk-btn" onclick="copyToClipboard('callback-url')" title="Copy"><i class="fas fa-copy"></i></button>
+                  </div>
+                </li>
               </ol>
             </div>
             
@@ -241,6 +251,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-26"></script>
+  <script src="script.js?v=20260317-28"></script>
 </body>
 </html>
