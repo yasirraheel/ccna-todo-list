@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="todo-api-base" content="">
   <title>Admin Panel | Team Hifsa</title>
-  <link rel="stylesheet" href="style.css?v=20260317-23">
+  <link rel="stylesheet" href="style.css?v=20260317-24">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="admin-layout">
@@ -173,9 +173,12 @@
               <input type="text" name="SMTP_FROM_NAME" placeholder="Team Hifsa Admin">
             </div>
             <div class="auth-field">
-              <label class="auth-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" name="SMTP_ENABLED" value="1" style="width: auto;">
-                Enable Email Verification
+              <label class="custom-checkbox-container">
+                <input type="checkbox" name="SMTP_ENABLED" value="1">
+                <div class="custom-checkbox-mark">
+                  <i class="fas fa-check"></i>
+                </div>
+                <span class="custom-checkbox-label">Enable Email Verification</span>
               </label>
             </div>
 
@@ -208,6 +211,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-23"></script>
+  <script src="script.js?v=20260317-24"></script>
 </body>
 </html>

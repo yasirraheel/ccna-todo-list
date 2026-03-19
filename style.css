@@ -571,8 +571,68 @@ header h1 {
 
 .admin-settings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  grid-template-columns: 1fr;
   gap: 24px;
+  width: 100%;
+}
+
+/* Custom Styled Checkbox */
+.custom-checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.custom-checkbox-container:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.custom-checkbox-container input {
+  display: none;
+}
+
+.custom-checkbox-mark {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #cbd5e1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  transition: all 0.2s;
+}
+
+.custom-checkbox-container input:checked + .custom-checkbox-mark {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.custom-checkbox-mark i {
+  color: #fff;
+  font-size: 12px;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.2s;
+}
+
+.custom-checkbox-container input:checked + .custom-checkbox-mark i {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.custom-checkbox-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #334155;
 }
 
 @media (max-width: 1024px) {

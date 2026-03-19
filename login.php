@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="todo-api-base" content="">
   <title>Login | Premium To-Do App</title>
-  <link rel="stylesheet" href="style.css?v=20260317-23">
+  <link rel="stylesheet" href="style.css?v=20260317-24">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -60,6 +60,6 @@
   </div>
 
   <div id="app-container" class="app-container app-hidden"></div>
-  <script src="script.js?v=20260317-23"></script>
+  <script src="script.js?v=20260317-24"></script>
 </body>
 </html>
