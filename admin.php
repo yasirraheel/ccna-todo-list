@@ -188,7 +188,28 @@
 
           <!-- OAuth Settings -->
           <div class="admin-settings-card">
-            <h3 class="section-title">OAuth Settings</h3>
+            <h3 class="section-title">Google OAuth Settings</h3>
+            <div style="background: #f1f5f9; padding: 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.85rem; color: #475569;">
+              <p><strong>Instructions:</strong></p>
+              <ol style="margin-left: 18px; margin-top: 8px; display: flex; flex-direction: column; gap: 4px;">
+                <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+                <li>Create a project and go to <strong>APIs & Services > Credentials</strong></li>
+                <li>Create an <strong>OAuth 2.0 Client ID</strong> (Web application)</li>
+                <li>Add this URL to <strong>Authorized JavaScript origins</strong>: <br><code id="origin-url"></code></li>
+                <li>Add this URL to <strong>Authorized redirect URIs</strong>: <br><code id="callback-url"></code></li>
+              </ol>
+            </div>
+            
+            <div class="auth-field">
+              <label class="custom-checkbox-container">
+                <input type="checkbox" name="GOOGLE_LOGIN_ENABLED" value="1">
+                <div class="custom-checkbox-mark">
+                  <i class="fas fa-check"></i>
+                </div>
+                <span class="custom-checkbox-label">Enable Google Login</span>
+              </label>
+            </div>
+
             <div class="auth-field">
               <label class="auth-label">Google Client ID</label>
               <input type="text" name="GOOGLE_CLIENT_ID" placeholder="your-client-id.apps.googleusercontent.com">

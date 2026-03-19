@@ -324,6 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showFlash(await readResponseMessage(r, 'Playlist rename failed'), 'error');
         return;
       }
+      const data = await r.json();
       await loadPlaylists();
       currentPlaylistFilter = toName;
       if (playlistFilterSelect) playlistFilterSelect.value = currentPlaylistFilter;
@@ -331,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
-      showFlash(`Playlist renamed to ${toName}`, 'success');
+      showFlash(data.message || `Playlist renamed to ${toName}`, 'success');
     });
   }
 
@@ -356,10 +357,11 @@ document.addEventListener('DOMContentLoaded', () => {
         showFlash(await readResponseMessage(r, 'Visibility update failed'), 'error');
         return;
       }
+      const data = await r.json();
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
-      showFlash(`Playlist visibility set to ${nextVisibility}`, 'success');
+      showFlash(data.message || `Playlist visibility set to ${nextVisibility}`, 'success');
     });
   }
 
@@ -384,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showFlash(await readResponseMessage(r, 'Playlist delete failed'), 'error');
         return;
       }
+      const data = await r.json();
       await loadPlaylists();
       currentPlaylistFilter = 'all';
       if (playlistFilterSelect) playlistFilterSelect.value = 'all';
@@ -391,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
-      showFlash('Playlist cleared to Unassigned', 'success');
+      showFlash(data.message || 'Playlist cleared to Unassigned', 'success');
     });
   }
   if (authModeLoginBtn) {
@@ -675,7 +678,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    if (config?.googleClientId) {
+    if (config?.googleClientId && config?.googleLoginEnabled) {
       const googleRow = document.getElementById('google-login-row');
       const googleOnload = document.getElementById('g_id_onload');
       if (googleRow && googleOnload) {
@@ -854,7 +857,7 @@ document.addEventListener('DOMContentLoaded', () => {
       syncInitialPageSize();
       await loadTasks();
       renderTasks();
-      showFlash('Logged in successfully', 'success');
+      showFlash(data.message || 'Logged in successfully', 'success');
     } catch (err) {
       if (authStatus) {
         authStatus.textContent = 'Connection error';
@@ -931,7 +934,7 @@ document.addEventListener('DOMContentLoaded', () => {
       syncInitialPageSize();
       await loadTasks();
       renderTasks();
-      showFlash('Account created successfully', 'success');
+      showFlash(data.message || 'Account created successfully', 'success');
     } catch (err) {
       if (authStatus) {
         authStatus.textContent = 'Connection error';
@@ -1013,13 +1016,15 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             body: formData
           });
-          const data = await r.json();
+          
           if (r.ok) {
+            const data = await r.json();
             showFlash(data.message || 'Settings saved successfully', 'success');
             // Reload to apply changes after a short delay
             setTimeout(() => window.location.reload(), 1200);
           } else {
-            showFlash(data.message || 'Failed to save settings', 'error');
+            const errorMsg = await readResponseMessage(r, 'Failed to save settings');
+            showFlash(errorMsg, 'error');
             if (submitBtn) {
               submitBtn.disabled = false;
               submitBtn.classList.remove('is-loading');
@@ -1033,6 +1038,13 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       });
+    }
+
+    if (isAdminPage) {
+      const originEl = document.getElementById('origin-url');
+      const callbackEl = document.getElementById('callback-url');
+      if (originEl) originEl.textContent = window.location.origin;
+      if (callbackEl) callbackEl.textContent = `${window.location.origin}/login`;
     }
 
     hidePageLoader();
@@ -1164,10 +1176,13 @@ document.addEventListener('DOMContentLoaded', () => {
       body: JSON.stringify({ status })
     });
     if (r.ok) {
-      showFlash(`User ${status === 'suspended' ? 'suspended' : 'activated'} successfully`, 'success');
+      const data = await r.json();
+      showFlash(data.message || `User status changed to ${status}`, 'success');
       const activeSection = document.querySelector('.admin-nav-item.active').dataset.section;
       if (activeSection === 'users') loadAllUsers();
       else loadAdminDashboard();
+    } else {
+      showFlash(await readResponseMessage(r, 'Status update failed'), 'error');
     }
   };
 
@@ -1181,12 +1196,15 @@ document.addEventListener('DOMContentLoaded', () => {
       body: JSON.stringify({ role })
     });
     if (r.ok) {
-      showFlash('User role updated', 'success');
+      const data = await r.json();
+      showFlash(data.message || `User role updated to ${role}`, 'success');
       if (isAdminPage) {
         const activeSection = document.querySelector('.admin-nav-item.active').dataset.section;
         if (activeSection === 'users') loadAllUsers();
         else loadAdminDashboard();
       }
+    } else {
+      showFlash(await readResponseMessage(r, 'Role update failed'), 'error');
     }
   };
 
@@ -1196,12 +1214,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const r = await apiFetch(`${ADMIN_USERS_API}/${id}`, { method: 'DELETE' });
     if (r.ok) {
-      showFlash('User deleted', 'success');
+      const data = await r.json();
+      showFlash(data.message || 'User deleted', 'success');
       if (isAdminPage) {
         const activeSection = document.querySelector('.admin-nav-item.active').dataset.section;
         if (activeSection === 'users') loadAllUsers();
         else loadAdminDashboard();
       }
+    } else {
+      showFlash(await readResponseMessage(r, 'User delete failed'), 'error');
     }
   };
   async function init() {

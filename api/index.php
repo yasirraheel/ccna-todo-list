@@ -43,9 +43,13 @@ function jsonResponse(int $status, array $payload): void {
 
 function getJsonBody(): array {
     $raw = file_get_contents('php://input');
-    if (!is_string($raw) || trim($raw) === '') return [];
-    $decoded = json_decode($raw, true);
-    return is_array($decoded) ? $decoded : [];
+    $decoded = [];
+    if (is_string($raw) && trim($raw) !== '') {
+        $decoded = json_decode($raw, true);
+        if (!is_array($decoded)) $decoded = [];
+    }
+    // Merge $_POST for multipart/form-data support
+    return array_merge($decoded, $_POST);
 }
 
 function normalizeText(string $value): string {
@@ -496,7 +500,8 @@ if (count($segments) === 1 && $segments[0] === 'config' && $method === 'GET') {
         'footerText' => $dbSettings['FOOTER_TEXT'] ?? null,
         'logoUrl' => $dbSettings['LOGO_URL'] ?? null,
         'faviconUrl' => $dbSettings['FAVICON_URL'] ?? null,
-        'googleClientId' => $dbSettings['GOOGLE_CLIENT_ID'] ?? null
+        'googleClientId' => $dbSettings['GOOGLE_CLIENT_ID'] ?? null,
+        'googleLoginEnabled' => ($dbSettings['GOOGLE_LOGIN_ENABLED'] ?? '0') === '1'
     ]);
 }
 
@@ -625,11 +630,15 @@ if (count($segments) === 3 && $segments[0] === 'auth' && $segments[1] === 'googl
     $gUser = json_decode($resp, true);
     if (!isset($gUser['email'])) jsonResponse(401, ['message' => 'Invalid Google user data']);
     
-    // Check if Client ID matches
-    $stmt = $pdo->query('SELECT `setting_key`, `setting_value` FROM `site_settings` WHERE `setting_key` IN ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET")');
+    // Check if Client ID matches and if enabled
+    $stmt = $pdo->query('SELECT `setting_key`, `setting_value` FROM `site_settings` WHERE `setting_key` IN ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_LOGIN_ENABLED")');
     $oauth = [];
     foreach ($stmt->fetchAll() as $row) {
         $oauth[$row['setting_key']] = $row['setting_value'];
+    }
+
+    if (($oauth['GOOGLE_LOGIN_ENABLED'] ?? '0') !== '1') {
+        jsonResponse(403, ['message' => 'Google Login is currently disabled']);
     }
 
     if (isset($oauth['GOOGLE_CLIENT_ID']) && $gUser['aud'] !== $oauth['GOOGLE_CLIENT_ID']) {
@@ -1191,6 +1200,7 @@ if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'sett
     $uploadsDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads';
     if (!is_dir($uploadsDir)) @mkdir($uploadsDir, 0777, true);
 
+    $fileUploaded = [];
     foreach (['LOGO_FILE', 'FAVICON_FILE'] as $fileKey) {
         if (isset($_FILES[$fileKey]) && $_FILES[$fileKey]['error'] === UPLOAD_ERR_OK) {
             $ext = pathinfo($_FILES[$fileKey]['name'], PATHINFO_EXTENSION);
@@ -1198,14 +1208,24 @@ if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'sett
             $targetPath = $uploadsDir . DIRECTORY_SEPARATOR . $fileName;
             if (move_uploaded_file($_FILES[$fileKey]['tmp_name'], $targetPath)) {
                 $settingKey = str_replace('_FILE', '_URL', $fileKey);
-                $body[$settingKey] = '/uploads/' . $fileName;
+                $body[$settingKey] = '/api/uploads/' . $fileName;
+                $fileUploaded[$settingKey] = true;
             }
         }
     }
 
+    // Ensure checkboxes are handled (if not in body, they are unchecked)
+    $body['SMTP_ENABLED'] = isset($body['SMTP_ENABLED']) ? '1' : '0';
+    $body['GOOGLE_LOGIN_ENABLED'] = isset($body['GOOGLE_LOGIN_ENABLED']) ? '1' : '0';
+
     foreach ($body as $key => $value) {
-        // Skip files keys
+        // Skip file upload markers
         if (str_ends_with($key, '_FILE')) continue;
+        
+        // If it's a URL field, skip if value is empty AND we didn't just upload a file for it
+        if (str_ends_with($key, '_URL') && trim((string)$value) === '' && !isset($fileUploaded[$key])) {
+            continue;
+        }
         
         $stmt->execute([
             ':key' => (string) $key,
