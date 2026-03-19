@@ -151,6 +151,7 @@ function getApiPathSegments(): array {
 }
 
 function convertXmlToText(string $xml): string {
+    if (!class_exists('DOMDocument')) return "DOM extension is missing on this server.";
     $dom = new DOMDocument();
     @$dom->loadXML($xml);
     $text = '';
@@ -162,6 +163,7 @@ function convertXmlToText(string $xml): string {
 }
 
 function convertXmlToSrt(string $xml): string {
+    if (!class_exists('DOMDocument')) return "DOM extension is missing on this server.";
     $dom = new DOMDocument();
     @$dom->loadXML($xml);
     $srt = '';
@@ -303,17 +305,12 @@ function dbConnect(): PDO {
 }
 
 function ensureTables(PDO $pdo): void {
-    // Check if a specific table exists to skip heavy initialization
+    // Check if the newest column exists to skip heavy initialization
     try {
-        $stmt = $pdo->query("SELECT 1 FROM `users` LIMIT 1");
-        if ($stmt) {
-            // Table exists, check if new columns exist to avoid repeated ALTERs
-            // This is a simple way to skip the heavy lifting
-            $cols = $pdo->query("SHOW COLUMNS FROM `users` LIKE 'is_verified'")->fetch();
-            if ($cols) return; 
-        }
+        $cols = $pdo->query("SHOW COLUMNS FROM `tasks` LIKE 'tags'")->fetch();
+        if ($cols) return; 
     } catch (Throwable $e) {
-        // Table doesn't exist, proceed to create
+        // Table or column doesn't exist, proceed
     }
 
     $pdo->exec('CREATE TABLE IF NOT EXISTS `users` (
