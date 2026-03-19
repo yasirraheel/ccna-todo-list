@@ -266,10 +266,22 @@ function ensureTables(PDO $pdo): void {
       `name` VARCHAR(120) NOT NULL,
       `email` VARCHAR(190) NOT NULL,
       `password_hash` VARCHAR(255) NOT NULL,
+      `role` VARCHAR(20) NOT NULL DEFAULT "user",
       `created_at` BIGINT NOT NULL,
       PRIMARY KEY (`id`),
       UNIQUE KEY `uk_users_email` (`email`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS `site_settings` (
+      `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+      `setting_key` VARCHAR(128) NOT NULL,
+      `setting_value` TEXT NOT NULL,
+      `updated_at` BIGINT NOT NULL,
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `uk_site_settings_key` (`setting_key`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    try {
+        $pdo->exec('ALTER TABLE `users` ADD COLUMN `role` VARCHAR(20) NOT NULL DEFAULT "user"');
+    } catch (Throwable $e) {}
     $pdo->exec('CREATE TABLE IF NOT EXISTS `user_tokens` (
       `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
       `user_id` BIGINT UNSIGNED NOT NULL,
@@ -424,14 +436,15 @@ function getAuthenticatedUser(PDO $pdo): array {
     $token = getAuthorizationToken();
     if ($token === '') jsonResponse(401, ['message' => 'Unauthorized']);
     $now = (int) round(microtime(true) * 1000);
-    $stmt = $pdo->prepare('SELECT u.`id`, u.`name`, u.`email` FROM `user_tokens` t INNER JOIN `users` u ON u.`id` = t.`user_id` WHERE t.`token` = :token AND t.`expires_at` > :now LIMIT 1');
+    $stmt = $pdo->prepare('SELECT u.`id`, u.`name`, u.`email`, u.`role` FROM `user_tokens` t INNER JOIN `users` u ON u.`id` = t.`user_id` WHERE t.`token` = :token AND t.`expires_at` > :now LIMIT 1');
     $stmt->execute([':token' => $token, ':now' => $now]);
     $user = $stmt->fetch();
     if (!$user) jsonResponse(401, ['message' => 'Unauthorized']);
     return [
         'id' => (int) $user['id'],
         'name' => (string) $user['name'],
-        'email' => (string) $user['email']
+        'email' => (string) $user['email'],
+        'role' => (string) ($user['role'] ?? 'user')
     ];
 }
 
@@ -451,13 +464,22 @@ $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 $body = getJsonBody();
 
 if (count($segments) === 1 && $segments[0] === 'config' && $method === 'GET') {
+    // Get site settings
+    $settingsStmt = $pdo->query('SELECT `setting_key`, `setting_value` FROM `site_settings`');
+    $dbSettings = [];
+    foreach ($settingsStmt->fetchAll() as $row) {
+        $dbSettings[$row['setting_key']] = $row['setting_value'];
+    }
+
     jsonResponse(200, [
         'apiBaseUrl' => $publicApiBase,
         'runtime' => 'php',
-        'appName' => $appName !== '' ? $appName : 'My Tasks',
-        'appDescription' => $appDescription,
+        'appName' => $dbSettings['APP_NAME'] ?? ($appName !== '' ? $appName : 'My Tasks'),
+        'appDescription' => $dbSettings['APP_DESCRIPTION'] ?? $appDescription,
         'appOgImageUrl' => $appOgImageUrl,
-        'appCanonicalUrl' => $appCanonicalUrl
+        'appCanonicalUrl' => $appCanonicalUrl,
+        'footerText' => $dbSettings['FOOTER_TEXT'] ?? null,
+        'logoUrl' => $dbSettings['LOGO_URL'] ?? null
     ]);
 }
 
@@ -480,6 +502,12 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'regis
         ':created_at' => $now
     ]);
     $userId = (int) $pdo->lastInsertId();
+    
+    // Promote first user to admin automatically
+    if ($userId === 1) {
+        $pdo->prepare('UPDATE `users` SET `role` = "admin" WHERE `id` = 1')->execute();
+    }
+    
     $token = issueUserToken($pdo, $userId);
     jsonResponse(201, ['token' => $token, 'user' => ['id' => $userId, 'name' => $name, 'email' => $email]]);
 }
@@ -975,6 +1003,86 @@ if (count($segments) === 2 && $segments[0] === 'playlists' && $segments[1] === '
       ON DUPLICATE KEY UPDATE `pref_value` = VALUES(`pref_value`), `updated_at` = VALUES(`updated_at`)');
     $prefUpd->execute([':user_id' => $userId, ':k' => 'selected_playlist', ':v' => 'all', ':u' => $nowTs, ':c' => $nowTs]);
     jsonResponse(200, ['cleared' => $cleared, 'name' => $name]);
+}
+
+function isAdmin(array $user): bool {
+    return (string) ($user['role'] ?? 'user') === 'admin';
+}
+
+if (count($segments) === 1 && $segments[0] === 'admin' && $method === 'GET') {
+    if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
+    
+    // Dashboard Stats
+    $totalUsers = (int) $pdo->query('SELECT COUNT(*) FROM `users`')->fetchColumn();
+    $totalTasks = (int) $pdo->query('SELECT COUNT(*) FROM `tasks`')->fetchColumn();
+    $totalPublicTasks = (int) $pdo->query('SELECT COUNT(*) FROM `tasks` WHERE `visibility` = "public"')->fetchColumn();
+    $totalNotes = (int) $pdo->query('SELECT COUNT(*) FROM `task_notes`')->fetchColumn();
+    
+    // Recent Users
+    $recentUsersStmt = $pdo->query('SELECT `id`, `name`, `email`, `role`, `created_at` FROM `users` ORDER BY `created_at` DESC LIMIT 10');
+    $recentUsers = $recentUsersStmt->fetchAll();
+    
+    // Site Settings
+    $settingsStmt = $pdo->query('SELECT `setting_key`, `setting_value` FROM `site_settings`');
+    $settings = [];
+    foreach ($settingsStmt->fetchAll() as $row) {
+        $settings[$row['setting_key']] = $row['setting_value'];
+    }
+
+    jsonResponse(200, [
+        'stats' => [
+            'totalUsers' => $totalUsers,
+            'totalTasks' => $totalTasks,
+            'totalPublicTasks' => $totalPublicTasks,
+            'totalNotes' => $totalNotes
+        ],
+        'recentUsers' => $recentUsers,
+        'settings' => $settings
+    ]);
+}
+
+if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'settings' && $method === 'POST') {
+    if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
+    $nowTs = (int) round(microtime(true) * 1000);
+    $stmt = $pdo->prepare('INSERT INTO `site_settings` (`setting_key`, `setting_value`, `updated_at`) VALUES (:key, :value, :updated_at)
+        ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`), `updated_at` = VALUES(`updated_at`)');
+    
+    foreach ($body as $key => $value) {
+        $stmt->execute([
+            ':key' => (string) $key,
+            ':value' => (string) $value,
+            ':updated_at' => $nowTs
+        ]);
+    }
+    jsonResponse(200, ['message' => 'Settings updated successfully']);
+}
+
+if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'users' && $method === 'GET') {
+    if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
+    $stmt = $pdo->query('SELECT `id`, `name`, `email`, `role`, `created_at` FROM `users` ORDER BY `created_at` DESC');
+    jsonResponse(200, $stmt->fetchAll());
+}
+
+if (count($segments) === 3 && $segments[0] === 'admin' && $segments[1] === 'users' && $method === 'PATCH') {
+    if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
+    $targetId = (int) $segments[2];
+    $role = trim((string) ($body['role'] ?? 'user'));
+    if (!in_array($role, ['user', 'admin'])) jsonResponse(400, ['message' => 'Invalid role']);
+    
+    $stmt = $pdo->prepare('UPDATE `users` SET `role` = :role WHERE `id` = :id');
+    $stmt->execute([':role' => $role, ':id' => $targetId]);
+    jsonResponse(200, ['message' => 'User role updated']);
+}
+
+if (count($segments) === 3 && $segments[0] === 'admin' && $segments[1] === 'users' && $method === 'DELETE') {
+    if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
+    $targetId = (int) $segments[2];
+    if ($targetId === $userId) jsonResponse(400, ['message' => 'Cannot delete yourself']);
+    
+    $pdo->prepare('DELETE FROM `users` WHERE `id` = :id')->execute([':id' => $targetId]);
+    $pdo->prepare('DELETE FROM `user_tokens` WHERE `user_id` = :id')->execute([':id' => $targetId]);
+    $pdo->prepare('DELETE FROM `user_prefs` WHERE `user_id` = :id')->execute([':id' => $targetId]);
+    jsonResponse(200, ['message' => 'User deleted successfully']);
 }
 
 jsonResponse(404, ['message' => 'Not found']);

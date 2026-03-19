@@ -48,8 +48,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const footerDescription = document.getElementById('footer-description');
   const footerYear = document.getElementById('footer-year');
   const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login.html') || document.body.dataset.page === 'login';
+  const isAdminPage = window.location.pathname.toLowerCase().endsWith('/admin.html');
   const scrollTopBtn = document.getElementById('scroll-top-btn');
   const pageLoader = document.getElementById('page-loader');
+
+  // Admin Elements
+  const adminNavItems = document.querySelectorAll('.admin-nav-item[data-section]');
+  const adminSections = document.querySelectorAll('.admin-section');
+  const adminLogoutBtn = document.getElementById('admin-logout-btn');
+  const adminSettingsForm = document.getElementById('admin-settings-form');
+  const adminStatUsers = document.getElementById('admin-stat-users');
+  const adminStatTasks = document.getElementById('admin-stat-tasks');
+  const adminStatPublic = document.getElementById('admin-stat-public');
+  const adminStatNotes = document.getElementById('admin-stat-notes');
+  const recentUsersTable = document.getElementById('recent-users-table');
+  const allUsersTable = document.getElementById('all-users-table');
+  const adminEmailEl = document.getElementById('admin-email');
 
   // Modal elements
   const customModal = document.getElementById('custom-modal');
@@ -86,6 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let PLAYLIST_VISIBILITY_API = '/api/playlists/visibility';
   let PLAYLIST_RENAME_API = '/api/playlists/rename';
   let PLAYLIST_DELETE_API = '/api/playlists/delete';
+  let ADMIN_API = '/api/admin';
+  let ADMIN_USERS_API = '/api/admin/users';
+  let ADMIN_SETTINGS_API = '/api/admin/settings';
   const IMPORT_LIMIT = 300;
   const AUTH_TOKEN_KEY = 'todo_auth_token';
   const SELECTED_PLAYLIST_KEY = 'todo_selected_playlist';
@@ -131,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentPlaylistFilter = 'all';
   let currentScope = localStorage.getItem(TASK_SCOPE_KEY) || 'my';
   let currentUserId = null;
-  let appName = 'My Tasks';
+  let appName = 'Team Hifsa';
   let authMode = 'login';
 
   const options = { weekday: 'long', month: 'short', day: 'numeric' };
@@ -143,7 +160,11 @@ document.addEventListener('DOMContentLoaded', () => {
   syncFilterButtons();
   syncAuthModeUi();
 
-  init();
+  if (isAdminPage) {
+    adminInit();
+  } else {
+    init();
+  }
 
   if (form) {
     form.addEventListener('submit', (e) => {
@@ -411,6 +432,9 @@ document.addEventListener('DOMContentLoaded', () => {
     PLAYLIST_VISIBILITY_API = `${apiRoot}/playlists/visibility`;
     PLAYLIST_RENAME_API = `${apiRoot}/playlists/rename`;
     PLAYLIST_DELETE_API = `${apiRoot}/playlists/delete`;
+    ADMIN_API = `${apiRoot}/admin`;
+    ADMIN_USERS_API = `${apiRoot}/admin/users`;
+    ADMIN_SETTINGS_API = `${apiRoot}/admin/settings`;
   }
 
   async function fetchWithTimeout(url, timeoutMs = 2500) {
@@ -546,6 +570,18 @@ document.addEventListener('DOMContentLoaded', () => {
       authStatus.textContent = '';
       authStatus.classList.remove('show');
     }
+
+    // Add Admin link if admin
+    if (user?.role === 'admin') {
+      const nav = document.querySelector('.saas-nav');
+      if (nav && !nav.querySelector('a[href="/admin.html"]')) {
+        const adminLink = document.createElement('a');
+        adminLink.href = '/admin.html';
+        adminLink.className = 'saas-nav-item';
+        adminLink.innerHTML = '<i class="fas fa-shield-halved" style="margin-right: 6px;"></i>Admin';
+        nav.appendChild(adminLink);
+      }
+    }
   }
 
   async function apiFetch(url, options = {}) {
@@ -602,6 +638,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const canonicalUrl = String(config?.appCanonicalUrl || '').trim();
     setCanonicalUrl(canonicalUrl);
     setMetaContent('meta[property="og:url"]', canonicalUrl || window.location.href);
+
+    if (config?.footerText && footerTitle) {
+      footerTitle.textContent = config.footerText;
+    }
+    if (config?.logoUrl) {
+      const logoEls = document.querySelectorAll('.saas-logo, .admin-sidebar-logo span');
+      logoEls.forEach(el => {
+        if (el.tagName === 'A' || el.tagName === 'SPAN') {
+          // Keep text but maybe add icon or change text
+        }
+      });
+    }
+
+    if (config?.faviconUrl) {
+      let favicon = document.querySelector('link[rel="icon"]');
+      if (!favicon) {
+        favicon = document.createElement('link');
+        favicon.rel = 'icon';
+        document.head.appendChild(favicon);
+      }
+      favicon.href = config.faviconUrl;
+    }
   }
 
   async function readResponseMessage(response, fallback) {
@@ -662,7 +720,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
       showAppPanel(data.user || {});
       if (isLoginPage) {
-        redirectToApp();
+        if (data.user?.role === 'admin') {
+          window.location.href = 'admin.html';
+        } else {
+          redirectToApp();
+        }
       }
       return true;
     } catch (_error) {
@@ -711,6 +773,12 @@ document.addEventListener('DOMContentLoaded', () => {
       setAuthToken(data.token || '');
       setDefaultPublicScope();
       showAppPanel(data.user || {});
+      
+      if (data.user?.role === 'admin') {
+        window.location.href = 'admin.html';
+        return;
+      }
+      
       redirectToApp();
       if (isLoginPage) return;
       await loadPlaylists();
@@ -770,6 +838,12 @@ document.addEventListener('DOMContentLoaded', () => {
       setAuthToken(data.token || '');
       setDefaultPublicScope();
       showAppPanel(data.user || {});
+      
+      if (data.user?.role === 'admin') {
+        window.location.href = 'admin.html';
+        return;
+      }
+      
       redirectToApp();
       if (isLoginPage) return;
       await loadPlaylists();
@@ -803,6 +877,166 @@ document.addEventListener('DOMContentLoaded', () => {
     showFlash('Logged out', 'info');
   }
 
+  async function adminInit() {
+    await resolveApiBase();
+    const authed = await authenticateWithStoredToken();
+    if (!authed) return;
+    
+    // Extra security check for admin page
+    const r = await apiFetch(AUTH_ME_API);
+    if (r.ok) {
+      const d = await r.json();
+      if ((d.user?.role || 'user') !== 'admin') {
+        showFlash('Admin access denied', 'error');
+        window.location.href = '/';
+        return;
+      }
+      if (adminEmailEl) adminEmailEl.textContent = d.user?.email || '';
+    }
+
+    showPageLoader('Loading admin data...');
+    await loadAdminDashboard();
+    
+    // Setup Admin Navigation
+    adminNavItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const section = item.dataset.section;
+        switchAdminSection(section);
+      });
+    });
+
+    if (adminLogoutBtn) {
+      adminLogoutBtn.addEventListener('click', logoutUser);
+    }
+
+    if (adminSettingsForm) {
+      adminSettingsForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(adminSettingsForm);
+        const settings = {};
+        formData.forEach((value, key) => { settings[key] = value; });
+        
+        const r = await apiFetch(ADMIN_SETTINGS_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(settings)
+        });
+        if (r.ok) {
+          showFlash('Settings saved successfully', 'success');
+          // Reload to apply changes if app name was changed
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showFlash('Failed to save settings', 'error');
+        }
+      });
+    }
+
+    hidePageLoader();
+  }
+
+  function switchAdminSection(sectionId) {
+    adminNavItems.forEach(i => i.classList.toggle('active', i.dataset.section === sectionId));
+    adminSections.forEach(s => s.classList.toggle('active', s.id === `section-${sectionId}`));
+    
+    const title = sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
+    const titleEl = document.getElementById('section-title');
+    if (titleEl) titleEl.textContent = title;
+
+    if (sectionId === 'users') loadAllUsers();
+    if (sectionId === 'dashboard') loadAdminDashboard();
+  }
+
+  async function loadAdminDashboard() {
+    try {
+      const r = await apiFetch(ADMIN_API);
+      if (!r.ok) return;
+      const data = await r.json();
+      
+      if (adminStatUsers) adminStatUsers.textContent = data.stats?.totalUsers || 0;
+      if (adminStatTasks) adminStatTasks.textContent = data.stats?.totalTasks || 0;
+      if (adminStatPublic) adminStatPublic.textContent = data.stats?.totalPublicTasks || 0;
+      if (adminStatNotes) adminStatNotes.textContent = data.stats?.totalNotes || 0;
+      
+      renderUsersTable(recentUsersTable, data.recentUsers || []);
+      
+      // Populate settings form if it exists
+      if (adminSettingsForm && data.settings) {
+        Object.entries(data.settings).forEach(([key, value]) => {
+          const input = adminSettingsForm.querySelector(`[name="${key}"]`);
+          if (input) input.value = value;
+        });
+      }
+    } catch (_e) {}
+  }
+
+  async function loadAllUsers() {
+    try {
+      const r = await apiFetch(ADMIN_USERS_API);
+      if (!r.ok) return;
+      const users = await r.json();
+      renderUsersTable(allUsersTable, users);
+    } catch (_e) {}
+  }
+
+  function renderUsersTable(container, users) {
+    if (!container) return;
+    container.innerHTML = '';
+    users.forEach(user => {
+      const tr = document.createElement('tr');
+      const date = new Date(user.created_at).toLocaleDateString();
+      const roleBadge = user.role === 'admin' ? 'badge-admin' : 'badge-user';
+      
+      tr.innerHTML = `
+        <td>${user.name}</td>
+        <td>${user.email}</td>
+        <td><span class="admin-badge ${roleBadge}">${user.role}</span></td>
+        <td>${date}</td>
+        <td class="admin-actions">
+          <button class="bulk-btn" onclick="window.updateUserRole(${user.id}, '${user.role === 'admin' ? 'user' : 'admin'}')">
+            <i class="fas fa-user-shield"></i>
+          </button>
+          <button class="bulk-btn danger" onclick="window.deleteUser(${user.id})">
+            <i class="fas fa-trash"></i>
+          </button>
+        </td>
+      `;
+      container.appendChild(tr);
+    });
+  }
+
+  window.updateUserRole = async (id, role) => {
+    const confirmed = await showCustomConfirm('Update Role', `Change user role to ${role}?`);
+    if (!confirmed) return;
+    
+    const r = await apiFetch(`${ADMIN_USERS_API}/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role })
+    });
+    if (r.ok) {
+      showFlash('User role updated', 'success');
+      if (isAdminPage) {
+        const activeSection = document.querySelector('.admin-nav-item.active').dataset.section;
+        if (activeSection === 'users') loadAllUsers();
+        else loadAdminDashboard();
+      }
+    }
+  };
+
+  window.deleteUser = async (id) => {
+    const confirmed = await showCustomConfirm('Delete User', 'Permanently delete this user and all their data?', { confirmVariant: 'danger' });
+    if (!confirmed) return;
+    
+    const r = await apiFetch(`${ADMIN_USERS_API}/${id}`, { method: 'DELETE' });
+    if (r.ok) {
+      showFlash('User deleted', 'success');
+      if (isAdminPage) {
+        const activeSection = document.querySelector('.admin-nav-item.active').dataset.section;
+        if (activeSection === 'users') loadAllUsers();
+        else loadAdminDashboard();
+      }
+    }
+  };
   async function init() {
     await resolveApiBase();
     const authed = await authenticateWithStoredToken();
