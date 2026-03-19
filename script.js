@@ -40,154 +40,145 @@ let tasks = [];
 let visibleTaskCount = 18;
 let isLoadingMore = false;
 
+// DOM Elements
+let form, taskInput, taskDate, taskPriority, taskCategory, taskVisibility, taskList, filterBtns, dateDisplay;
+let playlistUrlInput, playlistPriorityInput, playlistTypeInput, playlistVisibilityInput, playlistDateInput, playlistNameInput;
+let importPlaylistBtn, playlistStatus, importBtnIdleLabel, playlistFilterSelect, scopeFilterSelect;
+let playlistVisibilityBtn, playlistRenameBtn, playlistDeleteBtn, selectAllTasksInput, deleteSelectedBtn, deleteAllBtn, loadMoreBtn;
+let authPanel, appContainer, authStatus, authForm, otpForm, otpEmailDisplay, otpInput, otpSubmitBtn;
+let authNameInput, authNameField, authEmailInput, authPasswordInput, authTitleEl, authSubtitleEl;
+let authModeLoginBtn, authModeRegisterBtn, authSubmitBtn, authSwitchLabel, authSwitchBtn, logoutBtn, sessionEmail;
+let appTitle, footerTitle, footerDescription, footerYear, scrollTopBtn, pageLoader;
+
+const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login') || document.body.dataset.page === 'login';
+const isAdminPage = window.location.pathname.toLowerCase().endsWith('/admin');
+
+let authMode = 'login';
+let currentFilter = localStorage.getItem(TASK_STATUS_FILTER_KEY) || 'all';
+if (!['all', 'active', 'completed', 'has-notes'].includes(currentFilter)) currentFilter = 'all';
+const selectedTaskIds = new Set();
+let currentPlaylistFilter = 'all';
+let currentScope = localStorage.getItem(TASK_SCOPE_KEY) || 'my';
+let currentUserId = null;
+const taskNotesCache = new Map();
+const taskNotesLoading = new Set();
+
+// Admin Elements
+let adminNavItems, adminSections, adminLogoutBtn, adminSettingsForm, adminStatUsers, adminStatTasks, adminStatPublic, adminStatNotes;
+let recentUsersTable, allUsersTable, adminEmailEl;
+
+// Captcha
+let captchaQuestion, captchaInput, currentCaptchaAnswer = null;
+
+// Modals
+let customModal, modalTitle, modalMessage, modalInput, modalCancel, modalConfirm, flashStack;
+
+// Stats
+let statTotalEl, statCompletedEl, statPendingEl, statPlaylistEl, statProgressFill;
+
 document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('todo-form');
-  const taskInput = document.getElementById('task-input');
-  const taskDate = document.getElementById('task-date');
-  const taskPriority = document.getElementById('task-priority');
-  const taskCategory = document.getElementById('task-category');
-  const taskVisibility = document.getElementById('task-visibility');
-  const taskList = document.getElementById('task-list');
-  const filterBtns = document.querySelectorAll('.filter-btn');
-  const dateDisplay = document.getElementById('current-date');
-  const playlistUrlInput = document.getElementById('playlist-url');
-  const playlistPriorityInput = document.getElementById('playlist-priority');
-  const playlistTypeInput = document.getElementById('playlist-type');
-  const playlistVisibilityInput = document.getElementById('playlist-visibility');
-  const playlistDateInput = document.getElementById('playlist-date');
-  const playlistNameInput = document.getElementById('playlist-name');
-  const importPlaylistBtn = document.getElementById('import-playlist-btn');
-  const playlistStatus = document.getElementById('playlist-status');
-  const importBtnIdleLabel = importPlaylistBtn ? importPlaylistBtn.textContent.trim() : 'Import Playlist';
-  const playlistFilterSelect = document.getElementById('playlist-filter');
-  const scopeFilterSelect = document.getElementById('scope-filter');
-  const playlistVisibilityBtn = document.getElementById('playlist-visibility-btn');
-  const playlistRenameBtn = document.getElementById('playlist-rename-btn');
-  const playlistDeleteBtn = document.getElementById('playlist-delete-btn');
-  const selectAllTasksInput = document.getElementById('select-all-tasks');
-  const deleteSelectedBtn = document.getElementById('delete-selected-btn');
-  const deleteAllBtn = document.getElementById('delete-all-btn');
-  const loadMoreBtn = document.getElementById('load-more-btn');
-  const authPanel = document.getElementById('auth-panel');
-  const appContainer = document.getElementById('app-container');
-  const authStatus = document.getElementById('auth-status');
-  const authForm = document.getElementById('auth-form');
-  const otpForm = document.getElementById('otp-form');
-  const otpEmailDisplay = document.getElementById('otp-email-display');
-  const otpInput = document.getElementById('auth-otp');
-  const otpSubmitBtn = document.getElementById('otp-submit-btn');
-  const authNameInput = document.getElementById('auth-name');
-  const authNameField = document.getElementById('auth-name-field');
-  const authEmailInput = document.getElementById('auth-email');
-  const authPasswordInput = document.getElementById('auth-password');
-  const authTitleEl = document.getElementById('auth-title');
-  const authSubtitleEl = document.getElementById('auth-subtitle');
-  const authModeLoginBtn = document.getElementById('auth-mode-login-btn');
-  const authModeRegisterBtn = document.getElementById('auth-mode-register-btn');
-  const authSubmitBtn = document.getElementById('auth-submit-btn');
-  const authSwitchLabel = document.getElementById('auth-switch-label');
-  const authSwitchBtn = document.getElementById('auth-switch-btn');
-  const logoutBtn = document.getElementById('logout-btn');
-  const sessionEmail = document.getElementById('session-email');
-  const appTitle = document.getElementById('app-home-link');
-  const footerTitle = document.getElementById('footer-title');
-  const footerDescription = document.getElementById('footer-description');
-  const footerYear = document.getElementById('footer-year');
-  const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login') || document.body.dataset.page === 'login';
-  const isAdminPage = window.location.pathname.toLowerCase().endsWith('/admin');
-  const scrollTopBtn = document.getElementById('scroll-top-btn');
-  const pageLoader = document.getElementById('page-loader');
+  form = document.getElementById('todo-form');
+  taskInput = document.getElementById('task-input');
+  taskDate = document.getElementById('task-date');
+  taskPriority = document.getElementById('task-priority');
+  taskCategory = document.getElementById('task-category');
+  taskVisibility = document.getElementById('task-visibility');
+  taskList = document.getElementById('task-list');
+  filterBtns = document.querySelectorAll('.filter-btn');
+  dateDisplay = document.getElementById('current-date');
+  playlistUrlInput = document.getElementById('playlist-url');
+  playlistPriorityInput = document.getElementById('playlist-priority');
+  playlistTypeInput = document.getElementById('playlist-type');
+  playlistVisibilityInput = document.getElementById('playlist-visibility');
+  playlistDateInput = document.getElementById('playlist-date');
+  playlistNameInput = document.getElementById('playlist-name');
+  importPlaylistBtn = document.getElementById('import-playlist-btn');
+  playlistStatus = document.getElementById('playlist-status');
+  importBtnIdleLabel = importPlaylistBtn ? importPlaylistBtn.textContent.trim() : 'Import Playlist';
+  playlistFilterSelect = document.getElementById('playlist-filter');
+  scopeFilterSelect = document.getElementById('scope-filter');
+  playlistVisibilityBtn = document.getElementById('playlist-visibility-btn');
+  playlistRenameBtn = document.getElementById('playlist-rename-btn');
+  playlistDeleteBtn = document.getElementById('playlist-delete-btn');
+  selectAllTasksInput = document.getElementById('select-all-tasks');
+  deleteSelectedBtn = document.getElementById('delete-selected-btn');
+  deleteAllBtn = document.getElementById('delete-all-btn');
+  loadMoreBtn = document.getElementById('load-more-btn');
+  authPanel = document.getElementById('auth-panel');
+  appContainer = document.getElementById('app-container');
+  authStatus = document.getElementById('auth-status');
+  authForm = document.getElementById('auth-form');
+  otpForm = document.getElementById('otp-form');
+  otpEmailDisplay = document.getElementById('otp-email-display');
+  otpInput = document.getElementById('auth-otp');
+  otpSubmitBtn = document.getElementById('otp-submit-btn');
+  authNameInput = document.getElementById('auth-name');
+  authNameField = document.getElementById('auth-name-field');
+  authEmailInput = document.getElementById('auth-email');
+  authPasswordInput = document.getElementById('auth-password');
+  authTitleEl = document.getElementById('auth-title');
+  authSubtitleEl = document.getElementById('auth-subtitle');
+  authModeLoginBtn = document.getElementById('auth-mode-login-btn');
+  authModeRegisterBtn = document.getElementById('auth-mode-register-btn');
+  authSubmitBtn = document.getElementById('auth-submit-btn');
+  authSwitchLabel = document.getElementById('auth-switch-label');
+  authSwitchBtn = document.getElementById('auth-switch-btn');
+  logoutBtn = document.getElementById('logout-btn');
+  sessionEmail = document.getElementById('session-email');
+  appTitle = document.getElementById('app-home-link');
+  footerTitle = document.getElementById('footer-title');
+  footerDescription = document.getElementById('footer-description');
+  footerYear = document.getElementById('footer-year');
+  scrollTopBtn = document.getElementById('scroll-top-btn');
+  pageLoader = document.getElementById('page-loader');
 
   // Admin Elements
-  const adminNavItems = document.querySelectorAll('.admin-nav-item[data-section]');
-  const adminSections = document.querySelectorAll('.admin-section');
-  const adminLogoutBtn = document.getElementById('admin-logout-btn');
-  const adminSettingsForm = document.getElementById('admin-settings-form');
-  const adminStatUsers = document.getElementById('admin-stat-users');
-  const adminStatTasks = document.getElementById('admin-stat-tasks');
-  const adminStatPublic = document.getElementById('admin-stat-public');
-  const adminStatNotes = document.getElementById('admin-stat-notes');
-  const recentUsersTable = document.getElementById('recent-users-table');
-  const allUsersTable = document.getElementById('all-users-table');
-  const adminEmailEl = document.getElementById('admin-email');
+  adminNavItems = document.querySelectorAll('.admin-nav-item[data-section]');
+  adminSections = document.querySelectorAll('.admin-section');
+  adminLogoutBtn = document.getElementById('admin-logout-btn');
+  adminSettingsForm = document.getElementById('admin-settings-form');
+  adminStatUsers = document.getElementById('admin-stat-users');
+  adminStatTasks = document.getElementById('admin-stat-tasks');
+  adminStatPublic = document.getElementById('admin-stat-public');
+  adminStatNotes = document.getElementById('admin-stat-notes');
+  recentUsersTable = document.getElementById('recent-users-table');
+  allUsersTable = document.getElementById('all-users-table');
+  adminEmailEl = document.getElementById('admin-email');
 
   // Captcha Elements
-  const captchaQuestion = document.getElementById('captcha-question');
-  const captchaInput = document.getElementById('auth-captcha');
-  let currentCaptchaAnswer = null;
-
-  function generateCaptcha() {
-    if (!captchaQuestion) return;
-    const a = Math.floor(Math.random() * 10) + 1;
-    const b = Math.floor(Math.random() * 10) + 1;
-    currentCaptchaAnswer = a + b;
-    captchaQuestion.textContent = `${a} + ${b} = ?`;
-    if (captchaInput) captchaInput.value = '';
-  }
+  captchaQuestion = document.getElementById('captcha-question');
+  captchaInput = document.getElementById('auth-captcha');
 
   // Modal elements
-  const customModal = document.getElementById('custom-modal');
-  const modalTitle = document.getElementById('modal-title');
-  const modalMessage = document.getElementById('modal-message');
-  const modalInput = document.getElementById('modal-input');
-  const modalCancel = document.getElementById('modal-cancel');
-  const modalConfirm = document.getElementById('modal-confirm');
-  const flashStack = document.getElementById('flash-stack');
+  customModal = document.getElementById('custom-modal');
+  modalTitle = document.getElementById('modal-title');
+  modalMessage = document.getElementById('modal-message');
+  modalInput = document.getElementById('modal-input');
+  modalCancel = document.getElementById('modal-cancel');
+  modalConfirm = document.getElementById('modal-confirm');
+  flashStack = document.getElementById('flash-stack');
 
-  const statTotalEl = document.getElementById('stat-total');
-  const statCompletedEl = document.getElementById('stat-completed');
-  const statPendingEl = document.getElementById('stat-pending');
-  const statPlaylistEl = document.getElementById('stat-playlist');
-  const statProgressFill = document.getElementById('stat-progress-fill');
+  statTotalEl = document.getElementById('stat-total');
+  statCompletedEl = document.getElementById('stat-completed');
+  statPendingEl = document.getElementById('stat-pending');
+  statPlaylistEl = document.getElementById('stat-playlist');
+  statProgressFill = document.getElementById('stat-progress-fill');
 
-  function getGridColumnCount() {
-    if (!taskList) return 1;
-    const computedStyle = window.getComputedStyle(taskList);
-    const gridTemplateColumns = computedStyle.getPropertyValue('grid-template-columns');
-    const cols = gridTemplateColumns.split(' ').length;
-    return cols > 0 ? cols : 1;
-  }
-
-  function syncInitialPageSize() {
-    const columns = getGridColumnCount();
-    const initial = columns * TASKS_ROWS_PER_PAGE;
-    const saved = localStorage.getItem(VISIBLE_TASK_COUNT_KEY);
-    if (saved) {
-      const savedCount = parseInt(saved, 10);
-      visibleTaskCount = Math.max(initial, savedCount || initial);
-    } else {
-      visibleTaskCount = initial;
-    }
-  }
-
-  function saveVisibleTaskCount() {
-    localStorage.setItem(VISIBLE_TASK_COUNT_KEY, visibleTaskCount);
-  }
-  const taskNotesCache = new Map();
-  const taskNotesLoading = new Set();
-  let currentFilter = localStorage.getItem(TASK_STATUS_FILTER_KEY) || 'all';
-  if (!['all', 'active', 'completed', 'has-notes'].includes(currentFilter)) currentFilter = 'all';
-  const selectedTaskIds = new Set();
-  let authToken = localStorage.getItem(AUTH_TOKEN_KEY) || '';
-  let currentPlaylistFilter = 'all';
-  let currentScope = localStorage.getItem(TASK_SCOPE_KEY) || 'my';
-  let currentUserId = null;
-  let appName = 'Team Hifsa';
-  let authMode = 'login';
-
-  const options = { weekday: 'long', month: 'short', day: 'numeric' };
+  const dateOptions = { weekday: 'long', month: 'short', day: 'numeric' };
   if (dateDisplay) {
-    dateDisplay.textContent = new Date().toLocaleDateString('en-US', options);
+    dateDisplay.textContent = new Date().toLocaleDateString('en-US', dateOptions);
   }
   if (footerYear) footerYear.textContent = String(new Date().getFullYear());
   applySeoConfig({ appName });
+  
+  generateCaptcha();
   syncFilterButtons();
   syncAuthModeUi();
 
   if (isAdminPage) {
-    adminInit();
+    adminInit().catch(() => {});
   } else {
-    init();
+    init().catch(() => {});
   }
 
   if (form) {
@@ -417,8 +408,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (authFormEl) {
-    authFormEl.addEventListener('submit', (e) => {
+  if (authForm) {
+    authForm.addEventListener('submit', (e) => {
       e.preventDefault();
       if (authMode === 'register') {
         registerUser().catch(() => {});
