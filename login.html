@@ -5,25 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="todo-api-base" content="">
   <title>Login | Premium To-Do App</title>
-  <link rel="stylesheet" href="style.css?v=20260317-10">
+  <link rel="stylesheet" href="style.css?v=20260317-12">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body data-page="login">
   <div id="auth-panel" class="auth-panel">
-    <h2>Welcome Back</h2>
-    <p id="auth-status" class="playlist-status"></p>
-    <div class="auth-form">
-      <input type="text" id="auth-name" placeholder="Name (for register)">
-      <input type="email" id="auth-email" placeholder="Email">
-      <input type="password" id="auth-password" placeholder="Password">
-      <div class="auth-actions">
-        <button type="button" id="auth-login-btn" class="playlist-btn">Login</button>
-        <button type="button" id="auth-register-btn" class="bulk-btn">Register</button>
-      </div>
+    <h2 id="auth-title">Welcome Back</h2>
+    <p id="auth-subtitle" class="auth-subtitle">Sign in to continue managing your tasks.</p>
+    <div id="auth-status" class="playlist-status"></div>
+    <div class="auth-mode-toggle">
+      <button type="button" id="auth-mode-login-btn" class="auth-mode-btn active">Login</button>
+      <button type="button" id="auth-mode-register-btn" class="auth-mode-btn">Register</button>
     </div>
+    <form id="auth-form" class="auth-form">
+      <div id="auth-name-field" class="auth-field app-hidden">
+        <label for="auth-name" class="auth-label">Full Name</label>
+        <input type="text" id="auth-name" placeholder="Enter your full name">
+      </div>
+      <div class="auth-field">
+        <label for="auth-email" class="auth-label">Email</label>
+        <input type="email" id="auth-email" placeholder="Enter your email">
+      </div>
+      <div class="auth-field">
+        <label for="auth-password" class="auth-label">Password</label>
+        <input type="password" id="auth-password" placeholder="Enter your password">
+      </div>
+      <button type="submit" id="auth-submit-btn" class="playlist-btn">Login</button>
+    </form>
+    <p class="auth-switch-row">
+      <span id="auth-switch-label">Don’t have an account?</span>
+      <button type="button" id="auth-switch-btn" class="auth-switch-btn">Create account</button>
+    </p>
   </div>
 
   <div id="app-container" class="app-container app-hidden"></div>
-  <script src="script.js?v=20260317-10"></script>
+  <script src="script.js?v=20260317-12"></script>
 </body>
 </html>

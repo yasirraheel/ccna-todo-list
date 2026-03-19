@@ -29,11 +29,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const authPanel = document.getElementById('auth-panel');
   const appContainer = document.getElementById('app-container');
   const authStatus = document.getElementById('auth-status');
+  const authFormEl = document.getElementById('auth-form');
   const authNameInput = document.getElementById('auth-name');
+  const authNameField = document.getElementById('auth-name-field');
   const authEmailInput = document.getElementById('auth-email');
   const authPasswordInput = document.getElementById('auth-password');
-  const authLoginBtn = document.getElementById('auth-login-btn');
-  const authRegisterBtn = document.getElementById('auth-register-btn');
+  const authTitleEl = document.getElementById('auth-title');
+  const authSubtitleEl = document.getElementById('auth-subtitle');
+  const authModeLoginBtn = document.getElementById('auth-mode-login-btn');
+  const authModeRegisterBtn = document.getElementById('auth-mode-register-btn');
+  const authSubmitBtn = document.getElementById('auth-submit-btn');
+  const authSwitchLabel = document.getElementById('auth-switch-label');
+  const authSwitchBtn = document.getElementById('auth-switch-btn');
   const logoutBtn = document.getElementById('logout-btn');
   const sessionEmail = document.getElementById('session-email');
   const appTitle = document.getElementById('app-home-link');
@@ -98,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentScope = localStorage.getItem(TASK_SCOPE_KEY) || 'my';
   let currentUserId = null;
   let appName = 'My Tasks';
+  let authMode = 'login';
 
   const options = { weekday: 'long', month: 'short', day: 'numeric' };
   if (dateDisplay) {
@@ -106,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (footerYear) footerYear.textContent = String(new Date().getFullYear());
   applySeoConfig({ appName });
   syncFilterButtons();
+  syncAuthModeUi();
 
   init();
 
@@ -302,15 +311,28 @@ document.addEventListener('DOMContentLoaded', () => {
       showFlash('Playlist cleared to Unassigned', 'success');
     });
   }
-  if (authLoginBtn) {
-    authLoginBtn.addEventListener('click', () => {
-      loginUser().catch(() => {});
+  if (authModeLoginBtn) {
+    authModeLoginBtn.addEventListener('click', () => setAuthMode('login'));
+  }
+
+  if (authModeRegisterBtn) {
+    authModeRegisterBtn.addEventListener('click', () => setAuthMode('register'));
+  }
+
+  if (authSwitchBtn) {
+    authSwitchBtn.addEventListener('click', () => {
+      setAuthMode(authMode === 'login' ? 'register' : 'login');
     });
   }
 
-  if (authRegisterBtn) {
-    authRegisterBtn.addEventListener('click', () => {
-      registerUser().catch(() => {});
+  if (authFormEl) {
+    authFormEl.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (authMode === 'register') {
+        registerUser().catch(() => {});
+      } else {
+        loginUser().catch(() => {});
+      }
     });
   }
 
@@ -443,6 +465,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (authPanel) authPanel.classList.remove('app-hidden');
     if (appContainer) appContainer.classList.add('app-hidden');
     if (authStatus) authStatus.textContent = message;
+    syncAuthModeUi();
+  }
+
+  function setAuthMode(mode) {
+    authMode = mode === 'register' ? 'register' : 'login';
+    syncAuthModeUi();
+  }
+
+  function syncAuthModeUi() {
+    if (authNameField) authNameField.classList.toggle('app-hidden', authMode !== 'register');
+    if (authModeLoginBtn) authModeLoginBtn.classList.toggle('active', authMode === 'login');
+    if (authModeRegisterBtn) authModeRegisterBtn.classList.toggle('active', authMode === 'register');
+    if (authTitleEl) authTitleEl.textContent = authMode === 'register' ? 'Create Your Account' : 'Welcome Back';
+    if (authSubtitleEl) authSubtitleEl.textContent = authMode === 'register'
+      ? 'Register once and start managing tasks with playlists and notes.'
+      : 'Sign in to continue managing your tasks.';
+    if (authSubmitBtn) authSubmitBtn.textContent = authMode === 'register' ? 'Register' : 'Login';
+    if (authSwitchLabel) authSwitchLabel.textContent = authMode === 'register' ? 'Already have an account?' : 'Don’t have an account?';
+    if (authSwitchBtn) authSwitchBtn.textContent = authMode === 'register' ? 'Login here' : 'Create account';
+    if (authStatus) {
+      authStatus.textContent = '';
+      authStatus.classList.remove('show', 'success', 'error');
+    }
   }
 
   function showAppPanel(user) {
@@ -450,7 +495,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (appContainer) appContainer.classList.remove('app-hidden');
     if (sessionEmail) sessionEmail.textContent = user?.email || '';
     currentUserId = Number(user?.id || 0) || null;
-    if (authStatus) authStatus.textContent = '';
+    if (authStatus) {
+      authStatus.textContent = '';
+      authStatus.classList.remove('show');
+    }
   }
 
   async function apiFetch(url, options = {}) {
@@ -583,31 +631,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const email = authEmailInput.value.trim();
     const password = authPasswordInput.value;
     if (!email || !password) {
-      if (authStatus) authStatus.textContent = 'Email and password are required';
+      if (authStatus) {
+        authStatus.textContent = 'Email and password are required';
+        authStatus.classList.add('show', 'error');
+      }
       return;
     }
-    if (authStatus) authStatus.textContent = 'Signing in...';
-    const response = await fetch(AUTH_LOGIN_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      if (authStatus) authStatus.textContent = data.message || 'Login failed';
-      showFlash(data.message || 'Login failed', 'error');
-      return;
+    if (authStatus) {
+      authStatus.textContent = 'Signing in...';
+      authStatus.classList.add('show');
+      authStatus.classList.remove('error', 'success');
     }
-    setAuthToken(data.token || '');
-    setDefaultPublicScope();
-    showAppPanel(data.user || {});
-    redirectToApp();
-    if (isLoginPage) return;
-    await loadPlaylists();
-    visibleTaskCount = TASKS_PAGE_SIZE;
-    await loadTasks();
-    renderTasks();
-    showFlash('Logged in successfully', 'success');
+    if (authSubmitBtn) {
+      authSubmitBtn.disabled = true;
+      authSubmitBtn.classList.add('is-loading');
+    }
+    try {
+      const response = await fetch(AUTH_LOGIN_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        if (authStatus) {
+          authStatus.textContent = data.message || 'Login failed';
+          authStatus.classList.add('show', 'error');
+        }
+        showFlash(data.message || 'Login failed', 'error');
+        return;
+      }
+      setAuthToken(data.token || '');
+      setDefaultPublicScope();
+      showAppPanel(data.user || {});
+      redirectToApp();
+      if (isLoginPage) return;
+      await loadPlaylists();
+      visibleTaskCount = TASKS_PAGE_SIZE;
+      await loadTasks();
+      renderTasks();
+      showFlash('Logged in successfully', 'success');
+    } catch (err) {
+      if (authStatus) {
+        authStatus.textContent = 'Connection error';
+        authStatus.classList.add('show', 'error');
+      }
+    } finally {
+      if (authSubmitBtn) {
+        authSubmitBtn.disabled = false;
+        authSubmitBtn.classList.remove('is-loading');
+      }
+    }
   }
 
   async function registerUser() {
@@ -616,31 +690,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const email = authEmailInput.value.trim();
     const password = authPasswordInput.value;
     if (!name || !email || !password) {
-      if (authStatus) authStatus.textContent = 'Name, email and password are required';
+      if (authStatus) {
+        authStatus.textContent = 'Name, email and password are required';
+        authStatus.classList.add('show', 'error');
+      }
       return;
     }
-    if (authStatus) authStatus.textContent = 'Creating account...';
-    const response = await fetch(AUTH_REGISTER_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password })
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      if (authStatus) authStatus.textContent = data.message || 'Register failed';
-      showFlash(data.message || 'Register failed', 'error');
-      return;
+    if (authStatus) {
+      authStatus.textContent = 'Creating account...';
+      authStatus.classList.add('show');
+      authStatus.classList.remove('error', 'success');
     }
-    setAuthToken(data.token || '');
-    setDefaultPublicScope();
-    showAppPanel(data.user || {});
-    redirectToApp();
-    if (isLoginPage) return;
-    await loadPlaylists();
-    visibleTaskCount = TASKS_PAGE_SIZE;
-    await loadTasks();
-    renderTasks();
-    showFlash('Account created successfully', 'success');
+    if (authSubmitBtn) {
+      authSubmitBtn.disabled = true;
+      authSubmitBtn.classList.add('is-loading');
+    }
+    try {
+      const response = await fetch(AUTH_REGISTER_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        if (authStatus) {
+          authStatus.textContent = data.message || 'Register failed';
+          authStatus.classList.add('show', 'error');
+        }
+        showFlash(data.message || 'Register failed', 'error');
+        return;
+      }
+      setAuthToken(data.token || '');
+      setDefaultPublicScope();
+      showAppPanel(data.user || {});
+      redirectToApp();
+      if (isLoginPage) return;
+      await loadPlaylists();
+      visibleTaskCount = TASKS_PAGE_SIZE;
+      await loadTasks();
+      renderTasks();
+      showFlash('Account created successfully', 'success');
+    } catch (err) {
+      if (authStatus) {
+        authStatus.textContent = 'Connection error';
+        authStatus.classList.add('show', 'error');
+      }
+    } finally {
+      if (authSubmitBtn) {
+        authSubmitBtn.disabled = false;
+        authSubmitBtn.classList.remove('is-loading');
+      }
+    }
   }
 
   function logoutUser() {
