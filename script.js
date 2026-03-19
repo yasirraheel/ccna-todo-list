@@ -139,8 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const statPendingEl = document.getElementById('stat-pending');
   const statPlaylistEl = document.getElementById('stat-playlist');
   const statProgressFill = document.getElementById('stat-progress-fill');
-  const appTitle = document.getElementById('app-home-link');
-  const footerTitle = document.getElementById('footer-title');
 
   function getGridColumnCount() {
     if (!taskList) return 1;
