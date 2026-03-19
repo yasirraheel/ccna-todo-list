@@ -579,6 +579,39 @@ document.addEventListener('DOMContentLoaded', () => {
     generateCaptcha();
   }
 
+  function generateCaptcha() {
+    if (!captchaQuestion) return;
+    const a = Math.floor(Math.random() * 10) + 1;
+    const b = Math.floor(Math.random() * 10) + 1;
+    currentCaptchaAnswer = a + b;
+    captchaQuestion.textContent = `${a} + ${b} = ?`;
+    if (captchaInput) captchaInput.value = '';
+  }
+
+  function getGridColumnCount() {
+    if (!taskList) return 1;
+    const computedStyle = window.getComputedStyle(taskList);
+    const gridTemplateColumns = computedStyle.getPropertyValue('grid-template-columns');
+    const cols = gridTemplateColumns.split(' ').length;
+    return cols > 0 ? cols : 1;
+  }
+
+  function syncInitialPageSize() {
+    const columns = getGridColumnCount();
+    const initial = columns * TASKS_ROWS_PER_PAGE;
+    const saved = localStorage.getItem(VISIBLE_TASK_COUNT_KEY);
+    if (saved) {
+      const savedCount = parseInt(saved, 10);
+      visibleTaskCount = Math.max(initial, savedCount || initial);
+    } else {
+      visibleTaskCount = initial;
+    }
+  }
+
+  function saveVisibleTaskCount() {
+    localStorage.setItem(VISIBLE_TASK_COUNT_KEY, visibleTaskCount);
+  }
+
   function showAppPanel(user) {
     if (authPanel) authPanel.classList.add('app-hidden');
     if (appContainer) appContainer.classList.remove('app-hidden');
