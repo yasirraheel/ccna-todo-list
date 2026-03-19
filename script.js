@@ -91,6 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const SELECTED_PUBLIC_PLAYLIST_KEY = 'todo_selected_public_playlist';
   const TASK_SCOPE_KEY = 'todo_task_scope';
   const TASK_STATUS_FILTER_KEY = 'todo_task_status_filter';
+  const SCROLL_POSITION_KEY = 'todo_scroll_position';
+  const VISIBLE_TASK_COUNT_KEY = 'todo_visible_task_count';
   const TASKS_ROWS_PER_PAGE = 6;
   let tasks = [];
   let visibleTaskCount = 18; // Default initial
@@ -106,7 +108,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function syncInitialPageSize() {
     const columns = getGridColumnCount();
-    visibleTaskCount = columns * TASKS_ROWS_PER_PAGE;
+    const initial = columns * TASKS_ROWS_PER_PAGE;
+    const saved = localStorage.getItem(VISIBLE_TASK_COUNT_KEY);
+    if (saved) {
+      const savedCount = parseInt(saved, 10);
+      visibleTaskCount = Math.max(initial, savedCount || initial);
+    } else {
+      visibleTaskCount = initial;
+    }
+  }
+
+  function saveVisibleTaskCount() {
+    localStorage.setItem(VISIBLE_TASK_COUNT_KEY, visibleTaskCount);
   }
   const taskNotesCache = new Map();
   const taskNotesLoading = new Set();
@@ -142,9 +155,12 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       currentFilter = btn.dataset.filter;
       localStorage.setItem(TASK_STATUS_FILTER_KEY, currentFilter);
+      localStorage.removeItem(VISIBLE_TASK_COUNT_KEY);
+      localStorage.removeItem(SCROLL_POSITION_KEY);
       syncFilterButtons();
       syncInitialPageSize();
       renderTasks();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       const filterLabel = currentFilter === 'has-notes' ? 'tasks with notes' : `${currentFilter} tasks`;
       showFlash(`Showing ${filterLabel}`, 'info');
     });
@@ -192,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const columns = getGridColumnCount();
       const rowsToAdd = 4; // Add 4 more full rows
       visibleTaskCount += (columns * rowsToAdd);
+      saveVisibleTaskCount();
       
       isLoadingMore = false;
       loadMoreBtn.classList.remove('is-loading');
@@ -210,10 +227,13 @@ document.addEventListener('DOMContentLoaded', () => {
     playlistFilterSelect.addEventListener('change', async () => {
       currentPlaylistFilter = playlistFilterSelect.value || 'all';
       await saveSelectedPlaylistPreference(currentPlaylistFilter);
+      localStorage.removeItem(VISIBLE_TASK_COUNT_KEY);
+      localStorage.removeItem(SCROLL_POSITION_KEY);
       syncInitialPageSize();
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       const label = currentPlaylistFilter === 'all' ? 'All Playlists' : currentPlaylistFilter;
       showFlash(`Playlist selected: ${label}`, 'info');
     });
@@ -224,6 +244,8 @@ document.addEventListener('DOMContentLoaded', () => {
     scopeFilterSelect.addEventListener('change', async () => {
       currentScope = scopeFilterSelect.value === 'public' ? 'public' : 'my';
       localStorage.setItem(TASK_SCOPE_KEY, currentScope);
+      localStorage.removeItem(VISIBLE_TASK_COUNT_KEY);
+      localStorage.removeItem(SCROLL_POSITION_KEY);
       selectedTaskIds.clear();
       currentPlaylistFilter = 'all';
       syncInitialPageSize();
@@ -233,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       showFlash(currentScope === 'public' ? 'Showing public tasks' : 'Showing your tasks', 'info');
     });
   }
@@ -783,6 +806,8 @@ document.addEventListener('DOMContentLoaded', () => {
     syncInitialPageSize();
     await loadTasks();
     renderTasks();
+    restoreScrollPosition();
+
     if (scrollTopBtn) {
       let ticking = false;
       const updateScrollButton = () => {
@@ -792,11 +817,17 @@ document.addEventListener('DOMContentLoaded', () => {
           scrollTopBtn.classList.remove('visible');
         }
       };
+
+      const saveScrollPosition = () => {
+        localStorage.setItem(SCROLL_POSITION_KEY, window.scrollY);
+      };
+
       const onScroll = () => {
         if (ticking) return;
         ticking = true;
         window.requestAnimationFrame(() => {
           updateScrollButton();
+          saveScrollPosition();
           ticking = false;
         });
       };
@@ -805,6 +836,19 @@ document.addEventListener('DOMContentLoaded', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
       updateScrollButton();
+    }
+  }
+
+  function restoreScrollPosition() {
+    const saved = localStorage.getItem(SCROLL_POSITION_KEY);
+    if (saved) {
+      const pos = parseInt(saved, 10);
+      if (!isNaN(pos)) {
+        // Use requestAnimationFrame to ensure rendering is complete
+        requestAnimationFrame(() => {
+          window.scrollTo(0, pos);
+        });
+      }
     }
   }
 
