@@ -30,7 +30,7 @@ body {
 }
 
 .app-hidden {
-  display: none;
+  display: none !important;
 }
 
 body[data-page="login"] {
@@ -38,6 +38,11 @@ body[data-page="login"] {
   align-items: center !important;
   justify-content: center !important;
   background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  height: 100vh !important;
+  width: 100vw !important;
 }
 
 .auth-panel {
@@ -48,6 +53,8 @@ body[data-page="login"] {
   padding: 32px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  margin: auto !important;
+  z-index: 10;
 }
 
 .auth-panel h2 {
