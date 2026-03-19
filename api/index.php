@@ -586,10 +586,11 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'verif
     $user = $stmt->fetch();
     if (!$user) jsonResponse(400, ['message' => 'Invalid or expired token']);
     
-    $pdo->prepare('UPDATE `users` SET `is_verified` = 1, `verification_token` = NULL WHERE `id` = :id')->execute([':id' => $user['id']]);
+    $stmt = $pdo->prepare('UPDATE `users` SET `is_verified` = 1, `verification_token` = NULL WHERE `id` = :id');
+    $stmt->execute([':id' => $user['id']]);
     
     // Redirect to login page with success message
-    header('Location: /login.html?verified=1');
+    header('Location: /login?verified=1');
     exit;
 }
 
