@@ -91,10 +91,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const SELECTED_PUBLIC_PLAYLIST_KEY = 'todo_selected_public_playlist';
   const TASK_SCOPE_KEY = 'todo_task_scope';
   const TASK_STATUS_FILTER_KEY = 'todo_task_status_filter';
-  const TASKS_PAGE_SIZE = 18;
+  const TASKS_ROWS_PER_PAGE = 6;
   let tasks = [];
-  let visibleTaskCount = TASKS_PAGE_SIZE;
+  let visibleTaskCount = 18; // Default initial
   let isLoadingMore = false;
+
+  function getGridColumnCount() {
+    if (!taskList) return 1;
+    const computedStyle = window.getComputedStyle(taskList);
+    const gridTemplateColumns = computedStyle.getPropertyValue('grid-template-columns');
+    const cols = gridTemplateColumns.split(' ').length;
+    return cols > 0 ? cols : 1;
+  }
+
+  function syncInitialPageSize() {
+    const columns = getGridColumnCount();
+    visibleTaskCount = columns * TASKS_ROWS_PER_PAGE;
+  }
   const taskNotesCache = new Map();
   const taskNotesLoading = new Set();
   let currentFilter = localStorage.getItem(TASK_STATUS_FILTER_KEY) || 'all';
@@ -130,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
       currentFilter = btn.dataset.filter;
       localStorage.setItem(TASK_STATUS_FILTER_KEY, currentFilter);
       syncFilterButtons();
-      visibleTaskCount = TASKS_PAGE_SIZE;
+      syncInitialPageSize();
       renderTasks();
       const filterLabel = currentFilter === 'has-notes' ? 'tasks with notes' : `${currentFilter} tasks`;
       showFlash(`Showing ${filterLabel}`, 'info');
@@ -175,7 +188,11 @@ document.addEventListener('DOMContentLoaded', () => {
       loadMoreBtn.classList.add('is-loading');
       loadMoreBtn.disabled = true;
       await new Promise(resolve => setTimeout(resolve, 220));
-      visibleTaskCount += TASKS_PAGE_SIZE;
+      
+      const columns = getGridColumnCount();
+      const rowsToAdd = 4; // Add 4 more full rows
+      visibleTaskCount += (columns * rowsToAdd);
+      
       isLoadingMore = false;
       loadMoreBtn.classList.remove('is-loading');
       loadMoreBtn.disabled = false;
@@ -193,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
     playlistFilterSelect.addEventListener('change', async () => {
       currentPlaylistFilter = playlistFilterSelect.value || 'all';
       await saveSelectedPlaylistPreference(currentPlaylistFilter);
-      visibleTaskCount = TASKS_PAGE_SIZE;
+      syncInitialPageSize();
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
@@ -209,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem(TASK_SCOPE_KEY, currentScope);
       selectedTaskIds.clear();
       currentPlaylistFilter = 'all';
-      visibleTaskCount = TASKS_PAGE_SIZE;
+      syncInitialPageSize();
       if (playlistFilterSelect) playlistFilterSelect.value = 'all';
       await loadPlaylists();
       await loadSelectedPlaylistPreference();
@@ -667,7 +684,7 @@ document.addEventListener('DOMContentLoaded', () => {
       redirectToApp();
       if (isLoginPage) return;
       await loadPlaylists();
-      visibleTaskCount = TASKS_PAGE_SIZE;
+      syncInitialPageSize();
       await loadTasks();
       renderTasks();
       showFlash('Logged in successfully', 'success');
@@ -726,7 +743,7 @@ document.addEventListener('DOMContentLoaded', () => {
       redirectToApp();
       if (isLoginPage) return;
       await loadPlaylists();
-      visibleTaskCount = TASKS_PAGE_SIZE;
+      syncInitialPageSize();
       await loadTasks();
       renderTasks();
       showFlash('Account created successfully', 'success');
@@ -763,6 +780,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isLoginPage) return;
     await loadPlaylists();
     await loadSelectedPlaylistPreference();
+    syncInitialPageSize();
     await loadTasks();
     renderTasks();
     if (scrollTopBtn) {
@@ -801,7 +819,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       tasks = await response.json();
       taskNotesCache.clear();
-      visibleTaskCount = TASKS_PAGE_SIZE;
+      syncInitialPageSize();
       if (currentScope === 'public') {
         selectedTaskIds.clear();
       }
