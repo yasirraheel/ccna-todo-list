@@ -6,7 +6,7 @@
   <meta name="todo-api-base" content="">
   <title>Admin Panel | Team Hifsa</title>
   <link rel="icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAAAAMAtDSzAAAAAEElEQVR42mNkIAAYGBAAAQAA/wEAgP8AAAAASUVORK5CYII=">
-  <link rel="stylesheet" href="style.css?v=20260317-42">
+  <link rel="stylesheet" href="style.css?v=20260317-43">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="admin-layout">
@@ -31,6 +31,10 @@
       <div class="admin-nav-item" data-section="users">
         <i class="fas fa-users"></i>
         <span>Manage Users</span>
+      </div>
+      <div class="admin-nav-item" data-section="tasks">
+        <i class="fas fa-tasks"></i>
+        <span>Manage Tasks</span>
       </div>
       <div class="admin-nav-item" data-section="settings">
         <i class="fas fa-cog"></i>
@@ -111,6 +115,42 @@
             </thead>
             <tbody id="all-users-table"></tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tasks Section -->
+    <div id="section-tasks" class="admin-section">
+      <div class="admin-table-container">
+        <div class="admin-table-card">
+          <div style="padding: 20px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
+            <h3 class="section-title">All System Tasks</h3>
+            <div style="display: flex; gap: 10px; flex: 1; justify-content: flex-end; min-width: 300px;">
+              <input type="text" id="admin-task-search" placeholder="Search tasks..." style="padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; width: 200px; flex: 1;">
+              <select id="admin-task-filter" style="padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <option value="all">All Tasks</option>
+                <option value="public">Public Only</option>
+                <option value="private">Private Only</option>
+                <option value="playlist">Playlist Only</option>
+              </select>
+              <button onclick="window.adminAddNewTask()" class="bulk-btn success">
+                <i class="fas fa-plus"></i> Add Task
+              </button>
+            </div>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Task Content</th>
+                <th>Owner</th>
+                <th>Playlist & Visibility</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="all-tasks-table"></tbody>
+          </table>
+          <div id="admin-tasks-pagination" style="padding: 20px; display: flex; justify-content: center; gap: 10px;"></div>
         </div>
       </div>
     </div>
@@ -264,6 +304,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-42"></script>
+  <script src="script.js?v=20260317-43"></script>
 </body>
 </html>

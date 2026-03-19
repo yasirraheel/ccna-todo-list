@@ -66,6 +66,7 @@ const taskNotesLoading = new Set();
 // Admin Elements
 let adminNavItems, adminSections, adminLogoutBtn, adminSettingsForm, adminStatUsers, adminStatTasks, adminStatPublic, adminStatNotes;
 let recentUsersTable, allUsersTable, adminEmailEl;
+let allTasksTable, adminTaskSearch, adminTaskFilter, adminTasksPagination;
 
 // Captcha
 let captchaQuestion, captchaInput, currentCaptchaAnswer = null;
@@ -143,6 +144,10 @@ document.addEventListener('DOMContentLoaded', () => {
   adminStatNotes = document.getElementById('admin-stat-notes');
   recentUsersTable = document.getElementById('recent-users-table');
   allUsersTable = document.getElementById('all-users-table');
+  allTasksTable = document.getElementById('all-tasks-table');
+  adminTaskSearch = document.getElementById('admin-task-search');
+  adminTaskFilter = document.getElementById('admin-task-filter');
+  adminTasksPagination = document.getElementById('admin-tasks-pagination');
   adminEmailEl = document.getElementById('admin-email');
 
   // Captcha Elements
@@ -1123,8 +1128,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Handle initial hash
       const initialSection = window.location.hash.substring(1) || 'dashboard';
-      if (['dashboard', 'users', 'settings'].includes(initialSection)) {
+      if (['dashboard', 'users', 'tasks', 'settings'].includes(initialSection)) {
         switchAdminSection(initialSection);
+      }
+
+      if (adminTaskSearch) {
+        let searchTimeout;
+        adminTaskSearch.addEventListener('input', () => {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => loadAllTasks(1), 500);
+        });
+      }
+
+      if (adminTaskFilter) {
+        adminTaskFilter.addEventListener('change', () => loadAllTasks(1));
       }
 
       if (adminLogoutBtn) {
@@ -1211,6 +1228,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (titleEl) titleEl.textContent = title;
 
     if (sectionId === 'users') loadAllUsers();
+    if (sectionId === 'tasks') loadAllTasks(1);
     if (sectionId === 'dashboard') loadAdminDashboard();
   }
 
@@ -1260,6 +1278,207 @@ document.addEventListener('DOMContentLoaded', () => {
       const users = await r.json();
       renderUsersTable(allUsersTable, users);
     } catch (_e) {}
+  }
+
+  async function loadAllTasks(page = 1) {
+    try {
+      const search = adminTaskSearch?.value || '';
+      const filter = adminTaskFilter?.value || 'all';
+      const r = await apiFetch(`${ADMIN_API}/tasks?page=${page}&search=${encodeURIComponent(search)}&filter=${filter}`);
+      if (!r.ok) return;
+      const data = await r.json();
+      renderAdminTasksTable(allTasksTable, data.tasks || []);
+      renderAdminTasksPagination(data.pagination);
+    } catch (_e) {}
+  }
+
+  function renderAdminTasksTable(container, tasks) {
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (tasks.length === 0) {
+      container.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; color: #64748b;">No tasks found</td></tr>';
+      return;
+    }
+
+    tasks.forEach(task => {
+      const tr = document.createElement('tr');
+      const isPublic = task.visibility === 'public';
+      const isCompleted = task.completed;
+      const hasPlaylist = !!task.playlistName;
+      
+      tr.innerHTML = `
+        <td data-label="Task Content">
+          <div style="font-weight: 600; color: #1e293b; margin-bottom: 4px;">${task.text}</div>
+          ${task.videoUrl ? `<div style="font-size: 0.75rem; color: #2563eb; word-break: break-all;"><i class="fab fa-youtube"></i> ${task.videoUrl}</div>` : ''}
+        </td>
+        <td data-label="Owner">
+          <div style="font-size: 0.85rem;">${task.ownerEmail || 'Unknown'}</div>
+        </td>
+        <td data-label="Playlist & Visibility">
+          ${hasPlaylist ? `<span class="admin-badge badge-user" style="background: #e0f2fe; color: #0369a1;"><i class="fas fa-list"></i> ${task.playlistName}</span>` : ''}
+          <span class="admin-badge ${isPublic ? 'badge-active' : 'badge-suspended'}" style="margin-top: 4px; cursor: pointer;" onclick="window.adminToggleTaskVisibility('${task.id}', '${isPublic ? 'private' : 'public'}')">
+            <i class="fas ${isPublic ? 'fa-globe' : 'fa-lock'}"></i> ${isPublic ? 'Public' : 'Private'}
+          </span>
+        </td>
+        <td data-label="Status">
+          <span class="admin-badge ${isCompleted ? 'badge-active' : 'badge-suspended'}" style="cursor: pointer;" onclick="window.adminToggleTaskCompletion('${task.id}', ${!isCompleted})">
+            <i class="fas ${isCompleted ? 'fa-check-circle' : 'fa-circle'}"></i> ${isCompleted ? 'Completed' : 'Active'}
+          </span>
+        </td>
+        <td data-label="Actions" class="admin-actions">
+          <button class="bulk-btn" title="Edit Task" onclick="window.adminEditTask('${task.id}', \`${task.text.replace(/`/g, '\\`')}\`)">
+            <i class="fas fa-edit"></i>
+          </button>
+          ${task.videoUrl ? `
+          <button class="bulk-btn success" title="Refresh YouTube Data" onclick="window.adminRefreshYoutubeTask('${task.id}')">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+          <button class="bulk-btn warning" title="Video Tools" onclick="window.adminShowVideoTools('${task.id}', '${task.videoUrl}', '${task.captionPath || ''}')">
+            <i class="fas fa-video"></i>
+          </button>
+          ` : ''}
+          <button class="bulk-btn danger" title="Delete Task" onclick="window.adminDeleteTask('${task.id}')">
+            <i class="fas fa-trash"></i>
+          </button>
+        </td>
+      `;
+      container.appendChild(tr);
+    });
+  }
+
+  function renderAdminTasksPagination(p) {
+    if (!adminTasksPagination || !p) return;
+    adminTasksPagination.innerHTML = '';
+    
+    if (p.pages <= 1) return;
+    
+    for (let i = 1; i <= p.pages; i++) {
+      const btn = document.createElement('button');
+      btn.textContent = i;
+      btn.className = `bulk-btn ${i === p.page ? 'active' : ''}`;
+      btn.style.minWidth = '32px';
+      btn.onclick = () => loadAllTasks(i);
+      adminTasksPagination.appendChild(btn);
+    }
+  }
+
+  window.adminToggleTaskVisibility = async (id, visibility) => {
+    const r = await apiFetch(`${ADMIN_API}/tasks/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visibility })
+    });
+    if (r.ok) loadAllTasks();
+  };
+
+  window.adminToggleTaskCompletion = async (id, completed) => {
+    const r = await apiFetch(`${ADMIN_API}/tasks/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed })
+    });
+    if (r.ok) loadAllTasks();
+  };
+
+  window.adminEditTask = async (id, oldText) => {
+    const newText = await showCustomPrompt('Edit Task', 'Update task content:', oldText);
+    if (newText === null || newText.trim() === '' || newText === oldText) return;
+    
+    const r = await apiFetch(`${ADMIN_API}/tasks/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: newText.trim() })
+    });
+    if (r.ok) {
+      showFlash('Task updated successfully', 'success');
+      loadAllTasks();
+    }
+  };
+
+  window.adminDeleteTask = async (id) => {
+    const confirmed = await showCustomConfirm('Delete Task', 'Are you sure you want to delete this task?', { confirmVariant: 'danger' });
+    if (!confirmed) return;
+    
+    const r = await apiFetch(`${ADMIN_API}/tasks/${id}`, { method: 'DELETE' });
+    if (r.ok) {
+      showFlash('Task deleted', 'success');
+      loadAllTasks();
+    }
+  };
+
+  window.adminAddNewTask = async () => {
+    const text = await showCustomPrompt('Add New Task', 'Enter task content:');
+    if (!text || text.trim() === '') return;
+    
+    const r = await apiFetch(API_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text.trim(), visibility: 'public' })
+    });
+    
+    if (r.ok) {
+      showFlash('Task added successfully', 'success');
+      loadAllTasks();
+    } else {
+      showFlash('Failed to add task', 'error');
+    }
+  };
+
+  window.adminRefreshYoutubeTask = async (id) => {
+    showPageLoader('Refreshing YouTube data...');
+    try {
+      const r = await apiFetch(`${ADMIN_API}/tasks/${id}/youtube-refresh`, { method: 'POST' });
+      if (r.ok) {
+        showFlash('YouTube data refreshed', 'success');
+        loadAllTasks();
+      } else {
+        showFlash('Failed to refresh data', 'error');
+      }
+    } catch (_e) {
+      showFlash('Connection error', 'error');
+    } finally {
+      hidePageLoader();
+    }
+  };
+
+  window.adminShowVideoTools = async (id, videoUrl, captionPath) => {
+    let videoId = '';
+    if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/', videoUrl, $match)) {
+        videoId = $match[1];
+    }
+    
+    // I need a way to show a menu or multiple options.
+    // For now, I'll use a series of prompts or just a custom modal.
+    // Since I don't have a multi-button custom modal yet, I'll use a custom confirm for each action or just show a list of links.
+    
+    const thumbUrl = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+    const action = await showCustomPrompt('Video Tools', 'Enter action: "thumb" (Thumbnail), "srt" (SRT Captions), "text" (Text Captions), "tags" (YouTube Page)', '');
+    
+    if (!action) return;
+    const choice = action.toLowerCase();
+    
+    if (choice === 'thumb') {
+      window.open(thumbUrl, '_blank');
+    } else if (choice === 'srt' || choice === 'text') {
+      if (captionPath) {
+        window.open(`/api/captions/${captionPath}/${choice}`, '_blank');
+      } else {
+        showFlash('No captions found. Try Refreshing first.', 'warning');
+      }
+    } else if (choice === 'tags') {
+       window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
+    }
+  };
+
+  // Helper for regex matching
+  function preg_match(regex, str, matches) {
+    const m = str.match(new RegExp(regex.replace(/^\/|\/[gimuy]*$/g, '')));
+    if (m) {
+      for (let i = 0; i < m.length; i++) matches[i] = m[i];
+      return true;
+    }
+    return false;
   }
 
   function renderUsersTable(container, users) {

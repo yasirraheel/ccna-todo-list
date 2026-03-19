@@ -150,6 +150,44 @@ function getApiPathSegments(): array {
     return array_slice($parts, $apiIndex + 1);
 }
 
+function convertXmlToText(string $xml): string {
+    $dom = new DOMDocument();
+    @$dom->loadXML($xml);
+    $text = '';
+    $nodes = $dom->getElementsByTagName('text');
+    foreach ($nodes as $node) {
+        $text .= html_entity_decode($node->nodeValue, ENT_QUOTES | ENT_HTML5, 'UTF-8') . " ";
+    }
+    return trim($text);
+}
+
+function convertXmlToSrt(string $xml): string {
+    $dom = new DOMDocument();
+    @$dom->loadXML($xml);
+    $srt = '';
+    $nodes = $dom->getElementsByTagName('text');
+    $i = 1;
+    foreach ($nodes as $node) {
+        $start = (float) $node->getAttribute('start');
+        $dur = (float) $node->getAttribute('dur');
+        $end = $start + $dur;
+        
+        $formatTime = function($seconds) {
+            $hours = floor($seconds / 3600);
+            $mins = floor(($seconds % 3600) / 60);
+            $secs = floor($seconds % 60);
+            $ms = floor(($seconds - floor($seconds)) * 1000);
+            return sprintf("%02d:%02d:%02d,%03d", $hours, $mins, $secs, $ms);
+        };
+        
+        $srt .= $i . "\r\n";
+        $srt .= $formatTime($start) . " --> " . $formatTime($end) . "\r\n";
+        $srt .= html_entity_decode($node->nodeValue, ENT_QUOTES | ENT_HTML5, 'UTF-8') . "\r\n\r\n";
+        $i++;
+    }
+    return trim($srt);
+}
+
 function downloadCaptions(string $videoId): ?string {
     if ($videoId === '') return null;
     
@@ -710,6 +748,31 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'googl
 if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'me' && $method === 'GET') {
     $user = getAuthenticatedUser($pdo);
     jsonResponse(200, ['user' => $user]);
+}
+
+if (count($segments) === 3 && $segments[0] === 'captions' && $method === 'GET') {
+    $fileName = basename((string) $segments[1]);
+    $format = strtolower((string) $segments[2]);
+    $filePath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'captions' . DIRECTORY_SEPARATOR . $fileName;
+    if (!file_exists($filePath)) jsonResponse(404, ['message' => 'Caption not found']);
+    
+    $content = file_get_contents($filePath);
+    if ($format === 'text') {
+        header('Content-Type: text/plain');
+        header('Content-Disposition: attachment; filename="' . str_replace('.xml', '.txt', $fileName) . '"');
+        echo convertXmlToText($content);
+        exit;
+    } elseif ($format === 'srt') {
+        header('Content-Type: text/plain');
+        header('Content-Disposition: attachment; filename="' . str_replace('.xml', '.srt', $fileName) . '"');
+        echo convertXmlToSrt($content);
+        exit;
+    }
+    
+    header('Content-Type: application/xml');
+    header('Content-Disposition: attachment; filename="' . $fileName . '"');
+    echo $content;
+    exit;
 }
 
 if (count($segments) === 2 && $segments[0] === 'captions' && $method === 'GET') {
@@ -1326,6 +1389,151 @@ if (count($segments) === 3 && $segments[0] === 'admin' && $segments[1] === 'user
     $pdo->prepare('DELETE FROM `user_tokens` WHERE `user_id` = :id')->execute([':id' => $targetId]);
     $pdo->prepare('DELETE FROM `user_prefs` WHERE `user_id` = :id')->execute([':id' => $targetId]);
     jsonResponse(200, ['message' => 'User deleted successfully']);
+}
+
+if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'tasks' && $method === 'GET') {
+    if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
+    
+    $search = trim((string) ($_GET['search'] ?? ''));
+    $filter = trim((string) ($_GET['filter'] ?? 'all'));
+    $page = max(1, (int) ($_GET['page'] ?? 1));
+    $limit = 20;
+    $offset = ($page - 1) * $limit;
+    
+    $where = ['1=1'];
+    $params = [];
+    
+    if ($search !== '') {
+        $where[] = '(t.`text` LIKE :search OR u.`email` LIKE :search OR u.`name` LIKE :search OR t.`playlist_name` LIKE :search)';
+        $params[':search'] = "%$search%";
+    }
+    
+    if ($filter === 'public') {
+        $where[] = 't.`visibility` = "public"';
+    } elseif ($filter === 'private') {
+        $where[] = 't.`visibility` = "private"';
+    } elseif ($filter === 'playlist') {
+        $where[] = 't.`playlist_name` != ""';
+    }
+    
+    $whereClause = implode(' AND ', $where);
+    
+    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM `tasks` t INNER JOIN `users` u ON u.`id` = t.`user_id` WHERE $whereClause");
+    $countStmt->execute($params);
+    $total = (int) $countStmt->fetchColumn();
+    
+    $stmt = $pdo->prepare("SELECT t.*, u.`name` as `owner_name`, u.`email` as `owner_email` 
+        FROM `tasks` t 
+        INNER JOIN `users` u ON u.`id` = t.`user_id` 
+        WHERE $whereClause 
+        ORDER BY t.`created_at` DESC 
+        LIMIT $limit OFFSET $offset");
+    $stmt->execute($params);
+    $tasks = $stmt->fetchAll();
+    
+    jsonResponse(200, [
+        'tasks' => array_map('mapTaskRow', $tasks),
+        'pagination' => [
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'pages' => ceil($total / $limit)
+        ]
+    ]);
+}
+
+if (count($segments) === 3 && $segments[0] === 'admin' && $segments[1] === 'tasks' && $method === 'PATCH') {
+    if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
+    $targetId = (string) $segments[2];
+    
+    $check = $pdo->prepare('SELECT `id` FROM `tasks` WHERE `id` = :id LIMIT 1');
+    $check->execute([':id' => $targetId]);
+    if (!$check->fetch()) jsonResponse(404, ['message' => 'Task not found']);
+    
+    $fields = [];
+    $params = [':id' => $targetId];
+    
+    $allowed = ['text', 'date', 'priority', 'category', 'visibility', 'completed', 'playlist_name'];
+    foreach ($allowed as $f) {
+        if (isset($body[$f])) {
+            $dbField = $f === 'playlist_name' ? 'playlist_name' : $f;
+            $fields[] = "`$dbField` = :$f";
+            $params[":$f"] = ($f === 'completed') ? ($body[$f] ? 1 : 0) : $body[$f];
+        }
+    }
+    
+    if (count($fields) > 0) {
+        $sql = "UPDATE `tasks` SET " . implode(', ', $fields) . " WHERE `id` = :id";
+        $pdo->prepare($sql)->execute($params);
+    }
+    
+    jsonResponse(200, ['message' => 'Task updated successfully']);
+}
+
+if (count($segments) === 3 && $segments[0] === 'admin' && $segments[1] === 'tasks' && $method === 'DELETE') {
+    if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
+    $targetId = (string) $segments[2];
+    
+    $pdo->prepare('DELETE FROM `tasks` WHERE `id` = :id')->execute([':id' => $targetId]);
+    $pdo->prepare('DELETE FROM `task_completions` WHERE `task_id` = :id')->execute([':id' => $targetId]);
+    $pdo->prepare('DELETE FROM `task_notes` WHERE `task_id` = :id')->execute([':id' => $targetId]);
+    
+    jsonResponse(200, ['message' => 'Task deleted successfully']);
+}
+
+if (count($segments) === 4 && $segments[0] === 'admin' && $segments[1] === 'tasks' && $segments[3] === 'youtube-refresh' && $method === 'POST') {
+    if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
+    $targetId = (string) $segments[2];
+    
+    $stmt = $pdo->prepare('SELECT `id`, `video_url` FROM `tasks` WHERE `id` = :id LIMIT 1');
+    $stmt->execute([':id' => $targetId]);
+    $task = $stmt->fetch();
+    if (!$task || empty($task['video_url'])) jsonResponse(404, ['message' => 'Task with video URL not found']);
+    
+    $videoId = '';
+    if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/', $task['video_url'], $match)) {
+        $videoId = $match[1];
+    }
+    
+    if ($videoId === '') jsonResponse(400, ['message' => 'Invalid YouTube URL']);
+    
+    // Refresh using YouTube Data API if key exists
+    $youtubeApiKey = trim(envValue('YOUTUBE_API_KEY', ''));
+    $newData = [];
+    
+    if ($youtubeApiKey !== '') {
+        $url = "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=" . urlencode($videoId) . "&key=" . $youtubeApiKey;
+        $resp = @file_get_contents($url);
+        if ($resp) {
+            $decoded = json_decode($resp, true);
+            if (!empty($decoded['items'][0])) {
+                $snippet = $decoded['items'][0]['snippet'];
+                $newData['text'] = $snippet['title'];
+                $newData['description'] = $snippet['description'];
+                $thumbnails = $snippet['thumbnails'];
+                $newData['thumbnail_url'] = $thumbnails['maxres']['url'] ?? $thumbnails['high']['url'] ?? $thumbnails['medium']['url'] ?? $thumbnails['default']['url'];
+            }
+        }
+    }
+    
+    // Download captions
+    $captionFile = downloadCaptions($videoId);
+    if ($captionFile) {
+        $newData['caption_path'] = $captionFile;
+    }
+    
+    if (count($newData) > 0) {
+        $fields = [];
+        $params = [':id' => $targetId];
+        foreach ($newData as $k => $v) {
+            $fields[] = "`$k` = :$k";
+            $params[":$k"] = $v;
+        }
+        $sql = "UPDATE `tasks` SET " . implode(', ', $fields) . " WHERE `id` = :id";
+        $pdo->prepare($sql)->execute($params);
+    }
+    
+    jsonResponse(200, ['message' => 'YouTube data refreshed', 'data' => $newData]);
 }
 
 jsonResponse(404, ['message' => 'Not found']);
