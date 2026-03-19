@@ -268,6 +268,8 @@ function ensureTables(PDO $pdo): void {
       `password_hash` VARCHAR(255) NOT NULL,
       `role` VARCHAR(20) NOT NULL DEFAULT "user",
       `status` VARCHAR(20) NOT NULL DEFAULT "active",
+      `is_verified` TINYINT(1) NOT NULL DEFAULT 0,
+      `verification_token` VARCHAR(64) NULL,
       `created_at` BIGINT NOT NULL,
       PRIMARY KEY (`id`),
       UNIQUE KEY `uk_users_email` (`email`)
@@ -285,6 +287,12 @@ function ensureTables(PDO $pdo): void {
     } catch (Throwable $e) {}
     try {
         $pdo->exec('ALTER TABLE `users` ADD COLUMN `status` VARCHAR(20) NOT NULL DEFAULT "active"');
+    } catch (Throwable $e) {}
+    try {
+        $pdo->exec('ALTER TABLE `users` ADD COLUMN `is_verified` TINYINT(1) NOT NULL DEFAULT 0');
+    } catch (Throwable $e) {}
+    try {
+        $pdo->exec('ALTER TABLE `users` ADD COLUMN `verification_token` VARCHAR(64) NULL');
     } catch (Throwable $e) {}
     $pdo->exec('CREATE TABLE IF NOT EXISTS `user_tokens` (
       `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -486,8 +494,35 @@ if (count($segments) === 1 && $segments[0] === 'config' && $method === 'GET') {
         'appOgImageUrl' => $appOgImageUrl,
         'appCanonicalUrl' => $appCanonicalUrl,
         'footerText' => $dbSettings['FOOTER_TEXT'] ?? null,
-        'logoUrl' => $dbSettings['LOGO_URL'] ?? null
+        'logoUrl' => $dbSettings['LOGO_URL'] ?? null,
+        'faviconUrl' => $dbSettings['FAVICON_URL'] ?? null,
+        'googleClientId' => $dbSettings['GOOGLE_CLIENT_ID'] ?? null
     ]);
+}
+
+function sendEmail($pdo, $to, $subject, $message): bool {
+    $stmt = $pdo->query('SELECT `setting_key`, `setting_value` FROM `site_settings` WHERE `setting_key` LIKE "SMTP_%"');
+    $s = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $s[$row['setting_key']] = $row['setting_value'];
+    }
+    
+    if (($s['SMTP_ENABLED'] ?? '0') !== '1') return true;
+
+    $fromEmail = $s['SMTP_FROM_EMAIL'] ?? 'noreply@example.com';
+    $fromName = $s['SMTP_FROM_NAME'] ?? 'Admin';
+    
+    $headers = [
+        'MIME-Version: 1.0',
+        'Content-type: text/html; charset=utf-8',
+        'From: ' . $fromName . ' <' . $fromEmail . '>',
+        'Reply-To: ' . $fromEmail,
+        'X-Mailer: PHP/' . phpversion()
+    ];
+
+    // This is a basic implementation using mail(). 
+    // In production, users should use a library like PHPMailer with the stored SMTP credentials.
+    return mail($to, $subject, $message, implode("\r\n", $headers));
 }
 
 if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'register' && $method === 'POST') {
@@ -500,40 +535,129 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'regis
     $check = $pdo->prepare('SELECT `id` FROM `users` WHERE `email` = :email LIMIT 1');
     $check->execute([':email' => $email]);
     if ($check->fetch()) jsonResponse(409, ['message' => 'Email already exists']);
+    
+    $stmt = $pdo->query('SELECT `setting_value` FROM `site_settings` WHERE `setting_key` = "SMTP_ENABLED" LIMIT 1');
+    $smtpEnabled = ($stmt->fetchColumn() === '1');
+    
     $now = (int) round(microtime(true) * 1000);
-    $insert = $pdo->prepare('INSERT INTO `users` (`name`, `email`, `password_hash`, `created_at`) VALUES (:name, :email, :password_hash, :created_at)');
+    $token = bin2hex(random_bytes(32));
+    $isVerified = $smtpEnabled ? 0 : 1;
+
+    $insert = $pdo->prepare('INSERT INTO `users` (`name`, `email`, `password_hash`, `is_verified`, `verification_token`, `created_at`) VALUES (:name, :email, :password_hash, :is_verified, :v_token, :created_at)');
     $insert->execute([
         ':name' => $name,
         ':email' => $email,
         ':password_hash' => password_hash($password, PASSWORD_BCRYPT),
+        ':is_verified' => $isVerified,
+        ':v_token' => $token,
         ':created_at' => $now
     ]);
     $userId = (int) $pdo->lastInsertId();
     
-    // Promote first user to admin automatically
     if ($userId === 1) {
-        $pdo->prepare('UPDATE `users` SET `role` = "admin" WHERE `id` = 1')->execute();
+        $pdo->prepare('UPDATE `users` SET `role` = "admin", `is_verified` = 1 WHERE `id` = 1')->execute();
+        $isVerified = 1;
+    }
+
+    if ($smtpEnabled && $isVerified === 0) {
+        $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
+        $verifyLink = "$baseUrl/api/auth/verify?token=$token";
+        $subject = "Verify your account - " . ($dbSettings['APP_NAME'] ?? 'Team Hifsa');
+        $msg = "<h2>Welcome $name!</h2><p>Please click the link below to verify your account:</p><p><a href='$verifyLink'>$verifyLink</a></p>";
+        sendEmail($pdo, $email, $subject, $msg);
+        jsonResponse(201, ['message' => 'Account created. Please check your email to verify your account.']);
     }
     
-    $token = issueUserToken($pdo, $userId);
-    jsonResponse(201, ['token' => $token, 'user' => ['id' => $userId, 'name' => $name, 'email' => $email]]);
+    $authToken = issueUserToken($pdo, $userId);
+    jsonResponse(201, ['token' => $authToken, 'user' => ['id' => $userId, 'name' => $name, 'email' => $email]]);
+}
+
+if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'verify' && $method === 'GET') {
+    $token = trim((string) ($_GET['token'] ?? ''));
+    if ($token === '') jsonResponse(400, ['message' => 'Token is required']);
+    
+    $stmt = $pdo->prepare('SELECT `id` FROM `users` WHERE `verification_token` = :token LIMIT 1');
+    $stmt->execute([':token' => $token]);
+    $user = $stmt->fetch();
+    if (!$user) jsonResponse(400, ['message' => 'Invalid or expired token']);
+    
+    $pdo->prepare('UPDATE `users` SET `is_verified` = 1, `verification_token` = NULL WHERE `id` = :id')->execute([':id' => $user['id']]);
+    
+    // Redirect to login page with success message
+    header('Location: /login.html?verified=1');
+    exit;
 }
 
 if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'login' && $method === 'POST') {
     $email = mb_strtolower(trim((string) ($body['email'] ?? '')), 'UTF-8');
     $password = (string) ($body['password'] ?? '');
     if ($email === '' || $password === '') jsonResponse(400, ['message' => 'Email and password are required']);
-    $stmt = $pdo->prepare('SELECT `id`, `name`, `email`, `password_hash` FROM `users` WHERE `email` = :email LIMIT 1');
+    $stmt = $pdo->prepare('SELECT `id`, `name`, `email`, `password_hash`, `is_verified` FROM `users` WHERE `email` = :email LIMIT 1');
     $stmt->execute([':email' => $email]);
     $user = $stmt->fetch();
     if (!$user || !password_verify($password, (string) $user['password_hash'])) {
         jsonResponse(401, ['message' => 'Invalid email or password']);
+    }
+    if (($user['is_verified'] ?? 0) == 0) {
+        jsonResponse(403, ['message' => 'Please verify your email before logging in.']);
     }
     $token = issueUserToken($pdo, (int) $user['id']);
     jsonResponse(200, [
         'token' => $token,
         'user' => ['id' => (int) $user['id'], 'name' => (string) $user['name'], 'email' => (string) $user['email']]
     ]);
+}
+
+if (count($segments) === 3 && $segments[0] === 'auth' && $segments[1] === 'google' && $method === 'POST') {
+    $credential = (string) ($body['credential'] ?? '');
+    if ($credential === '') jsonResponse(400, ['message' => 'Credential is required']);
+    
+    // Verify Google Token
+    $url = "https://oauth2.googleapis.com/tokeninfo?id_token=" . $credential;
+    $resp = file_get_contents($url);
+    if (!$resp) jsonResponse(401, ['message' => 'Invalid Google token']);
+    
+    $gUser = json_decode($resp, true);
+    if (!isset($gUser['email'])) jsonResponse(401, ['message' => 'Invalid Google user data']);
+    
+    // Check if Client ID matches
+    $stmt = $pdo->query('SELECT `setting_value` FROM `site_settings` WHERE `setting_key` = "GOOGLE_CLIENT_ID" LIMIT 1');
+    $storedClientId = $stmt->fetchColumn();
+    if ($storedClientId && $gUser['aud'] !== $storedClientId) {
+        jsonResponse(401, ['message' => 'Invalid Google client audience']);
+    }
+
+    $email = mb_strtolower(trim($gUser['email']), 'UTF-8');
+    $name = trim($gUser['name'] ?? $gUser['given_name'] ?? 'Google User');
+    
+    $check = $pdo->prepare('SELECT `id`, `name`, `email`, `role`, `status` FROM `users` WHERE `email` = :email LIMIT 1');
+    $check->execute([':email' => $email]);
+    $user = $check->fetch();
+    
+    $now = (int) round(microtime(true) * 1000);
+    if (!$user) {
+        // Create new user
+        $insert = $pdo->prepare('INSERT INTO `users` (`name`, `email`, `password_hash`, `is_verified`, `created_at`) VALUES (:name, :email, :pass, 1, :now)');
+        $insert->execute([
+            ':name' => $name,
+            ':email' => $email,
+            ':pass' => 'google_oauth_' . bin2hex(random_bytes(8)), // Dummy password
+            ':now' => $now
+        ]);
+        $userId = (int) $pdo->lastInsertId();
+        if ($userId === 1) {
+            $pdo->prepare('UPDATE `users` SET `role` = "admin" WHERE `id` = 1')->execute();
+        }
+        $user = ['id' => $userId, 'name' => $name, 'email' => $email, 'role' => 'user'];
+    } else {
+        if (($user['status'] ?? 'active') === 'suspended') {
+            jsonResponse(403, ['message' => 'Your account has been suspended.']);
+        }
+        $userId = (int) $user['id'];
+    }
+    
+    $token = issueUserToken($pdo, $userId);
+    jsonResponse(200, ['token' => $token, 'user' => ['id' => $userId, 'name' => $user['name'], 'email' => $user['email'], 'role' => $user['role'] ?? 'user']]);
 }
 
 if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'me' && $method === 'GET') {

@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="todo-api-base" content="">
   <title>Login | Premium To-Do App</title>
-  <link rel="stylesheet" href="style.css?v=20260317-21">
+  <link rel="stylesheet" href="style.css?v=20260317-22">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body data-page="login">
   <div id="auth-panel" class="auth-panel">
@@ -30,8 +31,28 @@
         <label for="auth-password" class="auth-label">Password</label>
         <input type="password" id="auth-password" placeholder="Enter your password">
       </div>
+      <div id="auth-captcha-field" class="auth-field">
+        <label for="auth-captcha" class="auth-label">Verify you are human: <span id="captcha-question"></span></label>
+        <input type="number" id="auth-captcha" placeholder="Enter answer">
+      </div>
       <button type="submit" id="auth-submit-btn" class="playlist-btn">Login</button>
     </form>
+    <div id="google-login-row" class="auth-switch-row" style="margin-top: 16px; display: none;">
+      <div id="g_id_onload"
+           data-client_id=""
+           data-callback="handleGoogleLogin"
+           data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+           data-type="standard"
+           data-size="large"
+           data-theme="outline"
+           data-text="sign_in_with"
+           data-shape="rectangular"
+           data-logo_alignment="left"
+           data-width="100%">
+      </div>
+    </div>
     <p class="auth-switch-row">
       <span id="auth-switch-label">Don’t have an account?</span>
       <button type="button" id="auth-switch-btn" class="auth-switch-btn">Create account</button>
@@ -39,6 +60,6 @@
   </div>
 
   <div id="app-container" class="app-container app-hidden"></div>
-  <script src="script.js?v=20260317-21"></script>
+  <script src="script.js?v=20260317-22"></script>
 </body>
 </html>

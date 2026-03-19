@@ -65,6 +65,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const allUsersTable = document.getElementById('all-users-table');
   const adminEmailEl = document.getElementById('admin-email');
 
+  // Captcha Elements
+  const captchaQuestion = document.getElementById('captcha-question');
+  const captchaInput = document.getElementById('auth-captcha');
+  let currentCaptchaAnswer = null;
+
+  function generateCaptcha() {
+    if (!captchaQuestion) return;
+    const a = Math.floor(Math.random() * 10) + 1;
+    const b = Math.floor(Math.random() * 10) + 1;
+    currentCaptchaAnswer = a + b;
+    captchaQuestion.textContent = `${a} + ${b} = ?`;
+    if (captchaInput) captchaInput.value = '';
+  }
+
   // Modal elements
   const customModal = document.getElementById('custom-modal');
   const modalTitle = document.getElementById('modal-title');
@@ -97,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let AUTH_ME_API = '/api/auth/me';
   let PLAYLISTS_API = '/api/playlists';
   let PREFERENCES_API = '/api/preferences';
+  let GOOGLE_LOGIN_API = '/api/auth/google';
   let PLAYLIST_VISIBILITY_API = '/api/playlists/visibility';
   let PLAYLIST_RENAME_API = '/api/playlists/rename';
   let PLAYLIST_DELETE_API = '/api/playlists/delete';
@@ -559,6 +574,7 @@ document.addEventListener('DOMContentLoaded', () => {
       authStatus.textContent = '';
       authStatus.classList.remove('show', 'success', 'error');
     }
+    generateCaptcha();
   }
 
   function showAppPanel(user) {
@@ -659,16 +675,49 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    if (config?.faviconUrl) {
-      let favicon = document.querySelector('link[rel="icon"]');
-      if (!favicon) {
-        favicon = document.createElement('link');
-        favicon.rel = 'icon';
-        document.head.appendChild(favicon);
+    if (config?.googleClientId) {
+      const googleRow = document.getElementById('google-login-row');
+      const googleOnload = document.getElementById('g_id_onload');
+      if (googleRow && googleOnload) {
+        googleOnload.setAttribute('data-client_id', config.googleClientId);
+        googleRow.style.display = 'block';
+        // Re-initialize Google button if script already loaded
+        if (window.google && window.google.accounts) {
+          window.google.accounts.id.initialize({
+            client_id: config.googleClientId,
+            callback: window.handleGoogleLogin
+          });
+          window.google.accounts.id.renderButton(
+            document.querySelector('.g_id_signin'),
+            { theme: 'outline', size: 'large', width: '100%' }
+          );
+        }
       }
-      favicon.href = config.faviconUrl;
     }
   }
+
+  window.handleGoogleLogin = async (response) => {
+    showPageLoader('Signing in with Google...');
+    try {
+      const r = await fetch(GOOGLE_LOGIN_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: response.credential })
+      });
+      const data = await r.json();
+      if (r.ok) {
+        setAuthToken(data.token || '');
+        showAppPanel(data.user || {});
+        redirectToApp();
+      } else {
+        showFlash(data.message || 'Google Login failed', 'error');
+      }
+    } catch (_err) {
+      showFlash('Google Login error', 'error');
+    } finally {
+      hidePageLoader();
+    }
+  };
 
   async function readResponseMessage(response, fallback) {
     try {
@@ -747,6 +796,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!authEmailInput || !authPasswordInput) return;
     const email = authEmailInput.value.trim();
     const password = authPasswordInput.value;
+    const captchaValue = captchaInput ? parseInt(captchaInput.value, 10) : null;
+    
     if (!email || !password) {
       if (authStatus) {
         authStatus.textContent = 'Email and password are required';
@@ -754,6 +805,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       return;
     }
+
+    if (captchaInput && captchaValue !== currentCaptchaAnswer) {
+      if (authStatus) {
+        authStatus.textContent = 'Incorrect captcha answer. Try again.';
+        authStatus.classList.add('show', 'error');
+      }
+      generateCaptcha();
+      return;
+    }
+
     if (authStatus) {
       authStatus.textContent = 'Signing in...';
       authStatus.classList.add('show');
@@ -812,6 +873,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = authNameInput.value.trim();
     const email = authEmailInput.value.trim();
     const password = authPasswordInput.value;
+    const captchaValue = captchaInput ? parseInt(captchaInput.value, 10) : null;
+    
     if (!name || !email || !password) {
       if (authStatus) {
         authStatus.textContent = 'Name, email and password are required';
@@ -819,6 +882,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       return;
     }
+
+    if (captchaInput && captchaValue !== currentCaptchaAnswer) {
+      if (authStatus) {
+        authStatus.textContent = 'Incorrect captcha answer. Try again.';
+        authStatus.classList.add('show', 'error');
+      }
+      generateCaptcha();
+      return;
+    }
+
     if (authStatus) {
       authStatus.textContent = 'Creating account...';
       authStatus.classList.add('show');
@@ -994,7 +1067,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (adminSettingsForm && data.settings) {
         Object.entries(data.settings).forEach(([key, value]) => {
           const input = adminSettingsForm.querySelector(`[name="${key}"]`);
-          if (input) input.value = value;
+          if (input) {
+            if (input.type === 'checkbox') {
+              input.checked = (value === '1');
+            } else if (input.type !== 'file') {
+              input.value = value;
+            }
+          }
         });
       }
     } catch (_e) {}

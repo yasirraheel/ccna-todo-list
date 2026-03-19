@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="todo-api-base" content="">
   <title>Admin Panel | Team Hifsa</title>
-  <link rel="stylesheet" href="style.css?v=20260317-21">
+  <link rel="stylesheet" href="style.css?v=20260317-22">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="admin-layout">
@@ -144,7 +144,48 @@
                 <input type="text" name="FAVICON_URL" placeholder="Favicon URL (fallback)" style="flex: 1;">
               </div>
             </div>
-            <button type="submit" class="playlist-btn" style="margin-top: 20px;">Save Settings</button>
+
+            <h3 class="section-title" style="margin-top: 32px; border-top: 1px solid #eee; padding-top: 24px;">SMTP Settings</h3>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 16px;">Configure SMTP to send verification emails to new users.</p>
+            
+            <div class="auth-field">
+              <label class="auth-label">SMTP Host</label>
+              <input type="text" name="SMTP_HOST" placeholder="smtp.gmail.com">
+            </div>
+            <div class="auth-field">
+              <label class="auth-label">SMTP Port</label>
+              <input type="text" name="SMTP_PORT" placeholder="587">
+            </div>
+            <div class="auth-field">
+              <label class="auth-label">SMTP User</label>
+              <input type="text" name="SMTP_USER" placeholder="your-email@gmail.com">
+            </div>
+            <div class="auth-field">
+              <label class="auth-label">SMTP Pass</label>
+              <input type="password" name="SMTP_PASS" placeholder="Your app password">
+            </div>
+            <div class="auth-field">
+              <label class="auth-label">From Email</label>
+              <input type="email" name="SMTP_FROM_EMAIL" placeholder="noreply@teamhifsa.com">
+            </div>
+            <div class="auth-field">
+              <label class="auth-label">From Name</label>
+              <input type="text" name="SMTP_FROM_NAME" placeholder="Team Hifsa Admin">
+            </div>
+            <div class="auth-field">
+              <label class="auth-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" name="SMTP_ENABLED" value="1" style="width: auto;">
+                Enable Email Verification
+              </label>
+            </div>
+
+            <h3 class="section-title" style="margin-top: 32px; border-top: 1px solid #eee; padding-top: 24px;">OAuth Settings</h3>
+            <div class="auth-field">
+              <label class="auth-label">Google Client ID</label>
+              <input type="text" name="GOOGLE_CLIENT_ID" placeholder="your-client-id.apps.googleusercontent.com">
+            </div>
+
+            <button type="submit" class="playlist-btn" style="margin-top: 24px; width: 100%;">Save All Settings</button>
           </form>
         </div>
       </div>
@@ -163,6 +204,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-21"></script>
+  <script src="script.js?v=20260317-22"></script>
 </body>
 </html>
