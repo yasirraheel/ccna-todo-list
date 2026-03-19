@@ -717,6 +717,58 @@ header h1 {
   font-size: 14px;
 }
 
+@media (max-width: 768px) {
+  .admin-table-container {
+    overflow-x: hidden;
+  }
+  
+  .admin-table, .admin-table thead, .admin-table tbody, .admin-table th, .admin-table td, .admin-table tr {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+  
+  .admin-table thead {
+    display: none;
+  }
+  
+  .admin-table tr {
+    margin-bottom: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .admin-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: right;
+    padding: 12px 10px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  
+  .admin-table td:last-child {
+    border-bottom: none;
+    justify-content: center;
+    background: #f8fafc;
+    border-radius: 0 0 10px 10px;
+    margin: 10px -10px -10px -10px;
+  }
+  
+  .admin-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-right: 15px;
+    text-align: left;
+  }
+}
+
 @media (max-width: 1024px) {
   .admin-sidebar {
     transform: translateX(-100%);

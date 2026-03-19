@@ -1,3 +1,45 @@
+const browserHost = window.location.hostname || 'localhost';
+const isLocalNetworkHost =
+  browserHost === 'localhost' ||
+  browserHost === '127.0.0.1' ||
+  browserHost.startsWith('192.168.') ||
+  browserHost.startsWith('10.') ||
+  browserHost.startsWith('172.');
+
+let API_BASE = '/api/tasks';
+let PUBLIC_TASKS_API = '/api/tasks/public';
+let IMPORT_API = '/api/import/youtube-playlist';
+let BULK_DELETE_API = '/api/tasks/bulk-delete';
+let AUTH_LOGIN_API = '/api/auth/login';
+let AUTH_REGISTER_API = '/api/auth/register';
+let AUTH_VERIFY_OTP_API = '/api/auth/verify-otp';
+let AUTH_ME_API = '/api/auth/me';
+let PLAYLISTS_API = '/api/playlists';
+let PREFERENCES_API = '/api/preferences';
+let GOOGLE_LOGIN_API = '/api/auth/google';
+let PLAYLIST_VISIBILITY_API = '/api/playlists/visibility';
+let PLAYLIST_RENAME_API = '/api/playlists/rename';
+let PLAYLIST_DELETE_API = '/api/playlists/delete';
+let ADMIN_API = '/api/admin';
+let ADMIN_USERS_API = '/api/admin/users';
+let ADMIN_SETTINGS_API = '/api/admin/settings';
+
+const IMPORT_LIMIT = 300;
+const AUTH_TOKEN_KEY = 'todo_auth_token';
+const SELECTED_PLAYLIST_KEY = 'todo_selected_playlist';
+const SELECTED_PUBLIC_PLAYLIST_KEY = 'todo_selected_public_playlist';
+const TASK_SCOPE_KEY = 'todo_task_scope';
+const TASK_STATUS_FILTER_KEY = 'todo_task_status_filter';
+const SCROLL_POSITION_KEY = 'todo_scroll_position';
+const VISIBLE_TASK_COUNT_KEY = 'todo_visible_task_count';
+const TASKS_ROWS_PER_PAGE = 6;
+
+let authToken = localStorage.getItem(AUTH_TOKEN_KEY) || '';
+let appName = 'My Tasks';
+let tasks = [];
+let visibleTaskCount = 18;
+let isLoadingMore = false;
+
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('todo-form');
   const taskInput = document.getElementById('task-input');
@@ -97,44 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const statPendingEl = document.getElementById('stat-pending');
   const statPlaylistEl = document.getElementById('stat-playlist');
   const statProgressFill = document.getElementById('stat-progress-fill');
-  const statProgressLabel = document.getElementById('stat-progress-label');
-
-  const browserHost = window.location.hostname || 'localhost';
-  const isLocalNetworkHost =
-    browserHost === 'localhost' ||
-    browserHost === '127.0.0.1' ||
-    browserHost.startsWith('192.168.') ||
-    browserHost.startsWith('10.') ||
-    browserHost.startsWith('172.');
-  let API_BASE = '/api/tasks';
-  let PUBLIC_TASKS_API = '/api/tasks/public';
-  let IMPORT_API = '/api/import/youtube-playlist';
-  let BULK_DELETE_API = '/api/tasks/bulk-delete';
-  let AUTH_LOGIN_API = '/api/auth/login';
-  let AUTH_REGISTER_API = '/api/auth/register';
-  let AUTH_VERIFY_OTP_API = '/api/auth/verify-otp';
-  let AUTH_ME_API = '/api/auth/me';
-  let PLAYLISTS_API = '/api/playlists';
-  let PREFERENCES_API = '/api/preferences';
-  let GOOGLE_LOGIN_API = '/api/auth/google';
-  let PLAYLIST_VISIBILITY_API = '/api/playlists/visibility';
-  let PLAYLIST_RENAME_API = '/api/playlists/rename';
-  let PLAYLIST_DELETE_API = '/api/playlists/delete';
-  let ADMIN_API = '/api/admin';
-  let ADMIN_USERS_API = '/api/admin/users';
-  let ADMIN_SETTINGS_API = '/api/admin/settings';
-  const IMPORT_LIMIT = 300;
-  const AUTH_TOKEN_KEY = 'todo_auth_token';
-  const SELECTED_PLAYLIST_KEY = 'todo_selected_playlist';
-  const SELECTED_PUBLIC_PLAYLIST_KEY = 'todo_selected_public_playlist';
-  const TASK_SCOPE_KEY = 'todo_task_scope';
-  const TASK_STATUS_FILTER_KEY = 'todo_task_status_filter';
-  const SCROLL_POSITION_KEY = 'todo_scroll_position';
-  const VISIBLE_TASK_COUNT_KEY = 'todo_visible_task_count';
-  const TASKS_ROWS_PER_PAGE = 6;
-  let tasks = [];
-  let visibleTaskCount = 18; // Default initial
-  let isLoadingMore = false;
+  const appTitle = document.getElementById('app-home-link');
+  const footerTitle = document.getElementById('footer-title');
 
   function getGridColumnCount() {
     if (!taskList) return 1;
@@ -1246,8 +1252,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const verifiedBadge = isVerified ? 'badge-active' : 'badge-suspended';
       
       tr.innerHTML = `
-        <td>${user.name}</td>
-        <td>
+        <td data-label="User">${user.name}</td>
+        <td data-label="Email & Status">
           ${user.email}
           <div style="margin-top: 4px;">
             <span class="admin-badge ${verifiedBadge}" style="font-size: 0.65rem; padding: 1px 6px;">
@@ -1255,12 +1261,12 @@ document.addEventListener('DOMContentLoaded', () => {
             </span>
           </div>
         </td>
-        <td>
+        <td data-label="Role & Status">
           <span class="admin-badge ${roleBadge}">${user.role}</span>
           <span class="admin-badge ${statusBadge}">${user.status || 'active'}</span>
         </td>
-        <td>${date}</td>
-        <td class="admin-actions">
+        <td data-label="Joined">${date}</td>
+        <td data-label="Actions" class="admin-actions">
           <button class="bulk-btn" title="Toggle Role (User/Admin)" onclick="window.updateUserRole(${user.id}, '${user.role === 'admin' ? 'user' : 'admin'}')">
             <i class="fas fa-user-shield"></i>
           </button>
