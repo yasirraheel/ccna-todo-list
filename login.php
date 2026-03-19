@@ -6,7 +6,7 @@
   <meta name="todo-api-base" content="">
   <title>Login | Premium To-Do App</title>
   <link rel="icon" href="/favicon.ico">
-  <link rel="stylesheet" href="style.css?v=20260317-31">
+  <link rel="stylesheet" href="style.css?v=20260317-32">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -19,6 +19,22 @@
       <button type="button" id="auth-mode-login-btn" class="auth-mode-btn active">Login</button>
       <button type="button" id="auth-mode-register-btn" class="auth-mode-btn">Register</button>
     </div>
+    <!-- Verification OTP Section (Hidden by default) -->
+    <form id="otp-form" class="auth-form" style="display: none;">
+      <h2 class="auth-title">Verify Your Email</h2>
+      <p style="text-align: center; color: #64748b; margin-bottom: 24px; font-size: 0.9rem;">
+        We've sent a 6-digit verification code to <br><strong id="otp-email-display">your email</strong>.
+      </p>
+      <div class="auth-field">
+        <label class="auth-label">Verification Code</label>
+        <input type="text" id="auth-otp" placeholder="Enter 6-digit code" maxlength="6" pattern="\d{6}" style="text-align: center; letter-spacing: 8px; font-size: 1.5rem; font-weight: bold;">
+      </div>
+      <button type="submit" id="otp-submit-btn" class="playlist-btn">Verify & Login</button>
+      <p class="auth-switch-row">
+        Didn't receive code? <a href="#" onclick="location.reload()">Try again</a>
+      </p>
+    </form>
+
     <form id="auth-form" class="auth-form">
       <div id="auth-name-field" class="auth-field app-hidden">
         <label for="auth-name" class="auth-label">Full Name</label>
@@ -61,6 +77,6 @@
   </div>
 
   <div id="app-container" class="app-container app-hidden"></div>
-  <script src="script.js?v=20260317-31"></script>
+  <script src="script.js?v=20260317-32"></script>
 </body>
 </html>

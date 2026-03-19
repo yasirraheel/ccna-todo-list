@@ -29,7 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const authPanel = document.getElementById('auth-panel');
   const appContainer = document.getElementById('app-container');
   const authStatus = document.getElementById('auth-status');
-  const authFormEl = document.getElementById('auth-form');
+  const authForm = document.getElementById('auth-form');
+  const otpForm = document.getElementById('otp-form');
+  const otpEmailDisplay = document.getElementById('otp-email-display');
+  const otpInput = document.getElementById('auth-otp');
+  const otpSubmitBtn = document.getElementById('otp-submit-btn');
   const authNameInput = document.getElementById('auth-name');
   const authNameField = document.getElementById('auth-name-field');
   const authEmailInput = document.getElementById('auth-email');
@@ -107,8 +111,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let IMPORT_API = '/api/import/youtube-playlist';
   let BULK_DELETE_API = '/api/tasks/bulk-delete';
   let AUTH_LOGIN_API = '/api/auth/login';
-  let AUTH_REGISTER_API = '/api/auth/register';
-  let AUTH_ME_API = '/api/auth/me';
+  const AUTH_REGISTER_API = '/api/auth/register';
+  const AUTH_VERIFY_OTP_API = '/api/auth/verify-otp';
+  const AUTH_ME_API = '/api/auth/me';
   let PLAYLISTS_API = '/api/playlists';
   let PREFERENCES_API = '/api/preferences';
   let GOOGLE_LOGIN_API = '/api/auth/google';
@@ -861,6 +866,13 @@ document.addEventListener('DOMContentLoaded', () => {
           authStatus.classList.add('show', 'error');
         }
         showFlash(data.message || 'Login failed', 'error');
+        
+        // If email not verified, show OTP form
+        if (response.status === 403 && data.message.toLowerCase().includes('verify')) {
+          if (authForm) authForm.style.display = 'none';
+          if (otpForm) otpForm.style.display = 'block';
+          if (otpEmailDisplay) otpEmailDisplay.textContent = email;
+        }
         return;
       }
       setAuthToken(data.token || '');
@@ -940,6 +952,19 @@ document.addEventListener('DOMContentLoaded', () => {
         showFlash(data.message || 'Register failed', 'error');
         return;
       }
+
+      if (data.requireOtp) {
+        if (authForm) authForm.style.display = 'none';
+        if (otpForm) otpForm.style.display = 'block';
+        if (otpEmailDisplay) otpEmailDisplay.textContent = data.email || email;
+        if (authStatus) {
+          authStatus.textContent = data.message;
+          authStatus.classList.add('show', 'success');
+        }
+        showFlash(data.message, 'success');
+        return;
+      }
+
       setAuthToken(data.token || '');
       setDefaultPublicScope();
       showAppPanel(data.user || {});
@@ -965,6 +990,59 @@ document.addEventListener('DOMContentLoaded', () => {
       if (authSubmitBtn) {
         authSubmitBtn.disabled = false;
         authSubmitBtn.classList.remove('is-loading');
+      }
+    }
+  }
+
+  async function verifyOtp() {
+    if (!otpInput || !otpEmailDisplay) return;
+    const email = otpEmailDisplay.textContent;
+    const otp = otpInput.value.trim();
+    
+    if (!otp || otp.length !== 6) {
+      showFlash('Please enter a 6-digit code', 'error');
+      return;
+    }
+
+    if (otpSubmitBtn) {
+      otpSubmitBtn.disabled = true;
+      otpSubmitBtn.classList.add('is-loading');
+    }
+
+    try {
+      const response = await fetch(AUTH_VERIFY_OTP_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        showFlash(data.message || 'Verification failed', 'error');
+        return;
+      }
+      
+      setAuthToken(data.token || '');
+      setDefaultPublicScope();
+      showAppPanel(data.user || {});
+      
+      if (data.user?.role === 'admin') {
+        window.location.href = '/admin';
+        return;
+      }
+      
+      redirectToApp();
+      if (isLoginPage) return;
+      await loadPlaylists();
+      syncInitialPageSize();
+      await loadTasks();
+      renderTasks();
+      showFlash(data.message || 'Email verified successfully', 'success');
+    } catch (err) {
+      showFlash('Connection error during verification', 'error');
+    } finally {
+      if (otpSubmitBtn) {
+        otpSubmitBtn.disabled = false;
+        otpSubmitBtn.classList.remove('is-loading');
       }
     }
   }
@@ -1288,6 +1366,13 @@ document.addEventListener('DOMContentLoaded', () => {
     await loadTasks();
     renderTasks();
     restoreScrollPosition();
+
+    if (otpForm) {
+      otpForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await verifyOtp();
+      });
+    }
 
     if (scrollTopBtn) {
       let ticking = false;

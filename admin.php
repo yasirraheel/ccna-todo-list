@@ -6,7 +6,7 @@
   <meta name="todo-api-base" content="">
   <title>Admin Panel | Team Hifsa</title>
   <link rel="icon" href="/favicon.ico">
-  <link rel="stylesheet" href="style.css?v=20260317-31">
+  <link rel="stylesheet" href="style.css?v=20260317-32">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="admin-layout">
@@ -262,6 +262,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-31"></script>
+  <script src="script.js?v=20260317-32"></script>
 </body>
 </html>

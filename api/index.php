@@ -545,7 +545,7 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'regis
     $smtpEnabled = ($stmt->fetchColumn() === '1');
     
     $now = (int) round(microtime(true) * 1000);
-    $token = bin2hex(random_bytes(32));
+    $otp = (string) random_int(100000, 999999);
     $isVerified = $smtpEnabled ? 0 : 1;
 
     $insert = $pdo->prepare('INSERT INTO `users` (`name`, `email`, `password_hash`, `is_verified`, `verification_token`, `created_at`) VALUES (:name, :email, :password_hash, :is_verified, :v_token, :created_at)');
@@ -554,44 +554,45 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'regis
         ':email' => $email,
         ':password_hash' => password_hash($password, PASSWORD_BCRYPT),
         ':is_verified' => $isVerified,
-        ':v_token' => $token,
+        ':v_token' => $isVerified ? null : $otp,
         ':created_at' => $now
     ]);
     $userId = (int) $pdo->lastInsertId();
     
     if ($userId === 1) {
-        $pdo->prepare('UPDATE `users` SET `role` = "admin", `is_verified` = 1 WHERE `id` = 1')->execute();
+        $pdo->prepare('UPDATE `users` SET `role` = "admin", `is_verified` = 1, `verification_token` = NULL WHERE `id` = 1')->execute();
         $isVerified = 1;
     }
 
     if ($smtpEnabled && $isVerified === 0) {
-        $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
-        $verifyLink = "$baseUrl/api/auth/verify?token=$token";
         $subject = "Verify your account - " . ($dbSettings['APP_NAME'] ?? 'Team Hifsa');
-        $msg = "<h2>Welcome $name!</h2><p>Please click the link below to verify your account:</p><p><a href='$verifyLink'>$verifyLink</a></p>";
+        $msg = "<h2>Welcome $name!</h2><p>Your verification code is:</p><h1 style='letter-spacing: 5px; background: #f1f5f9; padding: 10px; display: inline-block; border-radius: 8px;'>$otp</h1><p>Please enter this code in the app to verify your account.</p>";
         sendEmail($pdo, $email, $subject, $msg);
-        jsonResponse(201, ['message' => 'Account created. Please check your email to verify your account.']);
+        jsonResponse(201, ['message' => 'Account created. Please check your email for the verification code.', 'requireOtp' => true, 'email' => $email]);
     }
     
     $authToken = issueUserToken($pdo, $userId);
     jsonResponse(201, ['token' => $authToken, 'user' => ['id' => $userId, 'name' => $name, 'email' => $email]]);
 }
 
-if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'verify' && $method === 'GET') {
-    $token = trim((string) ($_GET['token'] ?? ''));
-    if ($token === '') jsonResponse(400, ['message' => 'Token is required']);
+if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'verify-otp' && $method === 'POST') {
+    $email = mb_strtolower(trim((string) ($body['email'] ?? '')), 'UTF-8');
+    $otp = trim((string) ($body['otp'] ?? ''));
+    if ($email === '' || $otp === '') jsonResponse(400, ['message' => 'Email and code are required']);
     
-    $stmt = $pdo->prepare('SELECT `id` FROM `users` WHERE `verification_token` = :token LIMIT 1');
-    $stmt->execute([':token' => $token]);
+    $stmt = $pdo->prepare('SELECT `id`, `name` FROM `users` WHERE `email` = :email AND `verification_token` = :otp LIMIT 1');
+    $stmt->execute([':email' => $email, ':otp' => $otp]);
     $user = $stmt->fetch();
-    if (!$user) jsonResponse(400, ['message' => 'Invalid or expired token']);
+    if (!$user) jsonResponse(400, ['message' => 'Invalid or expired verification code']);
     
-    $stmt = $pdo->prepare('UPDATE `users` SET `is_verified` = 1, `verification_token` = NULL WHERE `id` = :id');
-    $stmt->execute([':id' => $user['id']]);
+    $pdo->prepare('UPDATE `users` SET `is_verified` = 1, `verification_token` = NULL WHERE `id` = :id')->execute([':id' => $user['id']]);
     
-    // Redirect to login page with success message
-    header('Location: /login?verified=1');
-    exit;
+    $authToken = issueUserToken($pdo, (int) $user['id']);
+    jsonResponse(200, [
+        'message' => 'Email verified successfully',
+        'token' => $authToken,
+        'user' => ['id' => (int) $user['id'], 'name' => (string) $user['name'], 'email' => $email]
+    ]);
 }
 
 if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'login' && $method === 'POST') {
