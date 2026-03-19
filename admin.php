@@ -6,7 +6,7 @@
   <meta name="todo-api-base" content="">
   <title>Admin Panel | Team Hifsa</title>
   <link rel="icon" href="/favicon.ico">
-  <link rel="stylesheet" href="style.css?v=20260317-29">
+  <link rel="stylesheet" href="style.css?v=20260317-30">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="admin-layout">
@@ -207,15 +207,15 @@
                 <li>Create a project and go to <strong>APIs & Services > Credentials</strong></li>
                 <li>Create an <strong>OAuth 2.0 Client ID</strong> (Web application)</li>
                 <li>Add this URL to <strong>Authorized JavaScript origins</strong>:
-                  <div style="display: flex; gap: 8px; margin-top: 4px;">
-                    <code id="origin-url" style="background: #fff; padding: 4px 8px; border-radius: 4px; border: 1px solid #cbd5e1; flex: 1;">...</code>
-                    <button type="button" class="bulk-btn" onclick="copyToClipboard('origin-url')" title="Copy"><i class="fas fa-copy"></i></button>
+                  <div class="url-input-container">
+                    <code id="origin-url">...</code>
+                    <button type="button" class="copy-icon-btn" onclick="copyToClipboard('origin-url')" title="Copy"><i class="fas fa-copy"></i></button>
                   </div>
                 </li>
                 <li>Add this URL to <strong>Authorized redirect URIs</strong>:
-                  <div style="display: flex; gap: 8px; margin-top: 4px;">
-                    <code id="callback-url" style="background: #fff; padding: 4px 8px; border-radius: 4px; border: 1px solid #cbd5e1; flex: 1;">...</code>
-                    <button type="button" class="bulk-btn" onclick="copyToClipboard('callback-url')" title="Copy"><i class="fas fa-copy"></i></button>
+                  <div class="url-input-container">
+                    <code id="callback-url">...</code>
+                    <button type="button" class="copy-icon-btn" onclick="copyToClipboard('callback-url')" title="Copy"><i class="fas fa-copy"></i></button>
                   </div>
                 </li>
               </ol>
@@ -262,6 +262,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-29"></script>
+  <script src="script.js?v=20260317-30"></script>
 </body>
 </html>

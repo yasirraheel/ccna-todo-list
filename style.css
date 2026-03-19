@@ -658,6 +658,56 @@ header h1 {
   color: #334155;
 }
 
+/* URL Input with integrated copy button */
+.url-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-top: 6px;
+  transition: all 0.2s;
+}
+
+.url-input-container:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.url-input-container code {
+  flex: 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.8rem;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copy-icon-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.copy-icon-btn:hover {
+  background: #f1f5f9;
+  color: #2563eb;
+}
+
+.copy-icon-btn i {
+  font-size: 14px;
+}
+
 @media (max-width: 1024px) {
   .admin-sidebar {
     transform: translateX(-100%);
