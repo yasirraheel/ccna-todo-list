@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="todo-api-base" content="">
   <title>Admin Panel | Team Hifsa</title>
-  <link rel="icon" href="/favicon.ico">
-  <link rel="stylesheet" href="style.css?v=20260317-41">
+  <link rel="icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAAAAMAtDSzAAAAAEElEQVR42mNkIAAYGBAAAQAA/wEAgP8AAAAASUVORK5CYII=">
+  <link rel="stylesheet" href="style.css?v=20260317-42">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="admin-layout">
@@ -264,6 +264,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-41"></script>
+  <script src="script.js?v=20260317-42"></script>
 </body>
 </html>
