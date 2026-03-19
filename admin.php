@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="todo-api-base" content="">
   <title>Admin Panel | Team Hifsa</title>
-  <link rel="stylesheet" href="style.css?v=20260317-24">
+  <link rel="stylesheet" href="style.css?v=20260317-25">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="admin-layout">
@@ -114,10 +114,11 @@
 
     <!-- Settings Section -->
     <section id="section-settings" class="admin-section">
-      <div class="admin-settings-grid">
-        <div class="admin-table-card" style="padding: 24px;">
-          <h3 class="section-title">General Settings</h3>
-          <form id="admin-settings-form" class="auth-form" style="margin-top: 20px;">
+      <form id="admin-settings-form" class="auth-form">
+        <div class="admin-settings-grid">
+          <!-- General Settings -->
+          <div class="admin-settings-card">
+            <h3 class="section-title">General Settings</h3>
             <div class="auth-field">
               <label class="auth-label">App Name</label>
               <input type="text" name="APP_NAME" placeholder="Team Hifsa">
@@ -144,10 +145,12 @@
                 <input type="text" name="FAVICON_URL" placeholder="Favicon URL (fallback)" style="flex: 1;">
               </div>
             </div>
+          </div>
 
-            <h3 class="section-title" style="margin-top: 32px; border-top: 1px solid #eee; padding-top: 24px;">SMTP Settings</h3>
+          <!-- SMTP Settings -->
+          <div class="admin-settings-card">
+            <h3 class="section-title">SMTP Settings</h3>
             <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 16px;">Configure SMTP to send verification emails to new users.</p>
-            
             <div class="auth-field">
               <label class="auth-label">SMTP Host</label>
               <input type="text" name="SMTP_HOST" placeholder="smtp.gmail.com">
@@ -181,8 +184,11 @@
                 <span class="custom-checkbox-label">Enable Email Verification</span>
               </label>
             </div>
+          </div>
 
-            <h3 class="section-title" style="margin-top: 32px; border-top: 1px solid #eee; padding-top: 24px;">OAuth Settings</h3>
+          <!-- OAuth Settings -->
+          <div class="admin-settings-card">
+            <h3 class="section-title">OAuth Settings</h3>
             <div class="auth-field">
               <label class="auth-label">Google Client ID</label>
               <input type="text" name="GOOGLE_CLIENT_ID" placeholder="your-client-id.apps.googleusercontent.com">
@@ -191,11 +197,14 @@
               <label class="auth-label">Google Client Secret</label>
               <input type="password" name="GOOGLE_CLIENT_SECRET" placeholder="your-client-secret">
             </div>
+          </div>
 
-            <button type="submit" class="playlist-btn" style="margin-top: 24px; width: 100%;">Save All Settings</button>
-          </form>
+          <!-- Action Section -->
+          <div class="admin-settings-card admin-settings-full">
+            <button type="submit" class="playlist-btn" style="width: 100%;">Save All Settings</button>
+          </div>
         </div>
-      </div>
+      </form>
     </section>
   </main>
 
@@ -211,6 +220,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-24"></script>
+  <script src="script.js?v=20260317-25"></script>
 </body>
 </html>
