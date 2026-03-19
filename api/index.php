@@ -833,19 +833,23 @@ if (count($segments) === 1 && $segments[0] === 'preferences' && $method === 'POS
 if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'GET') {
     $playlist = trim((string) ($_GET['playlist'] ?? ''));
     if ($playlist !== '' && strtolower($playlist) !== 'all') {
-        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, t.`completed` as `viewer_completed`,
+        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, 
+            CASE WHEN t.`visibility` = "public" THEN COALESCE(tc.`completed`, 0) ELSE t.`completed` END AS `viewer_completed`,
             CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
             FROM `tasks` t
+            LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`user_id` = :user_id AND t.`playlist_name` = :playlist
             ORDER BY t.`created_at` DESC');
-        $stmt->execute([':viewer_id_note' => $userId, ':user_id' => $userId, ':playlist' => $playlist]);
+        $stmt->execute([':viewer_id' => $userId, ':viewer_id_note' => $userId, ':user_id' => $userId, ':playlist' => $playlist]);
     } else {
-        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, t.`completed` as `viewer_completed`,
+        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, 
+            CASE WHEN t.`visibility` = "public" THEN COALESCE(tc.`completed`, 0) ELSE t.`completed` END AS `viewer_completed`,
             CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
             FROM `tasks` t
+            LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`user_id` = :user_id
             ORDER BY t.`created_at` DESC');
-        $stmt->execute([':viewer_id_note' => $userId, ':user_id' => $userId]);
+        $stmt->execute([':viewer_id' => $userId, ':viewer_id_note' => $userId, ':user_id' => $userId]);
     }
     jsonResponse(200, array_map('mapTaskRow', $stmt->fetchAll() ?: []));
 }
@@ -855,21 +859,25 @@ if (count($segments) === 2 && $segments[0] === 'tasks' && $segments[1] === 'publ
     $viewerId = $optionalUser ? (int) $optionalUser['id'] : 0;
     $playlist = trim((string) ($_GET['playlist'] ?? ''));
     if ($playlist !== '' && strtolower($playlist) !== 'all') {
-        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, t.`completed` as `viewer_completed`,
+        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, 
+            COALESCE(tc.`completed`, 0) AS `viewer_completed`,
             CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
             FROM `tasks` t
             INNER JOIN `users` u ON u.`id` = t.`user_id`
+            LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`visibility` = "public" AND t.`playlist_name` = :playlist
             ORDER BY t.`created_at` DESC');
-        $stmt->execute([':viewer_id_note' => $viewerId, ':playlist' => $playlist]);
+        $stmt->execute([':viewer_id' => $viewerId, ':viewer_id_note' => $viewerId, ':playlist' => $playlist]);
     } else {
-        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, t.`completed` as `viewer_completed`,
+        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, 
+            COALESCE(tc.`completed`, 0) AS `viewer_completed`,
             CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
             FROM `tasks` t
             INNER JOIN `users` u ON u.`id` = t.`user_id`
+            LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`visibility` = "public"
             ORDER BY t.`created_at` DESC');
-        $stmt->execute([':viewer_id_note' => $viewerId]);
+        $stmt->execute([':viewer_id' => $viewerId, ':viewer_id_note' => $viewerId]);
     }
     jsonResponse(200, array_map('mapTaskRow', $stmt->fetchAll() ?: []));
 }
@@ -1047,7 +1055,7 @@ if (count($segments) === 2 && $segments[0] === 'tasks') {
             'completed' => isset($body['completed']) ? ((bool) $body['completed'] ? 1 : 0) : (int) $current['completed']
         ];
         if ($next['text'] === '') jsonResponse(400, ['message' => 'Task text is required']);
-        $effectiveCompleted = $next['visibility'] === 'public' ? 0 : $next['completed'];
+        
         $update = $pdo->prepare('UPDATE `tasks` SET `text` = :text, `date` = :date, `priority` = :priority, `category` = :category, `visibility` = :visibility, `video_url` = :video_url, `thumbnail_url` = :thumbnail_url, `description` = :description, `completed` = :completed WHERE `id` = :id AND `user_id` = :user_id');
         $update->execute([
             ':text' => $next['text'],
@@ -1058,15 +1066,12 @@ if (count($segments) === 2 && $segments[0] === 'tasks') {
             ':video_url' => $next['video_url'],
             ':thumbnail_url' => $next['thumbnail_url'],
             ':description' => $next['description'],
-            ':completed' => $effectiveCompleted,
+            ':completed' => $next['completed'],
             ':id' => $taskId,
             ':user_id' => $userId
         ]);
         if ($next['visibility'] === 'public') {
             upsertTaskCompletion($pdo, $taskId, $userId, $next['completed'] === 1);
-            $nextCompletedForViewer = $next['completed'] === 1;
-        } else {
-            $nextCompletedForViewer = $effectiveCompleted === 1;
         }
         $updatedRow = [
             'id' => $taskId,
@@ -1082,7 +1087,7 @@ if (count($segments) === 2 && $segments[0] === 'tasks') {
             'description' => $next['description'],
             'caption_path' => (string) ($current['caption_path'] ?? ''),
             'views' => (int) ($current['views'] ?? 0),
-            'viewer_completed' => $nextCompletedForViewer ? 1 : 0
+            'viewer_completed' => $next['completed']
         ];
         jsonResponse(200, mapTaskRow($updatedRow));
     }
