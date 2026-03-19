@@ -1466,27 +1466,63 @@ document.addEventListener('DOMContentLoaded', () => {
         videoId = matches[1];
     }
     
-    // I need a way to show a menu or multiple options.
-    // For now, I'll use a series of prompts or just a custom modal.
-    // Since I don't have a multi-button custom modal yet, I'll use a custom confirm for each action or just show a list of links.
-    
-    const thumbUrl = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
-    const action = await showCustomPrompt('Video Tools', 'Enter action: "thumb" (Thumbnail), "srt" (SRT Captions), "text" (Text Captions), "tags" (YouTube Page)', '');
-    
-    if (!action) return;
-    const choice = action.toLowerCase();
-    
-    if (choice === 'thumb') {
-      window.open(thumbUrl, '_blank');
-    } else if (choice === 'srt' || choice === 'text') {
-      if (captionPath) {
-        window.open(`/api/captions/${captionPath}/${choice}`, '_blank');
-      } else {
-        showFlash('No captions found. Try Refreshing first.', 'warning');
+    // Fetch latest task data to get description/tags
+    showPageLoader('Fetching video details...');
+    let taskData = null;
+    try {
+      const r = await apiFetch(`${ADMIN_API}/tasks?search=${id}`);
+      if (r.ok) {
+        const result = await r.json();
+        taskData = result.tasks.find(t => String(t.id) === String(id));
       }
-    } else if (choice === 'tags') {
-       window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
+    } catch (_e) {}
+    hidePageLoader();
+
+    if (!taskData) {
+      showFlash('Could not load task data.', 'error');
+      return;
     }
+
+    const modalHtml = `
+      <div class="video-tools-modal" style="display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto; padding: 5px;">
+        <div class="tool-item">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Video Title</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" readonly value="${(taskData.text || '').replace(/"/g, '&quot;')}" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;">
+            <button class="bulk-btn" onclick="copyToClipboard('${(taskData.text || '').replace(/'/g, "\\'")}')" title="Copy Title"><i class="fas fa-copy"></i></button>
+          </div>
+        </div>
+        <div class="tool-item">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Tags</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" readonly value="${(taskData.tags || '').replace(/"/g, '&quot;')}" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;">
+            <button class="bulk-btn" onclick="copyToClipboard('${(taskData.tags || '').replace(/'/g, "\\'")}')" title="Copy Tags"><i class="fas fa-copy"></i></button>
+          </div>
+        </div>
+        <div class="tool-item">
+          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Description</label>
+          <div style="display: flex; gap: 8px; align-items: flex-start;">
+            <textarea readonly style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9; height: 100px; resize: none;">${taskData.description || ''}</textarea>
+            <button class="bulk-btn" onclick="copyToClipboard(\`${(taskData.description || '').replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Copy Description"><i class="fas fa-copy"></i></button>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; border-top: 1px solid #eee; padding-top: 15px;">
+          <button class="bulk-btn" onclick="window.open('https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg', '_blank')"><i class="fas fa-image"></i> Thumbnail</button>
+          <button class="bulk-btn" onclick="window.open('/api/captions/${taskData.captionPath}/srt', '_blank')"><i class="fas fa-file-alt"></i> Download SRT</button>
+          <button class="bulk-btn" onclick="window.open('/api/captions/${taskData.captionPath}/text', '_blank')"><i class="fas fa-file-alt"></i> Download Text</button>
+        </div>
+      </div>
+    `;
+
+    showCustomConfirm('Video Details & Tools', modalHtml, { confirmLabel: 'Close', cancelHidden: true });
+  };
+
+  window.copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      showFlash('Copied to clipboard!', 'success');
+    }).catch(() => {
+      showFlash('Failed to copy.', 'error');
+    });
   };
 
   // Helper for regex matching

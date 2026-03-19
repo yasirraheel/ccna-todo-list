@@ -1510,6 +1510,7 @@ if (count($segments) === 4 && $segments[0] === 'admin' && $segments[1] === 'task
                 $newData['text'] = $snippet['title'];
                 $newData['description'] = $snippet['description'];
                 $tags = $snippet['tags'] ?? [];
+                $newData['tags'] = implode(', ', $tags);
                 $thumbnails = $snippet['thumbnails'];
                 $newData['thumbnail_url'] = $thumbnails['maxres']['url'] ?? $thumbnails['high']['url'] ?? $thumbnails['medium']['url'] ?? $thumbnails['default']['url'];
             }
