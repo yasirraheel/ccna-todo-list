@@ -265,6 +265,19 @@ function dbConnect(): PDO {
 }
 
 function ensureTables(PDO $pdo): void {
+    // Check if a specific table exists to skip heavy initialization
+    try {
+        $stmt = $pdo->query("SELECT 1 FROM `users` LIMIT 1");
+        if ($stmt) {
+            // Table exists, check if new columns exist to avoid repeated ALTERs
+            // This is a simple way to skip the heavy lifting
+            $cols = $pdo->query("SHOW COLUMNS FROM `users` LIKE 'is_verified'")->fetch();
+            if ($cols) return; 
+        }
+    } catch (Throwable $e) {
+        // Table doesn't exist, proceed to create
+    }
+
     $pdo->exec('CREATE TABLE IF NOT EXISTS `users` (
       `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
       `name` VARCHAR(120) NOT NULL,

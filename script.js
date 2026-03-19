@@ -1061,98 +1061,106 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function adminInit() {
-    await resolveApiBase();
-    const authed = await authenticateWithStoredToken();
-    if (!authed) return;
-    
-    // Extra security check for admin page
-    const r = await apiFetch(AUTH_ME_API);
-    if (r.ok) {
-      const d = await r.json();
-      if ((d.user?.role || 'user') !== 'admin') {
-        showFlash('Admin access denied', 'error');
-        window.location.href = '/';
+    try {
+      await resolveApiBase();
+      const authed = await authenticateWithStoredToken();
+      if (!authed) {
+        hidePageLoader();
         return;
       }
-      if (adminEmailEl) adminEmailEl.textContent = d.user?.email || '';
-    }
-
-    showPageLoader('Loading admin data...');
-    await loadAdminDashboard();
-    
-    // Setup Admin Navigation
-    adminNavItems.forEach(item => {
-      item.addEventListener('click', () => {
-        const section = item.dataset.section;
-        window.location.hash = section;
-        switchAdminSection(section);
-      });
-    });
-
-    // Handle initial hash
-    const initialSection = window.location.hash.substring(1) || 'dashboard';
-    if (['dashboard', 'users', 'settings'].includes(initialSection)) {
-      switchAdminSection(initialSection);
-    }
-
-    if (adminLogoutBtn) {
-      adminLogoutBtn.addEventListener('click', logoutUser);
-    }
-
-    if (adminSettingsForm) {
-      const submitBtn = adminSettingsForm.querySelector('button[type="submit"]');
-      adminSettingsForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(adminSettingsForm);
-        
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.classList.add('is-loading');
+      
+      // Extra security check for admin page
+      const r = await apiFetch(AUTH_ME_API);
+      if (r.ok) {
+        const d = await r.json();
+        if ((d.user?.role || 'user') !== 'admin') {
+          showFlash('Admin access denied', 'error');
+          window.location.href = '/';
+          return;
         }
+        if (adminEmailEl) adminEmailEl.textContent = d.user?.email || '';
+      }
 
-        try {
-          const r = await apiFetch(ADMIN_SETTINGS_API, {
-            method: 'POST',
-            body: formData
-          });
+      showPageLoader('Loading admin data...');
+      await loadAdminDashboard();
+      
+      // Setup Admin Navigation
+      adminNavItems.forEach(item => {
+        item.addEventListener('click', () => {
+          const section = item.dataset.section;
+          window.location.hash = section;
+          switchAdminSection(section);
+        });
+      });
+
+      // Handle initial hash
+      const initialSection = window.location.hash.substring(1) || 'dashboard';
+      if (['dashboard', 'users', 'settings'].includes(initialSection)) {
+        switchAdminSection(initialSection);
+      }
+
+      if (adminLogoutBtn) {
+        adminLogoutBtn.addEventListener('click', logoutUser);
+      }
+
+      if (adminSettingsForm) {
+        const submitBtn = adminSettingsForm.querySelector('button[type="submit"]');
+        adminSettingsForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(adminSettingsForm);
           
-          if (r.ok) {
-            const data = await r.json();
-            showFlash(data.message || 'Settings saved successfully', 'success');
-            // Reload to apply changes after a short delay
-            setTimeout(() => window.location.reload(), 1200);
-          } else {
-            const errorMsg = await readResponseMessage(r, 'Failed to save settings');
-            showFlash(errorMsg, 'error');
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('is-loading');
+          }
+
+          try {
+            const r = await apiFetch(ADMIN_SETTINGS_API, {
+              method: 'POST',
+              body: formData
+            });
+            
+            if (r.ok) {
+              const data = await r.json();
+              showFlash(data.message || 'Settings saved successfully', 'success');
+              // Reload to apply changes after a short delay
+              setTimeout(() => window.location.reload(), 1200);
+            } else {
+              const errorMsg = await readResponseMessage(r, 'Failed to save settings');
+              showFlash(errorMsg, 'error');
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('is-loading');
+              }
+            }
+          } catch (_err) {
+            showFlash('Connection error while saving settings', 'error');
             if (submitBtn) {
               submitBtn.disabled = false;
               submitBtn.classList.remove('is-loading');
             }
           }
-        } catch (_err) {
-          showFlash('Connection error while saving settings', 'error');
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('is-loading');
-          }
-        }
-      });
-    }
-
-    if (isAdminPage) {
-      const originEl = document.getElementById('origin-url');
-      const callbackEl = document.getElementById('callback-url');
-      if (originEl) originEl.textContent = window.location.origin;
-      
-      if (callbackEl) {
-        // Correctly handle subdirectories for the callback URL
-        const path = window.location.pathname.replace('admin.php', '').replace('/admin', '');
-        const base = window.location.origin + (path.endsWith('/') ? path : path + '/');
-        callbackEl.textContent = `${base}login`;
+        });
       }
-    }
 
-    hidePageLoader();
+      if (isAdminPage) {
+        const originEl = document.getElementById('origin-url');
+        const callbackEl = document.getElementById('callback-url');
+        if (originEl) originEl.textContent = window.location.origin;
+        
+        if (callbackEl) {
+          // Correctly handle subdirectories for the callback URL
+          const path = window.location.pathname.replace('admin.php', '').replace('/admin', '');
+          const base = window.location.origin + (path.endsWith('/') ? path : path + '/');
+          callbackEl.textContent = `${base}login`;
+        }
+      }
+    } catch (err) {
+      console.error('Admin Init Error:', err);
+      showFlash('Failed to load admin panel', 'error');
+    } finally {
+      hidePageLoader();
+    }
   }
 
   window.copyToClipboard = (elementId) => {
@@ -1355,53 +1363,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
   async function init() {
-    await resolveApiBase();
-    const authed = await authenticateWithStoredToken();
-    if (!authed) return;
-    if (isLoginPage) return;
-    await loadPlaylists();
-    await loadSelectedPlaylistPreference();
-    syncInitialPageSize();
-    showPageLoader('Loading workspace...');
-    await loadTasks();
-    renderTasks();
-    restoreScrollPosition();
+    try {
+      await resolveApiBase();
+      const authed = await authenticateWithStoredToken();
+      if (!authed) {
+        hidePageLoader();
+        return;
+      }
+      if (isLoginPage) {
+        hidePageLoader();
+        return;
+      }
+      
+      await loadPlaylists();
+      await loadSelectedPlaylistPreference();
+      syncInitialPageSize();
+      showPageLoader('Loading workspace...');
+      await loadTasks();
+      renderTasks();
+      restoreScrollPosition();
 
-    if (otpForm) {
-      otpForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await verifyOtp();
-      });
-    }
-
-    if (scrollTopBtn) {
-      let ticking = false;
-      const updateScrollButton = () => {
-        if (window.scrollY > 300) {
-          scrollTopBtn.classList.add('visible');
-        } else {
-          scrollTopBtn.classList.remove('visible');
-        }
-      };
-
-      const saveScrollPosition = () => {
-        localStorage.setItem(SCROLL_POSITION_KEY, window.scrollY);
-      };
-
-      const onScroll = () => {
-        if (ticking) return;
-        ticking = true;
-        window.requestAnimationFrame(() => {
-          updateScrollButton();
-          saveScrollPosition();
-          ticking = false;
+      if (otpForm) {
+        otpForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          await verifyOtp();
         });
-      };
-      window.addEventListener('scroll', onScroll, { passive: true });
-      scrollTopBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-      updateScrollButton();
+      }
+
+      if (scrollTopBtn) {
+        let ticking = false;
+        const updateScrollButton = () => {
+          if (window.scrollY > 300) {
+            scrollTopBtn.classList.add('visible');
+          } else {
+            scrollTopBtn.classList.remove('visible');
+          }
+        };
+
+        const saveScrollPosition = () => {
+          localStorage.setItem(SCROLL_POSITION_KEY, window.scrollY);
+        };
+
+        const onScroll = () => {
+          if (ticking) return;
+          ticking = true;
+          window.requestAnimationFrame(() => {
+            updateScrollButton();
+            saveScrollPosition();
+            ticking = false;
+          });
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        scrollTopBtn.addEventListener('click', () => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        updateScrollButton();
+      }
+    } catch (err) {
+      console.error('Init Error:', err);
+      showFlash('Failed to load workspace', 'error');
+    } finally {
+      hidePageLoader();
     }
   }
 
@@ -1413,13 +1435,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Use requestAnimationFrame to ensure rendering is complete
         requestAnimationFrame(() => {
           window.scrollTo(0, pos);
-          hidePageLoader();
         });
-      } else {
-        hidePageLoader();
       }
-    } else {
-      hidePageLoader();
     }
   }
 
