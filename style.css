@@ -1295,12 +1295,19 @@ header h1 {
 .modal-content {
   background: #ffffff;
   border-radius: 16px;
-  width: 100%;
-  max-width: 400px;
+  width: 95%;
+  max-width: 450px;
   padding: 24px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   transform: scale(0.95);
   transition: all 0.2s ease;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content.modal-lg {
+  max-width: 700px;
 }
 
 .modal-overlay.active .modal-content {
@@ -1319,6 +1326,87 @@ header h1 {
   color: #64748b;
   margin-bottom: 14px;
   line-height: 1.5;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Pro Modal Styles */
+.video-tools-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 5px;
+}
+
+.tool-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tool-field label {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.9rem;
+}
+
+.field-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.pro-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.pro-textarea {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.9rem;
+  min-height: 120px;
+  resize: vertical;
+  outline: none;
+  line-height: 1.6;
+}
+
+.copy-btn {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  width: 42px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-btn:hover {
+  background: #e2e8f0;
+  color: #2563eb;
+  border-color: #cbd5e1;
+}
+
+.modal-footer-tools {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 20px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 10px;
 }
 
 .modal-input {

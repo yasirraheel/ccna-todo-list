@@ -1493,37 +1493,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const modalHtml = `
-      <div class="video-tools-modal" style="display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto; padding: 5px;">
-        <div class="tool-item">
-          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Video Title</label>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" readonly value="${(taskData.text || '').replace(/"/g, '&quot;')}" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;">
-            <button class="bulk-btn" onclick="copyToClipboard('${(taskData.text || '').replace(/'/g, "\\'")}')" title="Copy Title"><i class="fas fa-copy"></i></button>
+      <div class="video-tools-modal">
+        <div class="tool-field">
+          <label>Video Title</label>
+          <div class="field-row">
+            <input type="text" readonly value="${(taskData.text || '').replace(/"/g, '&quot;')}" class="pro-input">
+            <button class="copy-btn" onclick="copyToClipboard('${(taskData.text || '').replace(/'/g, "\\'")}')" title="Copy Title">
+              <i class="fas fa-copy"></i>
+            </button>
           </div>
         </div>
-        <div class="tool-item">
-          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Tags</label>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" readonly value="${(taskData.tags || '').replace(/"/g, '&quot;')}" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;">
-            <button class="bulk-btn" onclick="copyToClipboard('${(taskData.tags || '').replace(/'/g, "\\'")}')" title="Copy Tags"><i class="fas fa-copy"></i></button>
+        <div class="tool-field">
+          <label>Tags</label>
+          <div class="field-row">
+            <input type="text" readonly value="${(taskData.tags || '').replace(/"/g, '&quot;')}" class="pro-input">
+            <button class="copy-btn" onclick="copyToClipboard('${(taskData.tags || '').replace(/'/g, "\\'")}')" title="Copy Tags">
+              <i class="fas fa-copy"></i>
+            </button>
           </div>
         </div>
-        <div class="tool-item">
-          <label style="font-weight: 600; display: block; margin-bottom: 5px;">Description</label>
-          <div style="display: flex; gap: 8px; align-items: flex-start;">
-            <textarea readonly style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9; height: 100px; resize: none;">${taskData.description || ''}</textarea>
-            <button class="bulk-btn" onclick="copyToClipboard(\`${(taskData.description || '').replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Copy Description"><i class="fas fa-copy"></i></button>
+        <div class="tool-field">
+          <label>Description</label>
+          <div class="field-row">
+            <textarea readonly class="pro-textarea">${taskData.description || ''}</textarea>
+            <button class="copy-btn" onclick="copyToClipboard(\`${(taskData.description || '').replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Copy Description">
+              <i class="fas fa-copy"></i>
+            </button>
           </div>
         </div>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; border-top: 1px solid #eee; padding-top: 15px;">
-          <button class="bulk-btn" onclick="window.open('https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg', '_blank')"><i class="fas fa-image"></i> Thumbnail</button>
-          <button class="bulk-btn" onclick="window.open('/api/captions/${taskData.captionPath}/srt', '_blank')"><i class="fas fa-file-alt"></i> Download SRT</button>
-          <button class="bulk-btn" onclick="window.open('/api/captions/${taskData.captionPath}/text', '_blank')"><i class="fas fa-file-alt"></i> Download Text</button>
+        <div class="modal-footer-tools">
+          <button class="bulk-btn success" onclick="window.open('https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg', '_blank')"><i class="fas fa-image"></i> Thumbnail</button>
+          <button class="bulk-btn primary" onclick="window.open('/api/captions/${taskData.captionPath}/srt', '_blank')"><i class="fas fa-file-alt"></i> Download SRT</button>
+          <button class="bulk-btn primary" onclick="window.open('/api/captions/${taskData.captionPath}/text', '_blank')"><i class="fas fa-file-alt"></i> Download Text</button>
         </div>
       </div>
     `;
 
-    showCustomConfirm('Video Details & Tools', modalHtml, { confirmLabel: 'Close', cancelHidden: true });
+    showCustomConfirm('Video Details & Tools', modalHtml, { 
+      confirmLabel: 'Close', 
+      confirmVariant: 'primary',
+      cancelHidden: true,
+      modalClass: 'modal-lg'
+    });
   };
 
   window.copyToClipboard = (text) => {
@@ -2472,18 +2483,38 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!customModal || !modalTitle || !modalMessage || !modalCancel || !modalConfirm) {
       return Promise.resolve(false);
     }
-    const confirmText = String(options.confirmText || 'Confirm');
+    const confirmText = String(options.confirmText || options.confirmLabel || 'Confirm');
     const confirmVariant = options.confirmVariant === 'primary' ? 'primary' : 'danger';
+    const modalClass = options.modalClass || '';
+    const cancelHidden = options.cancelHidden || false;
+
     return new Promise((resolve) => {
       modalTitle.textContent = title;
-      modalMessage.textContent = message;
+      if (message.includes('<') && message.includes('>')) {
+        modalMessage.innerHTML = message;
+      } else {
+        modalMessage.textContent = message;
+      }
       modalConfirm.textContent = confirmText;
       modalConfirm.classList.remove('modal-btn-primary', 'modal-btn-danger');
       modalConfirm.classList.add(confirmVariant === 'primary' ? 'modal-btn-primary' : 'modal-btn-danger');
+      
+      const modalContent = customModal.querySelector('.modal-content');
+      if (modalContent) {
+        modalContent.className = 'modal-content ' + modalClass;
+      }
+
       if (modalInput) {
         modalInput.classList.add('app-hidden');
         modalInput.value = '';
       }
+
+      if (cancelHidden) {
+        modalCancel.classList.add('app-hidden');
+      } else {
+        modalCancel.classList.remove('app-hidden');
+      }
+
       customModal.classList.add('active');
       const onConfirm = () => {
         cleanup();
