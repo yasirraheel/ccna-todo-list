@@ -1450,10 +1450,12 @@ document.addEventListener('DOMContentLoaded', () => {
         showFlash(msg, 'success');
         loadAllTasks();
       } else {
-        showFlash('Failed to refresh data', 'error');
+        const err = await readResponseMessage(r, 'Failed to refresh YouTube data');
+        showFlash(`Error: ${err}`, 'error');
       }
-    } catch (_e) {
-      showFlash('Connection error', 'error');
+    } catch (e) {
+      console.error('Refresh error:', e);
+      showFlash(`Connection error: ${e.message || 'Unknown error'}`, 'error');
     } finally {
       hidePageLoader();
     }
@@ -1466,23 +1468,27 @@ document.addEventListener('DOMContentLoaded', () => {
         videoId = matches[1];
     }
     
-    // Fetch latest task data to get description/tags
     showPageLoader('Fetching video details...');
     let taskData = null;
     try {
       const r = await apiFetch(`${ADMIN_API}/tasks?search=${encodeURIComponent(id)}`);
       if (r.ok) {
         const result = await r.json();
-        // If searching by ID, it might return a list, so we find the exact match
         taskData = result.tasks.find(t => String(t.id) === String(id));
+      } else {
+        const err = await readResponseMessage(r, 'Failed to load task details');
+        showFlash(`Error: ${err}`, 'error');
       }
-    } catch (_e) {
-      console.error('Video tools fetch error:', _e);
+    } catch (e) {
+      console.error('Video tools fetch error:', e);
+      showFlash(`Connection error: ${e.message || 'Unknown error'}`, 'error');
     }
     hidePageLoader();
 
     if (!taskData) {
-      showFlash('Could not load task data.', 'error');
+      if (!flashStack.hasChildNodes()) {
+        showFlash('Task details not found or failed to load.', 'error');
+      }
       return;
     }
 

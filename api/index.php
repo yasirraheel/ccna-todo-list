@@ -381,6 +381,7 @@ function ensureTables(PDO $pdo): void {
       `video_url` TEXT NULL,
       `thumbnail_url` TEXT NULL,
       `description` TEXT NULL,
+      `tags` TEXT NULL,
       `caption_path` TEXT NULL,
       `views` BIGINT NOT NULL DEFAULT 0,
       `completed` TINYINT(1) NOT NULL DEFAULT 0,
@@ -421,6 +422,9 @@ function ensureTables(PDO $pdo): void {
         $pdo->exec('ALTER TABLE `tasks` ADD COLUMN `description` TEXT NULL');
     } catch (Throwable $e) {}
     try {
+        $pdo->exec('ALTER TABLE `tasks` ADD COLUMN `tags` TEXT NULL');
+    } catch (Throwable $e) {}
+    try {
         $pdo->exec('ALTER TABLE `tasks` ADD COLUMN `caption_path` TEXT NULL');
     } catch (Throwable $e) {}
     try {
@@ -447,6 +451,7 @@ function mapTaskRow(array $row): array {
         'videoUrl' => (string) ($row['video_url'] ?? ''),
         'thumbnailUrl' => (string) ($row['thumbnail_url'] ?? ''),
         'description' => (string) ($row['description'] ?? ''),
+        'tags' => (string) ($row['tags'] ?? ''),
         'captionPath' => (string) ($row['caption_path'] ?? ''),
         'views' => (int) ($row['views'] ?? 0),
         'ownerId' => isset($row['owner_id']) ? (int) $row['owner_id'] : (isset($row['user_id']) ? (int) $row['user_id'] : 0),
