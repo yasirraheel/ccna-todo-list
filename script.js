@@ -619,6 +619,21 @@ document.addEventListener('DOMContentLoaded', () => {
     return fetch(url, { ...options, headers });
   }
 
+  function updateFavicon(url) {
+    if (!url) return;
+    // Standard favicons
+    const rels = ['icon', 'shortcut icon', 'apple-touch-icon'];
+    rels.forEach(rel => {
+      let link = document.querySelector(`link[rel="${rel}"]`);
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = rel;
+        document.head.appendChild(link);
+      }
+      link.href = url;
+    });
+  }
+
   function applyAppName(value) {
     const next = String(value || '').trim();
     if (!next) return;
@@ -669,13 +684,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (config?.footerText && footerTitle) {
       footerTitle.textContent = config.footerText;
     }
+
     if (config?.logoUrl) {
       const logoEls = document.querySelectorAll('.saas-logo, .admin-sidebar-logo span');
       logoEls.forEach(el => {
-        if (el.tagName === 'A' || el.tagName === 'SPAN') {
-          // Keep text but maybe add icon or change text
+        // If it's the admin sidebar logo text, we might want to keep it or add an image
+        if (el.classList.contains('saas-logo')) {
+          el.innerHTML = `<img src="${config.logoUrl}" alt="${title}" style="max-height: 40px;">`;
         }
       });
+    }
+
+    if (config?.faviconUrl) {
+      updateFavicon(config.faviconUrl);
     }
 
     if (config?.googleClientId && config?.googleLoginEnabled) {
@@ -1102,6 +1123,16 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (input.type !== 'file') {
               input.value = value;
             }
+          }
+          
+          // Previews
+          if (key === 'LOGO_URL' && value) {
+            const preview = document.getElementById('logo-preview-container');
+            if (preview) preview.innerHTML = `<img src="${value}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+          }
+          if (key === 'FAVICON_URL' && value) {
+            const preview = document.getElementById('favicon-preview-container');
+            if (preview) preview.innerHTML = `<img src="${value}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
           }
         });
       }

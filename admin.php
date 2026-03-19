@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="todo-api-base" content="">
   <title>Admin Panel | Team Hifsa</title>
-  <link rel="stylesheet" href="style.css?v=20260317-28">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="style.css?v=20260317-29">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="admin-layout">
@@ -133,16 +134,26 @@
             </div>
             <div class="auth-field">
               <label class="auth-label">Logo</label>
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="file" name="LOGO_FILE" accept="image/*" style="flex: 1;">
-                <input type="text" name="LOGO_URL" placeholder="Logo URL (fallback)" style="flex: 1;">
+              <div style="display: flex; gap: 15px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div id="logo-preview-container" style="width: 48px; height: 48px; border-radius: 6px; background: #fff; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                  <i class="fas fa-image" style="color: #94a3b8;"></i>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+                  <input type="file" name="LOGO_FILE" accept="image/*">
+                  <input type="text" name="LOGO_URL" placeholder="Logo URL (fallback)" style="font-size: 0.8rem; padding: 6px 10px;">
+                </div>
               </div>
             </div>
             <div class="auth-field">
               <label class="auth-label">Favicon</label>
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="file" name="FAVICON_FILE" accept="image/*" style="flex: 1;">
-                <input type="text" name="FAVICON_URL" placeholder="Favicon URL (fallback)" style="flex: 1;">
+              <div style="display: flex; gap: 15px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div id="favicon-preview-container" style="width: 48px; height: 48px; border-radius: 6px; background: #fff; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                  <i class="fas fa-icons" style="color: #94a3b8;"></i>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+                  <input type="file" name="FAVICON_FILE" accept="image/*">
+                  <input type="text" name="FAVICON_URL" placeholder="Favicon URL (fallback)" style="font-size: 0.8rem; padding: 6px 10px;">
+                </div>
               </div>
             </div>
           </div>
@@ -251,6 +262,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-28"></script>
+  <script src="script.js?v=20260317-29"></script>
 </body>
 </html>
