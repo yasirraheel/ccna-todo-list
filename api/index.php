@@ -672,6 +672,8 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'googl
             jsonResponse(403, ['message' => 'Your account has been suspended.']);
         }
         $userId = (int) $user['id'];
+        // Mark as verified if logging in via Google
+        $pdo->prepare('UPDATE `users` SET `is_verified` = 1, `verification_token` = NULL WHERE `id` = :id')->execute([':id' => $userId]);
     }
     
     $token = issueUserToken($pdo, $userId);
@@ -1182,7 +1184,7 @@ if (count($segments) === 1 && $segments[0] === 'admin' && $method === 'GET') {
     $totalNotes = (int) $pdo->query('SELECT COUNT(*) FROM `task_notes`')->fetchColumn();
     
     // Recent Users
-    $recentUsersStmt = $pdo->query('SELECT `id`, `name`, `email`, `role`, `status`, `created_at` FROM `users` ORDER BY `created_at` DESC LIMIT 10');
+    $recentUsersStmt = $pdo->query('SELECT `id`, `name`, `email`, `role`, `status`, `is_verified`, `created_at` FROM `users` ORDER BY `created_at` DESC LIMIT 10');
     $recentUsers = $recentUsersStmt->fetchAll();
     
     // Site Settings
@@ -1252,7 +1254,7 @@ if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'sett
 
 if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'users' && $method === 'GET') {
     if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
-    $stmt = $pdo->query('SELECT `id`, `name`, `email`, `role`, `status`, `created_at` FROM `users` ORDER BY `created_at` DESC');
+    $stmt = $pdo->query('SELECT `id`, `name`, `email`, `role`, `status`, `is_verified`, `created_at` FROM `users` ORDER BY `created_at` DESC');
     jsonResponse(200, $stmt->fetchAll());
 }
 
