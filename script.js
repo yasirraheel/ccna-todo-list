@@ -1430,7 +1430,14 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const r = await apiFetch(`${ADMIN_API}/tasks/${id}/youtube-refresh`, { method: 'POST' });
       if (r.ok) {
-        showFlash('YouTube data refreshed', 'success');
+        const data = await r.json();
+        let msg = 'YouTube data refreshed';
+        if (data.tags && data.tags.length > 0) {
+          msg += `\n\nTags found: ${data.tags.join(', ')}`;
+        } else {
+          msg += '\n\nNo tags found for this video.';
+        }
+        showFlash(msg, 'success');
         loadAllTasks();
       } else {
         showFlash('Failed to refresh data', 'error');

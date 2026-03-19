@@ -1500,6 +1500,7 @@ if (count($segments) === 4 && $segments[0] === 'admin' && $segments[1] === 'task
     // Refresh using YouTube Data API if key exists
     $youtubeApiKey = trim(envValue('YOUTUBE_API_KEY', ''));
     $newData = [];
+    $tags = [];
     
     if ($youtubeApiKey !== '') {
         $url = "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=" . urlencode($videoId) . "&key=" . $youtubeApiKey;
@@ -1510,6 +1511,7 @@ if (count($segments) === 4 && $segments[0] === 'admin' && $segments[1] === 'task
                 $snippet = $decoded['items'][0]['snippet'];
                 $newData['text'] = $snippet['title'];
                 $newData['description'] = $snippet['description'];
+                $tags = $snippet['tags'] ?? [];
                 $thumbnails = $snippet['thumbnails'];
                 $newData['thumbnail_url'] = $thumbnails['maxres']['url'] ?? $thumbnails['high']['url'] ?? $thumbnails['medium']['url'] ?? $thumbnails['default']['url'];
             }
@@ -1533,7 +1535,7 @@ if (count($segments) === 4 && $segments[0] === 'admin' && $segments[1] === 'task
         $pdo->prepare($sql)->execute($params);
     }
     
-    jsonResponse(200, ['message' => 'YouTube data refreshed', 'data' => $newData]);
+    jsonResponse(200, ['message' => 'YouTube data refreshed', 'data' => $newData, 'tags' => $tags]);
 }
 
 jsonResponse(404, ['message' => 'Not found']);
