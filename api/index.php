@@ -554,8 +554,14 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'regis
     $check->execute([':email' => $email]);
     if ($check->fetch()) jsonResponse(409, ['message' => 'Email already exists']);
     
-    $stmt = $pdo->query('SELECT `setting_value` FROM `site_settings` WHERE `setting_key` = "SMTP_ENABLED" LIMIT 1');
-    $smtpEnabled = ($stmt->fetchColumn() === '1');
+    // Get site settings for email subject
+    $settingsStmt = $pdo->query('SELECT `setting_key`, `setting_value` FROM `site_settings`');
+    $dbSettings = [];
+    foreach ($settingsStmt->fetchAll() as $row) {
+        $dbSettings[$row['setting_key']] = $row['setting_value'];
+    }
+
+    $smtpEnabled = (($dbSettings['SMTP_ENABLED'] ?? '0') === '1');
     
     $now = (int) round(microtime(true) * 1000);
     $otp = (string) random_int(100000, 999999);
