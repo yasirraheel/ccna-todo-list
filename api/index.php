@@ -267,6 +267,7 @@ function ensureTables(PDO $pdo): void {
       `email` VARCHAR(190) NOT NULL,
       `password_hash` VARCHAR(255) NOT NULL,
       `role` VARCHAR(20) NOT NULL DEFAULT "user",
+      `status` VARCHAR(20) NOT NULL DEFAULT "active",
       `created_at` BIGINT NOT NULL,
       PRIMARY KEY (`id`),
       UNIQUE KEY `uk_users_email` (`email`)
@@ -281,6 +282,9 @@ function ensureTables(PDO $pdo): void {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
     try {
         $pdo->exec('ALTER TABLE `users` ADD COLUMN `role` VARCHAR(20) NOT NULL DEFAULT "user"');
+    } catch (Throwable $e) {}
+    try {
+        $pdo->exec('ALTER TABLE `users` ADD COLUMN `status` VARCHAR(20) NOT NULL DEFAULT "active"');
     } catch (Throwable $e) {}
     $pdo->exec('CREATE TABLE IF NOT EXISTS `user_tokens` (
       `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -436,10 +440,13 @@ function getAuthenticatedUser(PDO $pdo): array {
     $token = getAuthorizationToken();
     if ($token === '') jsonResponse(401, ['message' => 'Unauthorized']);
     $now = (int) round(microtime(true) * 1000);
-    $stmt = $pdo->prepare('SELECT u.`id`, u.`name`, u.`email`, u.`role` FROM `user_tokens` t INNER JOIN `users` u ON u.`id` = t.`user_id` WHERE t.`token` = :token AND t.`expires_at` > :now LIMIT 1');
+    $stmt = $pdo->prepare('SELECT u.`id`, u.`name`, u.`email`, u.`role`, u.`status` FROM `user_tokens` t INNER JOIN `users` u ON u.`id` = t.`user_id` WHERE t.`token` = :token AND t.`expires_at` > :now LIMIT 1');
     $stmt->execute([':token' => $token, ':now' => $now]);
     $user = $stmt->fetch();
     if (!$user) jsonResponse(401, ['message' => 'Unauthorized']);
+    if (($user['status'] ?? 'active') === 'suspended') {
+        jsonResponse(403, ['message' => 'Your account has been suspended. Please contact admin.']);
+    }
     return [
         'id' => (int) $user['id'],
         'name' => (string) $user['name'],
@@ -1019,7 +1026,7 @@ if (count($segments) === 1 && $segments[0] === 'admin' && $method === 'GET') {
     $totalNotes = (int) $pdo->query('SELECT COUNT(*) FROM `task_notes`')->fetchColumn();
     
     // Recent Users
-    $recentUsersStmt = $pdo->query('SELECT `id`, `name`, `email`, `role`, `created_at` FROM `users` ORDER BY `created_at` DESC LIMIT 10');
+    $recentUsersStmt = $pdo->query('SELECT `id`, `name`, `email`, `role`, `status`, `created_at` FROM `users` ORDER BY `created_at` DESC LIMIT 10');
     $recentUsers = $recentUsersStmt->fetchAll();
     
     // Site Settings
@@ -1092,19 +1099,32 @@ if (count($segments) === 2 && $segments[0] === 'uploads' && $method === 'GET') {
 
 if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'users' && $method === 'GET') {
     if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
-    $stmt = $pdo->query('SELECT `id`, `name`, `email`, `role`, `created_at` FROM `users` ORDER BY `created_at` DESC');
+    $stmt = $pdo->query('SELECT `id`, `name`, `email`, `role`, `status`, `created_at` FROM `users` ORDER BY `created_at` DESC');
     jsonResponse(200, $stmt->fetchAll());
 }
 
 if (count($segments) === 3 && $segments[0] === 'admin' && $segments[1] === 'users' && $method === 'PATCH') {
     if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
     $targetId = (int) $segments[2];
-    $role = trim((string) ($body['role'] ?? 'user'));
-    if (!in_array($role, ['user', 'admin'])) jsonResponse(400, ['message' => 'Invalid role']);
     
-    $stmt = $pdo->prepare('UPDATE `users` SET `role` = :role WHERE `id` = :id');
-    $stmt->execute([':role' => $role, ':id' => $targetId]);
-    jsonResponse(200, ['message' => 'User role updated']);
+    $role = isset($body['role']) ? trim((string) $body['role']) : null;
+    $status = isset($body['status']) ? trim((string) $body['status']) : null;
+    
+    if ($role && !in_array($role, ['user', 'admin'])) jsonResponse(400, ['message' => 'Invalid role']);
+    if ($status && !in_array($status, ['active', 'suspended'])) jsonResponse(400, ['message' => 'Invalid status']);
+    
+    if ($role) {
+        $stmt = $pdo->prepare('UPDATE `users` SET `role` = :role WHERE `id` = :id');
+        $stmt->execute([':role' => $role, ':id' => $targetId]);
+    }
+    
+    if ($status) {
+        if ($targetId === $userId && $status === 'suspended') jsonResponse(400, ['message' => 'Cannot suspend yourself']);
+        $stmt = $pdo->prepare('UPDATE `users` SET `status` = :status WHERE `id` = :id');
+        $stmt->execute([':status' => $status, ':id' => $targetId]);
+    }
+    
+    jsonResponse(200, ['message' => 'User updated successfully']);
 }
 
 if (count($segments) === 3 && $segments[0] === 'admin' && $segments[1] === 'users' && $method === 'DELETE') {

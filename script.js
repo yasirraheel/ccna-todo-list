@@ -909,29 +909,55 @@ document.addEventListener('DOMContentLoaded', () => {
     adminNavItems.forEach(item => {
       item.addEventListener('click', () => {
         const section = item.dataset.section;
+        window.location.hash = section;
         switchAdminSection(section);
       });
     });
+
+    // Handle initial hash
+    const initialSection = window.location.hash.substring(1) || 'dashboard';
+    if (['dashboard', 'users', 'settings'].includes(initialSection)) {
+      switchAdminSection(initialSection);
+    }
 
     if (adminLogoutBtn) {
       adminLogoutBtn.addEventListener('click', logoutUser);
     }
 
     if (adminSettingsForm) {
+      const submitBtn = adminSettingsForm.querySelector('button[type="submit"]');
       adminSettingsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(adminSettingsForm);
         
-        const r = await apiFetch(ADMIN_SETTINGS_API, {
-          method: 'POST',
-          body: formData // Let the browser set the boundary for multipart/form-data
-        });
-        if (r.ok) {
-          showFlash('Settings saved successfully', 'success');
-          // Reload to apply changes
-          setTimeout(() => window.location.reload(), 1000);
-        } else {
-          showFlash('Failed to save settings', 'error');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add('is-loading');
+        }
+
+        try {
+          const r = await apiFetch(ADMIN_SETTINGS_API, {
+            method: 'POST',
+            body: formData
+          });
+          const data = await r.json();
+          if (r.ok) {
+            showFlash(data.message || 'Settings saved successfully', 'success');
+            // Reload to apply changes after a short delay
+            setTimeout(() => window.location.reload(), 1200);
+          } else {
+            showFlash(data.message || 'Failed to save settings', 'error');
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.classList.remove('is-loading');
+            }
+          }
+        } catch (_err) {
+          showFlash('Connection error while saving settings', 'error');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('is-loading');
+          }
         }
       });
     }
@@ -990,17 +1016,25 @@ document.addEventListener('DOMContentLoaded', () => {
       const tr = document.createElement('tr');
       const date = new Date(user.created_at).toLocaleDateString();
       const roleBadge = user.role === 'admin' ? 'badge-admin' : 'badge-user';
+      const statusBadge = user.status === 'suspended' ? 'badge-suspended' : 'badge-active';
+      const isSuspended = user.status === 'suspended';
       
       tr.innerHTML = `
         <td>${user.name}</td>
         <td>${user.email}</td>
-        <td><span class="admin-badge ${roleBadge}">${user.role}</span></td>
+        <td>
+          <span class="admin-badge ${roleBadge}">${user.role}</span>
+          <span class="admin-badge ${statusBadge}">${user.status || 'active'}</span>
+        </td>
         <td>${date}</td>
         <td class="admin-actions">
-          <button class="bulk-btn" onclick="window.updateUserRole(${user.id}, '${user.role === 'admin' ? 'user' : 'admin'}')">
+          <button class="bulk-btn" title="Toggle Role (User/Admin)" onclick="window.updateUserRole(${user.id}, '${user.role === 'admin' ? 'user' : 'admin'}')">
             <i class="fas fa-user-shield"></i>
           </button>
-          <button class="bulk-btn danger" onclick="window.deleteUser(${user.id})">
+          <button class="bulk-btn ${isSuspended ? 'success' : 'warning'}" title="${isSuspended ? 'Activate User' : 'Suspend User'}" onclick="window.updateUserStatus(${user.id}, '${isSuspended ? 'active' : 'suspended'}')">
+            <i class="fas ${isSuspended ? 'fa-user-check' : 'fa-user-slash'}"></i>
+          </button>
+          <button class="bulk-btn danger" title="Delete User" onclick="window.deleteUser(${user.id})">
             <i class="fas fa-trash"></i>
           </button>
         </td>
@@ -1008,6 +1042,24 @@ document.addEventListener('DOMContentLoaded', () => {
       container.appendChild(tr);
     });
   }
+
+  window.updateUserStatus = async (id, status) => {
+    const action = status === 'suspended' ? 'Suspend' : 'Activate';
+    const confirmed = await showCustomConfirm(`${action} User`, `Are you sure you want to ${action.toLowerCase()} this user?`);
+    if (!confirmed) return;
+    
+    const r = await apiFetch(`${ADMIN_USERS_API}/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    if (r.ok) {
+      showFlash(`User ${status === 'suspended' ? 'suspended' : 'activated'} successfully`, 'success');
+      const activeSection = document.querySelector('.admin-nav-item.active').dataset.section;
+      if (activeSection === 'users') loadAllUsers();
+      else loadAdminDashboard();
+    }
+  };
 
   window.updateUserRole = async (id, role) => {
     const confirmed = await showCustomConfirm('Update Role', `Change user role to ${role}?`);

@@ -561,6 +561,8 @@ header h1 {
 
 .badge-admin { background: #dbeafe; color: #1e40af; }
 .badge-user { background: #f1f5f9; color: #475569; }
+.badge-active { background: #dcfce7; color: #166534; }
+.badge-suspended { background: #fee2e2; color: #991b1b; }
 
 .admin-actions {
   display: flex;
