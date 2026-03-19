@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const footerYear = document.getElementById('footer-year');
   const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login.html') || document.body.dataset.page === 'login';
   const scrollTopBtn = document.getElementById('scroll-top-btn');
+  const pageLoader = document.getElementById('page-loader');
 
   // Modal elements
   const customModal = document.getElementById('custom-modal');
@@ -159,7 +160,9 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.removeItem(SCROLL_POSITION_KEY);
       syncFilterButtons();
       syncInitialPageSize();
+      showPageLoader('Updating view...');
       renderTasks();
+      hidePageLoader();
       window.scrollTo({ top: 0, behavior: 'smooth' });
       const filterLabel = currentFilter === 'has-notes' ? 'tasks with notes' : `${currentFilter} tasks`;
       showFlash(`Showing ${filterLabel}`, 'info');
@@ -230,10 +233,12 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.removeItem(VISIBLE_TASK_COUNT_KEY);
       localStorage.removeItem(SCROLL_POSITION_KEY);
       syncInitialPageSize();
+      showPageLoader('Switching playlist...');
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      hidePageLoader();
       const label = currentPlaylistFilter === 'all' ? 'All Playlists' : currentPlaylistFilter;
       showFlash(`Playlist selected: ${label}`, 'info');
     });
@@ -250,12 +255,14 @@ document.addEventListener('DOMContentLoaded', () => {
       currentPlaylistFilter = 'all';
       syncInitialPageSize();
       if (playlistFilterSelect) playlistFilterSelect.value = 'all';
+      showPageLoader('Switching scope...');
       await loadPlaylists();
       await loadSelectedPlaylistPreference();
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      hidePageLoader();
       showFlash(currentScope === 'public' ? 'Showing public tasks' : 'Showing your tasks', 'info');
     });
   }
@@ -804,6 +811,7 @@ document.addEventListener('DOMContentLoaded', () => {
     await loadPlaylists();
     await loadSelectedPlaylistPreference();
     syncInitialPageSize();
+    showPageLoader('Loading workspace...');
     await loadTasks();
     renderTasks();
     restoreScrollPosition();
@@ -847,9 +855,26 @@ document.addEventListener('DOMContentLoaded', () => {
         // Use requestAnimationFrame to ensure rendering is complete
         requestAnimationFrame(() => {
           window.scrollTo(0, pos);
+          hidePageLoader();
         });
+      } else {
+        hidePageLoader();
       }
+    } else {
+      hidePageLoader();
     }
+  }
+
+  function showPageLoader(text = 'Loading...') {
+    if (!pageLoader) return;
+    const textEl = pageLoader.querySelector('.loader-text');
+    if (textEl) textEl.textContent = text;
+    pageLoader.classList.remove('hidden');
+  }
+
+  function hidePageLoader() {
+    if (!pageLoader) return;
+    pageLoader.classList.add('hidden');
   }
 
   async function loadTasks() {
@@ -859,6 +884,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await apiFetch(`${base}${q}`);
       if (!response.ok) {
         showFlash(await readResponseMessage(response, 'Could not load tasks'), 'error');
+        hidePageLoader();
         return;
       }
       tasks = await response.json();
@@ -871,6 +897,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_error) {
       tasks = [];
       showFlash('Could not connect to task service', 'error');
+      hidePageLoader();
     }
   }
 
