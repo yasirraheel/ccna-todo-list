@@ -1399,12 +1399,8 @@ if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'task
     $params = [];
     
     if ($search !== '') {
-        if (is_numeric($search)) {
-            $where[] = '(t.`id` = :id_search OR t.`text` LIKE :search OR t.`playlist_name` LIKE :search)';
-            $params[':id_search'] = $search;
-        } else {
-            $where[] = '(t.`text` LIKE :search OR t.`playlist_name` LIKE :search)';
-        }
+        $where[] = '(t.`id` = :id_search OR t.`text` LIKE :search OR t.`playlist_name` LIKE :search)';
+        $params[':id_search'] = $search;
         $params[':search'] = "%$search%";
     }
 
