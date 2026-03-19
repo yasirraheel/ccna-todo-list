@@ -1097,10 +1097,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const roleBadge = user.role === 'admin' ? 'badge-admin' : 'badge-user';
       const statusBadge = user.status === 'suspended' ? 'badge-suspended' : 'badge-active';
       const isSuspended = user.status === 'suspended';
+      const isVerified = parseInt(user.is_verified || 0) === 1;
+      const verifiedBadge = isVerified ? 'badge-active' : 'badge-suspended';
       
       tr.innerHTML = `
         <td>${user.name}</td>
-        <td>${user.email}</td>
+        <td>
+          ${user.email}
+          <div style="margin-top: 4px;">
+            <span class="admin-badge ${verifiedBadge}" style="font-size: 0.65rem; padding: 1px 6px;">
+              <i class="fas ${isVerified ? 'fa-check-circle' : 'fa-times-circle'}"></i> ${isVerified ? 'Verified' : 'Unverified'}
+            </span>
+          </div>
+        </td>
         <td>
           <span class="admin-badge ${roleBadge}">${user.role}</span>
           <span class="admin-badge ${statusBadge}">${user.status || 'active'}</span>
@@ -1113,6 +1122,11 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="bulk-btn ${isSuspended ? 'success' : 'warning'}" title="${isSuspended ? 'Activate User' : 'Suspend User'}" onclick="window.updateUserStatus(${user.id}, '${isSuspended ? 'active' : 'suspended'}')">
             <i class="fas ${isSuspended ? 'fa-user-check' : 'fa-user-slash'}"></i>
           </button>
+          ${!isVerified ? `
+          <button class="bulk-btn success" title="Verify User Manually" onclick="window.verifyUserManually(${user.id})">
+            <i class="fas fa-envelope-check"></i>
+          </button>
+          ` : ''}
           <button class="bulk-btn danger" title="Delete User" onclick="window.deleteUser(${user.id})">
             <i class="fas fa-trash"></i>
           </button>
@@ -1121,6 +1135,23 @@ document.addEventListener('DOMContentLoaded', () => {
       container.appendChild(tr);
     });
   }
+
+  window.verifyUserManually = async (id) => {
+    const confirmed = await showCustomConfirm('Verify User', 'Manually verify this user email address?');
+    if (!confirmed) return;
+    
+    const r = await apiFetch(`${ADMIN_USERS_API}/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_verified: 1 })
+    });
+    if (r.ok) {
+      showFlash('User verified successfully', 'success');
+      const activeSection = document.querySelector('.admin-nav-item.active').dataset.section;
+      if (activeSection === 'users') loadAllUsers();
+      else loadAdminDashboard();
+    }
+  };
 
   window.updateUserStatus = async (id, status) => {
     const action = status === 'suspended' ? 'Suspend' : 'Activate';

@@ -598,7 +598,12 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'login
     if (!$user || !password_verify($password, (string) $user['password_hash'])) {
         jsonResponse(401, ['message' => 'Invalid email or password']);
     }
-    if (($user['is_verified'] ?? 0) == 0) {
+    
+    // Check if email verification is enabled before blocking login
+    $smtpCheck = $pdo->query('SELECT `setting_value` FROM `site_settings` WHERE `setting_key` = "SMTP_ENABLED" LIMIT 1');
+    $smtpEnabled = ($smtpCheck->fetchColumn() === '1');
+
+    if ($smtpEnabled && ($user['is_verified'] ?? 0) == 0) {
         jsonResponse(403, ['message' => 'Please verify your email before logging in.']);
     }
     $token = issueUserToken($pdo, (int) $user['id']);
@@ -1237,6 +1242,7 @@ if (count($segments) === 3 && $segments[0] === 'admin' && $segments[1] === 'user
     
     $role = isset($body['role']) ? trim((string) $body['role']) : null;
     $status = isset($body['status']) ? trim((string) $body['status']) : null;
+    $isVerified = isset($body['is_verified']) ? (int)$body['is_verified'] : null;
     
     if ($role && !in_array($role, ['user', 'admin'])) jsonResponse(400, ['message' => 'Invalid role']);
     if ($status && !in_array($status, ['active', 'suspended'])) jsonResponse(400, ['message' => 'Invalid status']);
@@ -1250,6 +1256,11 @@ if (count($segments) === 3 && $segments[0] === 'admin' && $segments[1] === 'user
         if ($targetId === $userId && $status === 'suspended') jsonResponse(400, ['message' => 'Cannot suspend yourself']);
         $stmt = $pdo->prepare('UPDATE `users` SET `status` = :status WHERE `id` = :id');
         $stmt->execute([':status' => $status, ':id' => $targetId]);
+    }
+
+    if ($isVerified !== null) {
+        $stmt = $pdo->prepare('UPDATE `users` SET `is_verified` = :v, `verification_token` = NULL WHERE `id` = :id');
+        $stmt->execute([':v' => $isVerified, ':id' => $targetId]);
     }
     
     jsonResponse(200, ['message' => 'User updated successfully']);

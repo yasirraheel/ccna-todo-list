@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="todo-api-base" content="">
   <title>Admin Panel | Team Hifsa</title>
-  <link rel="stylesheet" href="style.css?v=20260317-25">
+  <link rel="stylesheet" href="style.css?v=20260317-26">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="admin-layout">
@@ -220,6 +220,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-25"></script>
+  <script src="script.js?v=20260317-26"></script>
 </body>
 </html>
