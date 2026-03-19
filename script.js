@@ -74,7 +74,7 @@ let captchaQuestion, captchaInput, currentCaptchaAnswer = null;
 let customModal, modalTitle, modalMessage, modalInput, modalCancel, modalConfirm, flashStack;
 
 // Stats
-let statTotalEl, statCompletedEl, statPendingEl, statPlaylistEl, statProgressFill;
+let statTotalEl, statCompletedEl, statPendingEl, statPlaylistEl, statProgressFill, statProgressLabel;
 
 document.addEventListener('DOMContentLoaded', () => {
   form = document.getElementById('todo-form');
@@ -163,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
   statPendingEl = document.getElementById('stat-pending');
   statPlaylistEl = document.getElementById('stat-playlist');
   statProgressFill = document.getElementById('stat-progress-fill');
+  statProgressLabel = document.getElementById('stat-progress-label');
 
   const dateOptions = { weekday: 'long', month: 'short', day: 'numeric' };
   if (dateDisplay) {

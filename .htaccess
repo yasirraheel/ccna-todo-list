@@ -12,4 +12,6 @@ RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+(.+)\.php[\s\?] [NC]
 RewriteRule ^(.+)\.php$ /$1 [R=301,L]
 
 # Handle API routing (if not handled by api/.htaccess)
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
 RewriteRule ^api/(.*)$ api/index.php [QSA,L]

@@ -462,13 +462,19 @@ function issueUserToken(PDO $pdo, int $userId): string {
 }
 
 function getAuthenticatedUser(PDO $pdo): array {
+    $user = getOptionalAuthenticatedUser($pdo);
+    if (!$user) jsonResponse(401, ['message' => 'Unauthorized']);
+    return $user;
+}
+
+function getOptionalAuthenticatedUser(PDO $pdo): ?array {
     $token = getAuthorizationToken();
-    if ($token === '') jsonResponse(401, ['message' => 'Unauthorized']);
+    if ($token === '') return null;
     $now = (int) round(microtime(true) * 1000);
     $stmt = $pdo->prepare('SELECT u.`id`, u.`name`, u.`email`, u.`role`, u.`status` FROM `user_tokens` t INNER JOIN `users` u ON u.`id` = t.`user_id` WHERE t.`token` = :token AND t.`expires_at` > :now LIMIT 1');
     $stmt->execute([':token' => $token, ':now' => $now]);
     $user = $stmt->fetch();
-    if (!$user) jsonResponse(401, ['message' => 'Unauthorized']);
+    if (!$user) return null;
     if (($user['status'] ?? 'active') === 'suspended') {
         jsonResponse(403, ['message' => 'Your account has been suspended. Please contact admin.']);
     }
@@ -784,6 +790,8 @@ if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'GET') {
 }
 
 if (count($segments) === 2 && $segments[0] === 'tasks' && $segments[1] === 'public' && $method === 'GET') {
+    $optionalUser = getOptionalAuthenticatedUser($pdo);
+    $viewerId = $optionalUser ? (int) $optionalUser['id'] : 0;
     $playlist = trim((string) ($_GET['playlist'] ?? ''));
     if ($playlist !== '' && strtolower($playlist) !== 'all') {
         $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`,
@@ -794,7 +802,7 @@ if (count($segments) === 2 && $segments[0] === 'tasks' && $segments[1] === 'publ
             LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`visibility` = "public" AND t.`playlist_name` = :playlist
             ORDER BY t.`created_at` DESC');
-        $stmt->execute([':viewer_id' => $userId, ':viewer_id_note' => $userId, ':playlist' => $playlist]);
+        $stmt->execute([':viewer_id' => $viewerId, ':viewer_id_note' => $viewerId, ':playlist' => $playlist]);
     } else {
         $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`,
             COALESCE(tc.`completed`, 0) AS `viewer_completed`,
@@ -804,7 +812,7 @@ if (count($segments) === 2 && $segments[0] === 'tasks' && $segments[1] === 'publ
             LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`visibility` = "public"
             ORDER BY t.`created_at` DESC');
-        $stmt->execute([':viewer_id' => $userId, ':viewer_id_note' => $userId]);
+        $stmt->execute([':viewer_id' => $viewerId, ':viewer_id_note' => $viewerId]);
     }
     jsonResponse(200, array_map('mapTaskRow', $stmt->fetchAll() ?: []));
 }
