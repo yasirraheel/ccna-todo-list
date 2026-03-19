@@ -47,8 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const footerTitle = document.getElementById('footer-title');
   const footerDescription = document.getElementById('footer-description');
   const footerYear = document.getElementById('footer-year');
-  const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login.html') || document.body.dataset.page === 'login';
-  const isAdminPage = window.location.pathname.toLowerCase().endsWith('/admin.html');
+  const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login') || document.body.dataset.page === 'login';
+  const isAdminPage = window.location.pathname.toLowerCase().endsWith('/admin');
   const scrollTopBtn = document.getElementById('scroll-top-btn');
   const pageLoader = document.getElementById('page-loader');
 
@@ -537,7 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function redirectToLogin() {
     if (!isLoginPage) {
-      window.location.href = 'login.html';
+      window.location.href = '/login';
     }
   }
 
@@ -590,9 +590,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add Admin link if admin
     if (user?.role === 'admin') {
       const nav = document.querySelector('.saas-nav');
-      if (nav && !nav.querySelector('a[href="/admin.html"]')) {
+      if (nav && !nav.querySelector('a[href="/admin"]')) {
         const adminLink = document.createElement('a');
-        adminLink.href = '/admin.html';
+        adminLink.href = '/admin';
         adminLink.className = 'saas-nav-item';
         adminLink.innerHTML = '<i class="fas fa-shield-halved" style="margin-right: 6px;"></i>Admin';
         nav.appendChild(adminLink);
@@ -778,7 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showAppPanel(data.user || {});
       if (isLoginPage) {
         if (data.user?.role === 'admin') {
-          window.location.href = 'admin.html';
+          window.location.href = '/admin';
         } else {
           redirectToApp();
         }
@@ -844,7 +844,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showAppPanel(data.user || {});
       
       if (data.user?.role === 'admin') {
-        window.location.href = 'admin.html';
+        window.location.href = '/admin';
         return;
       }
       
@@ -921,7 +921,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showAppPanel(data.user || {});
       
       if (data.user?.role === 'admin') {
-        window.location.href = 'admin.html';
+        window.location.href = '/admin';
         return;
       }
       

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="todo-api-base" content="">
   <title>Admin Panel | Team Hifsa</title>
-  <link rel="stylesheet" href="style.css?v=20260317-22">
+  <link rel="stylesheet" href="style.css?v=20260317-23">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="admin-layout">
@@ -184,6 +184,10 @@
               <label class="auth-label">Google Client ID</label>
               <input type="text" name="GOOGLE_CLIENT_ID" placeholder="your-client-id.apps.googleusercontent.com">
             </div>
+            <div class="auth-field">
+              <label class="auth-label">Google Client Secret</label>
+              <input type="password" name="GOOGLE_CLIENT_SECRET" placeholder="your-client-secret">
+            </div>
 
             <button type="submit" class="playlist-btn" style="margin-top: 24px; width: 100%;">Save All Settings</button>
           </form>
@@ -204,6 +208,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-22"></script>
+  <script src="script.js?v=20260317-23"></script>
 </body>
 </html>

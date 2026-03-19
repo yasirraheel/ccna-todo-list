@@ -621,9 +621,13 @@ if (count($segments) === 3 && $segments[0] === 'auth' && $segments[1] === 'googl
     if (!isset($gUser['email'])) jsonResponse(401, ['message' => 'Invalid Google user data']);
     
     // Check if Client ID matches
-    $stmt = $pdo->query('SELECT `setting_value` FROM `site_settings` WHERE `setting_key` = "GOOGLE_CLIENT_ID" LIMIT 1');
-    $storedClientId = $stmt->fetchColumn();
-    if ($storedClientId && $gUser['aud'] !== $storedClientId) {
+    $stmt = $pdo->query('SELECT `setting_key`, `setting_value` FROM `site_settings` WHERE `setting_key` IN ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET")');
+    $oauth = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $oauth[$row['setting_key']] = $row['setting_value'];
+    }
+
+    if (isset($oauth['GOOGLE_CLIENT_ID']) && $gUser['aud'] !== $oauth['GOOGLE_CLIENT_ID']) {
         jsonResponse(401, ['message' => 'Invalid Google client audience']);
     }
 
