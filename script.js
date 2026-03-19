@@ -204,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
       showPageLoader('Updating view...');
       renderTasks();
       hidePageLoader();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       const filterLabel = currentFilter === 'has-notes' ? 'tasks with notes' : `${currentFilter} tasks`;
       showFlash(`Showing ${filterLabel}`, 'info');
     });
@@ -278,7 +277,6 @@ document.addEventListener('DOMContentLoaded', () => {
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       hidePageLoader();
       const label = currentPlaylistFilter === 'all' ? 'All Playlists' : currentPlaylistFilter;
       showFlash(`Playlist selected: ${label}`, 'info');
@@ -302,7 +300,6 @@ document.addEventListener('DOMContentLoaded', () => {
       await loadTasks();
       renderTasks();
       updatePlaylistActionState();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       hidePageLoader();
       showFlash(currentScope === 'public' ? 'Showing public tasks' : 'Showing your tasks', 'info');
     });

@@ -6,7 +6,7 @@
   <meta name="todo-api-base" content="">
   <title>Admin Panel | Team Hifsa</title>
   <link rel="icon" href="/favicon.ico">
-  <link rel="stylesheet" href="style.css?v=20260317-34">
+  <link rel="stylesheet" href="style.css?v=20260317-35">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="admin-layout">
@@ -75,43 +75,45 @@
       </div>
 
       <h3 class="section-title" style="margin-top: 32px;">Recent Users</h3>
-      <div class="admin-table-card">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Joined</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="recent-users-table">
-            <!-- Dynamic content -->
-          </tbody>
-        </table>
+      <div class="admin-table-container">
+        <div class="admin-table-card">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email & Status</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="recent-users-table">
+              <!-- Dynamic content -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
     <!-- Users Section -->
-    <section id="section-users" class="admin-section">
-      <div class="admin-table-card">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Joined</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="all-users-table">
-            <!-- Dynamic content -->
-          </tbody>
-        </table>
+    <div id="section-users" class="admin-section">
+      <div class="admin-table-container">
+        <div class="admin-table-card">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email & Status</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="all-users-table"></tbody>
+          </table>
+        </div>
       </div>
-    </section>
+    </div>
 
     <!-- Settings Section -->
     <section id="section-settings" class="admin-section">
@@ -262,6 +264,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-34"></script>
+  <script src="script.js?v=20260317-35"></script>
 </body>
 </html>

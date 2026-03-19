@@ -523,9 +523,18 @@ header h1 {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.admin-table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
 .admin-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 800px;
 }
 
 .admin-table th {
