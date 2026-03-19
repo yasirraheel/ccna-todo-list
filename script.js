@@ -1470,12 +1470,15 @@ document.addEventListener('DOMContentLoaded', () => {
     showPageLoader('Fetching video details...');
     let taskData = null;
     try {
-      const r = await apiFetch(`${ADMIN_API}/tasks?search=${id}`);
+      const r = await apiFetch(`${ADMIN_API}/tasks?search=${encodeURIComponent(id)}`);
       if (r.ok) {
         const result = await r.json();
+        // If searching by ID, it might return a list, so we find the exact match
         taskData = result.tasks.find(t => String(t.id) === String(id));
       }
-    } catch (_e) {}
+    } catch (_e) {
+      console.error('Video tools fetch error:', _e);
+    }
     hidePageLoader();
 
     if (!taskData) {
