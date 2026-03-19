@@ -618,7 +618,7 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'login
     ]);
 }
 
-if (count($segments) === 3 && $segments[0] === 'auth' && $segments[1] === 'google' && $method === 'POST') {
+if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'google' && $method === 'POST') {
     $credential = (string) ($body['credential'] ?? '');
     if ($credential === '') jsonResponse(400, ['message' => 'Credential is required']);
     
@@ -689,6 +689,20 @@ if (count($segments) === 2 && $segments[0] === 'captions' && $method === 'GET') 
     if (!file_exists($filePath)) jsonResponse(404, ['message' => 'Caption not found']);
     header('Content-Type: application/xml');
     header('Content-Disposition: attachment; filename="' . $fileName . '"');
+    readfile($filePath);
+    exit;
+}
+
+if (count($segments) === 2 && $segments[0] === 'uploads' && $method === 'GET') {
+    $fileName = basename((string) $segments[1]);
+    $filePath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $fileName;
+    if (!file_exists($filePath)) jsonResponse(404, ['message' => 'File not found']);
+    
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $filePath);
+    finfo_close($finfo);
+    
+    header("Content-Type: $mime");
     readfile($filePath);
     exit;
 }
@@ -1234,20 +1248,6 @@ if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'sett
         ]);
     }
     jsonResponse(200, ['message' => 'Settings updated successfully']);
-}
-
-if (count($segments) === 2 && $segments[0] === 'uploads' && $method === 'GET') {
-    $fileName = basename((string) $segments[1]);
-    $filePath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $fileName;
-    if (!file_exists($filePath)) jsonResponse(404, ['message' => 'File not found']);
-    
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mime = finfo_file($finfo, $filePath);
-    finfo_close($finfo);
-    
-    header("Content-Type: $mime");
-    readfile($filePath);
-    exit;
 }
 
 if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'users' && $method === 'GET') {

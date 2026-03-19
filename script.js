@@ -1184,7 +1184,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </button>
           ${!isVerified ? `
           <button class="bulk-btn success" title="Verify User Manually" onclick="window.verifyUserManually(${user.id})">
-            <i class="fas fa-envelope-check"></i>
+            <i class="fas fa-check-double"></i>
           </button>
           ` : ''}
           <button class="bulk-btn danger" title="Delete User" onclick="window.deleteUser(${user.id})">
@@ -1206,10 +1206,13 @@ document.addEventListener('DOMContentLoaded', () => {
       body: JSON.stringify({ is_verified: 1 })
     });
     if (r.ok) {
-      showFlash('User verified successfully', 'success');
+      const data = await r.json();
+      showFlash(data.message || 'User verified successfully', 'success');
       const activeSection = document.querySelector('.admin-nav-item.active').dataset.section;
       if (activeSection === 'users') loadAllUsers();
       else loadAdminDashboard();
+    } else {
+      showFlash(await readResponseMessage(r, 'Verification failed'), 'error');
     }
   };
 
