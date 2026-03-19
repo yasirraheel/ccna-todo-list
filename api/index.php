@@ -831,23 +831,19 @@ if (count($segments) === 1 && $segments[0] === 'preferences' && $method === 'POS
 if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'GET') {
     $playlist = trim((string) ($_GET['playlist'] ?? ''));
     if ($playlist !== '' && strtolower($playlist) !== 'all') {
-        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`,
-            CASE WHEN t.`visibility` = "public" THEN COALESCE(tc.`completed`, 0) ELSE t.`completed` END AS `viewer_completed`,
+        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, t.`completed` as `viewer_completed`,
             CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
             FROM `tasks` t
-            LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`user_id` = :user_id AND t.`playlist_name` = :playlist
             ORDER BY t.`created_at` DESC');
-        $stmt->execute([':viewer_id' => $userId, ':viewer_id_note' => $userId, ':user_id' => $userId, ':playlist' => $playlist]);
+        $stmt->execute([':viewer_id_note' => $userId, ':user_id' => $userId, ':playlist' => $playlist]);
     } else {
-        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`,
-            CASE WHEN t.`visibility` = "public" THEN COALESCE(tc.`completed`, 0) ELSE t.`completed` END AS `viewer_completed`,
+        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, t.`completed` as `viewer_completed`,
             CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
             FROM `tasks` t
-            LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`user_id` = :user_id
             ORDER BY t.`created_at` DESC');
-        $stmt->execute([':viewer_id' => $userId, ':viewer_id_note' => $userId, ':user_id' => $userId]);
+        $stmt->execute([':viewer_id_note' => $userId, ':user_id' => $userId]);
     }
     jsonResponse(200, array_map('mapTaskRow', $stmt->fetchAll() ?: []));
 }
@@ -857,25 +853,21 @@ if (count($segments) === 2 && $segments[0] === 'tasks' && $segments[1] === 'publ
     $viewerId = $optionalUser ? (int) $optionalUser['id'] : 0;
     $playlist = trim((string) ($_GET['playlist'] ?? ''));
     if ($playlist !== '' && strtolower($playlist) !== 'all') {
-        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`,
-            COALESCE(tc.`completed`, 0) AS `viewer_completed`,
+        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, t.`completed` as `viewer_completed`,
             CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
             FROM `tasks` t
             INNER JOIN `users` u ON u.`id` = t.`user_id`
-            LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`visibility` = "public" AND t.`playlist_name` = :playlist
             ORDER BY t.`created_at` DESC');
-        $stmt->execute([':viewer_id' => $viewerId, ':viewer_id_note' => $viewerId, ':playlist' => $playlist]);
+        $stmt->execute([':viewer_id_note' => $viewerId, ':playlist' => $playlist]);
     } else {
-        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`,
-            COALESCE(tc.`completed`, 0) AS `viewer_completed`,
+        $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, t.`completed` as `viewer_completed`,
             CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
             FROM `tasks` t
             INNER JOIN `users` u ON u.`id` = t.`user_id`
-            LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`visibility` = "public"
             ORDER BY t.`created_at` DESC');
-        $stmt->execute([':viewer_id' => $viewerId, ':viewer_id_note' => $viewerId]);
+        $stmt->execute([':viewer_id_note' => $viewerId]);
     }
     jsonResponse(200, array_map('mapTaskRow', $stmt->fetchAll() ?: []));
 }
@@ -1395,6 +1387,7 @@ if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'task
     if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
     
     $search = trim((string) ($_GET['search'] ?? ''));
+    $userSearch = trim((string) ($_GET['user_search'] ?? ''));
     $filter = trim((string) ($_GET['filter'] ?? 'all'));
     $page = max(1, (int) ($_GET['page'] ?? 1));
     $limit = 20;
@@ -1404,8 +1397,13 @@ if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'task
     $params = [];
     
     if ($search !== '') {
-        $where[] = '(t.`text` LIKE :search OR u.`email` LIKE :search OR u.`name` LIKE :search OR t.`playlist_name` LIKE :search)';
+        $where[] = '(t.`text` LIKE :search OR t.`playlist_name` LIKE :search)';
         $params[':search'] = "%$search%";
+    }
+
+    if ($userSearch !== '') {
+        $where[] = '(u.`email` LIKE :user_search OR u.`name` LIKE :user_search)';
+        $params[':user_search'] = "%$userSearch%";
     }
     
     if ($filter === 'public') {

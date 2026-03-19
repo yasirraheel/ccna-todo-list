@@ -66,7 +66,7 @@ const taskNotesLoading = new Set();
 // Admin Elements
 let adminNavItems, adminSections, adminLogoutBtn, adminSettingsForm, adminStatUsers, adminStatTasks, adminStatPublic, adminStatNotes;
 let recentUsersTable, allUsersTable, adminEmailEl;
-let allTasksTable, adminTaskSearch, adminTaskFilter, adminTasksPagination;
+let allTasksTable, adminTaskSearch, adminTaskUserSearch, adminTaskFilter, adminTasksPagination;
 
 // Captcha
 let captchaQuestion, captchaInput, currentCaptchaAnswer = null;
@@ -146,6 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
   allUsersTable = document.getElementById('all-users-table');
   allTasksTable = document.getElementById('all-tasks-table');
   adminTaskSearch = document.getElementById('admin-task-search');
+  adminTaskUserSearch = document.getElementById('admin-task-user-search');
   adminTaskFilter = document.getElementById('admin-task-filter');
   adminTasksPagination = document.getElementById('admin-tasks-pagination');
   adminEmailEl = document.getElementById('admin-email');
@@ -1140,6 +1141,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
+      if (adminTaskUserSearch) {
+        let userSearchTimeout;
+        adminTaskUserSearch.addEventListener('input', () => {
+          clearTimeout(userSearchTimeout);
+          userSearchTimeout = setTimeout(() => loadAllTasks(1), 500);
+        });
+      }
+
       if (adminTaskFilter) {
         adminTaskFilter.addEventListener('change', () => loadAllTasks(1));
       }
@@ -1283,8 +1292,9 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadAllTasks(page = 1) {
     try {
       const search = adminTaskSearch?.value || '';
+      const userSearch = adminTaskUserSearch?.value || '';
       const filter = adminTaskFilter?.value || 'all';
-      const r = await apiFetch(`${ADMIN_API}/tasks?page=${page}&search=${encodeURIComponent(search)}&filter=${filter}`);
+      const r = await apiFetch(`${ADMIN_API}/tasks?page=${page}&search=${encodeURIComponent(search)}&user_search=${encodeURIComponent(userSearch)}&filter=${filter}`);
       if (!r.ok) return;
       const data = await r.json();
       renderAdminTasksTable(allTasksTable, data.tasks || []);
