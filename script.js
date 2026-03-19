@@ -1444,8 +1444,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.adminShowVideoTools = async (id, videoUrl, captionPath) => {
     let videoId = '';
-    if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/', videoUrl, $match)) {
-        videoId = $match[1];
+    const matches = {};
+    if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/', videoUrl, matches)) {
+        videoId = matches[1];
     }
     
     // I need a way to show a menu or multiple options.
