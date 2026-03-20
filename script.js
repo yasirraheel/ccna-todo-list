@@ -1552,6 +1552,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  window.toggleDescription = (id) => {
+    const desc = document.getElementById(`desc-${id}`);
+    const btn = document.getElementById(`btn-desc-${id}`);
+    if (!desc || !btn) return;
+    
+    const isCollapsed = desc.classList.contains('collapsed');
+    if (isCollapsed) {
+      desc.classList.remove('collapsed');
+      btn.textContent = 'Show Less';
+    } else {
+      desc.classList.add('collapsed');
+      btn.textContent = 'Read More';
+    }
+  };
+
   // Helper for regex matching
   function preg_match(regex, str, matches) {
     const m = str.match(new RegExp(regex.replace(/^\/|\/[gimuy]*$/g, '')));
@@ -2299,7 +2314,10 @@ document.addEventListener('DOMContentLoaded', () => {
         : `<div class="task-thumbnail-placeholder"><i class="fab fa-youtube"></i></div>`;
 
       const descriptionHtml = task.description 
-        ? `<div class="task-description">${task.description}</div>`
+        ? `<div class="task-description-container">
+             <div class="task-description collapsed" id="desc-${task.id}">${task.description}</div>
+             <button class="desc-toggle-btn" onclick="toggleDescription('${task.id}')" id="btn-desc-${task.id}">Read More</button>
+           </div>`
         : '';
 
       li.innerHTML = `
@@ -2329,7 +2347,7 @@ document.addEventListener('DOMContentLoaded', () => {
               ${downloadSubUrl ? `<a class="sub-btn" href="${downloadSubUrl}" download title="Download Subtitles"><i class="fas fa-closed-captioning"></i> Sub</a>` : ''}
               ${canDelete ? '<button class="delete-btn" title="Delete task"><i class="fas fa-trash"></i></button>' : ''}
             </div>
-            <div class="task-notes ${task.hasNote ? '' : 'app-hidden'}">
+            <div class="task-notes app-hidden">
               <div class="task-notes-list"></div>
               <div class="task-note-form">
                 <textarea class="task-note-input" rows="2" placeholder="Add a note..."></textarea>
