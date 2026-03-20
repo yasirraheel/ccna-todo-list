@@ -1573,9 +1573,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const isSuspended = user.status === 'suspended';
       const isVerified = parseInt(user.is_verified || 0) === 1;
       const verifiedBadge = isVerified ? 'badge-active' : 'badge-suspended';
+      const isGoogle = (user.auth_provider || 'email') === 'google';
       
       tr.innerHTML = `
-        <td data-label="User">${user.name}</td>
+        <td data-label="User">
+          ${user.name}
+          ${isGoogle ? `<div style="margin-top: 4px;"><span class="admin-badge" style="background: #fff1f2; color: #be123c; font-size: 0.65rem; border: 1px solid #fecdd3;"><i class="fab fa-google"></i> Google</span></div>` : ''}
+        </td>
         <td data-label="Email & Status">
           ${user.email}
           <div style="margin-top: 4px;">

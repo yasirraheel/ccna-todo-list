@@ -322,6 +322,7 @@ function ensureTables(PDO $pdo): void {
       `status` VARCHAR(20) NOT NULL DEFAULT "active",
       `is_verified` TINYINT(1) NOT NULL DEFAULT 0,
       `verification_token` VARCHAR(64) NULL,
+      `auth_provider` VARCHAR(32) NOT NULL DEFAULT "email",
       `created_at` BIGINT NOT NULL,
       PRIMARY KEY (`id`),
       UNIQUE KEY `uk_users_email` (`email`)
@@ -345,6 +346,9 @@ function ensureTables(PDO $pdo): void {
     } catch (Throwable $e) {}
     try {
         $pdo->exec('ALTER TABLE `users` ADD COLUMN `verification_token` VARCHAR(64) NULL');
+    } catch (Throwable $e) {}
+    try {
+        $pdo->exec('ALTER TABLE `users` ADD COLUMN `auth_provider` VARCHAR(32) NOT NULL DEFAULT "email"');
     } catch (Throwable $e) {}
     $pdo->exec('CREATE TABLE IF NOT EXISTS `user_tokens` (
       `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -722,7 +726,7 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'googl
     $now = (int) round(microtime(true) * 1000);
     if (!$user) {
         // Create new user
-        $insert = $pdo->prepare('INSERT INTO `users` (`name`, `email`, `password_hash`, `is_verified`, `created_at`) VALUES (:name, :email, :pass, 1, :now)');
+        $insert = $pdo->prepare('INSERT INTO `users` (`name`, `email`, `password_hash`, `is_verified`, `auth_provider`, `created_at`) VALUES (:name, :email, :pass, 1, "google", :now)');
         $insert->execute([
             ':name' => $name,
             ':email' => $email,
@@ -739,8 +743,8 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'googl
             jsonResponse(403, ['message' => 'Your account has been suspended.']);
         }
         $userId = (int) $user['id'];
-        // Mark as verified if logging in via Google
-        $pdo->prepare('UPDATE `users` SET `is_verified` = 1, `verification_token` = NULL WHERE `id` = :id')->execute([':id' => $userId]);
+        // Mark as verified and set auth_provider if logging in via Google
+        $pdo->prepare('UPDATE `users` SET `is_verified` = 1, `verification_token` = NULL, `auth_provider` = "google" WHERE `id` = :id')->execute([':id' => $userId]);
     }
     
     $token = issueUserToken($pdo, $userId);
@@ -1345,7 +1349,7 @@ if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'sett
 
 if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'users' && $method === 'GET') {
     if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
-    $stmt = $pdo->query('SELECT `id`, `name`, `email`, `role`, `status`, `is_verified`, `created_at` FROM `users` ORDER BY `created_at` DESC');
+    $stmt = $pdo->query('SELECT `id`, `name`, `email`, `role`, `status`, `is_verified`, `auth_provider`, `created_at` FROM `users` ORDER BY `created_at` DESC');
     jsonResponse(200, $stmt->fetchAll());
 }
 
