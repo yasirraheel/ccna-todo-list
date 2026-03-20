@@ -109,7 +109,8 @@ body[data-page="login"] {
 .auth-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
 .auth-label {

@@ -426,6 +426,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (otpForm) {
+    otpForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      verifyOtp().catch(() => {});
+    });
+  }
+
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
       logoutUser();
