@@ -73,6 +73,7 @@ let captchaQuestion, captchaInput, currentCaptchaAnswer = null;
 
 // Modals
 let customModal, modalTitle, modalMessage, modalInput, modalCancel, modalConfirm, flashStack;
+let subModal, subModalTitle, subModalMessage, subModalCancel, subModalConfirm;
 
 // Stats
 let statTotalEl, statCompletedEl, statPendingEl, statPlaylistEl, statProgressFill, statProgressLabel;
@@ -162,6 +163,11 @@ document.addEventListener('DOMContentLoaded', () => {
   modalInput = document.getElementById('modal-input');
   modalCancel = document.getElementById('modal-cancel');
   modalConfirm = document.getElementById('modal-confirm');
+  subModal = document.getElementById('sub-modal');
+  subModalTitle = document.getElementById('sub-modal-title');
+  subModalMessage = document.getElementById('sub-modal-message');
+  subModalCancel = document.getElementById('sub-modal-cancel');
+  subModalConfirm = document.getElementById('sub-modal-confirm');
   flashStack = document.getElementById('flash-stack');
 
   statTotalEl = document.getElementById('stat-total');
@@ -1613,7 +1619,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.deleteTaskNote = async (taskId, noteId) => {
-    if (!await showCustomConfirm('Delete Note', 'Are you sure you want to delete this note? This action cannot be undone.')) {
+    if (!await showSubConfirm('Delete Note', 'Are you sure you want to delete this note? This action cannot be undone.')) {
       return;
     }
     try {
@@ -2683,6 +2689,46 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       modalConfirm.addEventListener('click', onConfirm);
       modalCancel.addEventListener('click', onCancel);
+      document.addEventListener('keydown', onEscape);
+    });
+  }
+
+  function showSubConfirm(title, message, options = {}) {
+    if (!subModal || !subModalTitle || !subModalMessage || !subModalCancel || !subModalConfirm) {
+      return Promise.resolve(false);
+    }
+    const confirmText = String(options.confirmText || options.confirmLabel || 'Confirm');
+    const confirmVariant = options.confirmVariant === 'primary' ? 'primary' : 'danger';
+
+    return new Promise((resolve) => {
+      subModalTitle.textContent = title;
+      subModalMessage.textContent = message;
+      subModalConfirm.textContent = confirmText;
+      subModalConfirm.classList.remove('modal-btn-primary', 'modal-btn-danger');
+      subModalConfirm.classList.add(confirmVariant === 'primary' ? 'modal-btn-primary' : 'modal-btn-danger');
+      
+      subModal.classList.add('active');
+      const onConfirm = () => {
+        cleanup();
+        resolve(true);
+      };
+      const onCancel = () => {
+        cleanup();
+        resolve(false);
+      };
+      const onEscape = (event) => {
+        if (event.key !== 'Escape') return;
+        cleanup();
+        resolve(false);
+      };
+      const cleanup = () => {
+        subModal.classList.remove('active');
+        subModalConfirm.removeEventListener('click', onConfirm);
+        subModalCancel.removeEventListener('click', onCancel);
+        document.removeEventListener('keydown', onEscape);
+      };
+      subModalConfirm.addEventListener('click', onConfirm);
+      subModalCancel.addEventListener('click', onCancel);
       document.addEventListener('keydown', onEscape);
     });
   }

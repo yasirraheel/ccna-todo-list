@@ -6,7 +6,7 @@
   <meta name="todo-api-base" content="">
   <title>Admin Panel | Team Hifsa</title>
   <link rel="icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAAAAMAtDSzAAAAAEElEQVR42mNkIAAYGBAAAQAA/wEAgP8AAAAASUVORK5CYII=">
-  <link rel="stylesheet" href="style.css?v=20260317-60">
+  <link rel="stylesheet" href="style.css?v=20260317-62">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="admin-layout">
@@ -296,7 +296,7 @@
   <div id="custom-modal" class="modal-overlay">
     <div class="modal-content">
       <h3 id="modal-title" class="modal-title">Confirm Action</h3>
-      <p id="modal-message" class="modal-message">Are you sure you want to proceed?</p>
+      <div id="modal-message" class="modal-message">Are you sure you want to proceed?</div>
       <input type="text" id="modal-input" class="modal-input app-hidden">
       <div class="modal-actions">
         <button id="modal-cancel" class="modal-btn modal-btn-cancel">Cancel</button>
@@ -305,6 +305,17 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-60"></script>
+  <div id="sub-modal" class="modal-overlay sub-modal">
+    <div class="modal-content">
+      <h3 id="sub-modal-title" class="modal-title">Confirm Action</h3>
+      <div id="sub-modal-message" class="modal-message">Are you sure you want to proceed?</div>
+      <div class="modal-actions">
+        <button id="sub-modal-cancel" class="modal-btn modal-btn-cancel">Cancel</button>
+        <button id="sub-modal-confirm" class="modal-btn modal-btn-primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js?v=20260317-62"></script>
 </body>
 </html>
