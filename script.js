@@ -1567,6 +1567,99 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  window.openNotesModal = async (taskId) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const isPublicTask = task.visibility === 'public';
+    
+    const modalHtml = `
+      <div class="notes-modal-container">
+        <div class="notes-modal-header">
+          <h3 class="notes-task-title">${task.text}</h3>
+        </div>
+        <div class="notes-modal-body">
+          <div id="modal-notes-list" class="task-notes-list">
+            <div class="loader-spinner" style="margin: 20px auto;"></div>
+          </div>
+        </div>
+        <div class="notes-modal-footer">
+          <div class="task-note-form">
+            <textarea id="modal-note-input" class="task-note-input" rows="3" placeholder="Add a new note..."></textarea>
+            <div class="task-note-row">
+              <select id="modal-note-visibility" class="task-note-visibility">
+                <option value="private" selected>Private note</option>
+                <option value="public" ${isPublicTask ? 'disabled' : ''}>Public note</option>
+              </select>
+              <button id="modal-note-save-btn" class="task-note-save-btn" type="button">Save Note</button>
+            </div>
+            ${isPublicTask ? '<div class="task-note-hint">Public tasks only allow private notes.</div>' : ''}
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Show the modal
+    showCustomConfirm('Task Notes', modalHtml, { 
+      confirmLabel: 'Close', 
+      confirmVariant: 'primary',
+      cancelHidden: true,
+      modalClass: 'modal-lg'
+    });
+
+    const listEl = document.getElementById('modal-notes-list');
+    const inputEl = document.getElementById('modal-note-input');
+    const visEl = document.getElementById('modal-note-visibility');
+    const saveBtn = document.getElementById('modal-note-save-btn');
+
+    // Load notes
+    await loadTaskNotes(taskId, listEl);
+
+    // Handle save
+    if (saveBtn && inputEl && visEl) {
+      saveBtn.addEventListener('click', async () => {
+        const text = inputEl.value.trim();
+        if (!text) {
+          showFlash('Write a note first', 'error');
+          return;
+        }
+        const requestedVisibility = isPublicTask ? 'private' : (visEl.value || 'private');
+        saveBtn.disabled = true;
+        saveBtn.classList.add('is-loading');
+        try {
+          const response = await apiFetch(`${API_BASE}/${encodeURIComponent(taskId)}/notes`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, visibility: requestedVisibility })
+          });
+          if (!response.ok) {
+            showFlash(await readResponseMessage(response, 'Could not save note'), 'error');
+            return;
+          }
+          const saved = await response.json();
+          const currentNotes = taskNotesCache.get(taskId) || [];
+          const nextNotes = [saved, ...currentNotes];
+          taskNotesCache.set(taskId, nextNotes);
+          
+          // Update task note count
+          task.noteCount = (task.noteCount || 0) + 1;
+          
+          renderTaskNotesList(taskId, listEl);
+          inputEl.value = '';
+          showFlash('Note saved', 'success');
+          
+          // Re-render tasks in background to update badge
+          renderTasks();
+        } catch (_error) {
+          showFlash('Could not save note', 'error');
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.classList.remove('is-loading');
+        }
+      });
+    }
+  };
+
   // Helper for regex matching
   function preg_match(regex, str, matches) {
     const m = str.match(new RegExp(regex.replace(/^\/|\/[gimuy]*$/g, '')));
@@ -2342,24 +2435,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <input type="checkbox" class="custom-checkbox" ${task.completed ? 'checked' : ''} ${canToggle ? '' : 'disabled'}>
                 <span>${task.completed ? 'Done' : 'Mark done'}</span>
               </label>
-              <button class="task-note-toggle-btn" title="Notes"><i class="far fa-note-sticky"></i> Notes</button>
+              <button class="task-note-toggle-btn ${task.noteCount > 0 ? 'has-notes' : ''}" title="Notes" onclick="window.openNotesModal('${task.id}')">
+                <i class="far fa-note-sticky"></i> Notes ${task.noteCount > 0 ? `<span class="note-badge">${task.noteCount}</span>` : ''}
+              </button>
               ${watchUrl ? `<a class="watch-btn" href="${watchUrl}" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> Watch</a>` : ''}
               ${downloadSubUrl ? `<a class="sub-btn" href="${downloadSubUrl}" download title="Download Subtitles"><i class="fas fa-closed-captioning"></i> Sub</a>` : ''}
               ${canDelete ? '<button class="delete-btn" title="Delete task"><i class="fas fa-trash"></i></button>' : ''}
-            </div>
-            <div class="task-notes app-hidden">
-              <div class="task-notes-list"></div>
-              <div class="task-note-form">
-                <textarea class="task-note-input" rows="2" placeholder="Add a note..."></textarea>
-                <div class="task-note-row">
-                  <select class="task-note-visibility">
-                    <option value="private" selected>Private note</option>
-                    <option value="public" ${task.visibility === 'public' ? 'disabled' : ''}>Public note</option>
-                  </select>
-                  <button class="task-note-save-btn" type="button">Save Note</button>
-                </div>
-                ${task.visibility === 'public' ? '<div class="task-note-hint">Public tasks only allow private notes.</div>' : ''}
-              </div>
             </div>
           </div>
         </div>
@@ -2407,70 +2488,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         if (thumbnailWrapEl) thumbnailWrapEl.addEventListener('click', openVideo);
         if (titleEl) titleEl.addEventListener('click', openVideo);
-      }
-
-      const noteToggleBtn = li.querySelector('.task-note-toggle-btn');
-      const notesPanel = li.querySelector('.task-notes');
-      const notesListEl = li.querySelector('.task-notes-list');
-      const noteInputEl = li.querySelector('.task-note-input');
-      const noteVisibilityEl = li.querySelector('.task-note-visibility');
-      const noteSaveBtn = li.querySelector('.task-note-save-btn');
-
-      if (noteToggleBtn && notesPanel) {
-        noteToggleBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const opening = notesPanel.classList.contains('app-hidden');
-          notesPanel.classList.toggle('app-hidden');
-          if (opening) {
-            loadTaskNotes(task.id, notesListEl).catch(() => {});
-          }
-        });
-      }
-
-      if (notesPanel && !notesPanel.classList.contains('app-hidden')) {
-        if (taskNotesCache.has(task.id)) {
-          renderTaskNotesList(task.id, notesListEl);
-        } else {
-          loadTaskNotes(task.id, notesListEl).catch(() => {});
-        }
-      }
-
-      if (noteSaveBtn && noteInputEl && noteVisibilityEl) {
-        noteSaveBtn.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const text = noteInputEl.value.trim();
-          if (!text) {
-            showFlash('Write a note first', 'error');
-            return;
-          }
-          const requestedVisibility = task.visibility === 'public' ? 'private' : (noteVisibilityEl.value || 'private');
-          noteSaveBtn.disabled = true;
-          noteSaveBtn.classList.add('is-loading');
-          try {
-            const response = await apiFetch(`${API_BASE}/${encodeURIComponent(task.id)}/notes`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ text, visibility: requestedVisibility })
-            });
-            if (!response.ok) {
-              showFlash(await readResponseMessage(response, 'Could not save note'), 'error');
-              return;
-            }
-            const saved = await response.json();
-            const currentNotes = taskNotesCache.get(task.id) || [];
-            const nextNotes = [saved, ...currentNotes];
-            taskNotesCache.set(task.id, nextNotes);
-            task.hasNote = true;
-            renderTaskNotesList(task.id, notesListEl);
-            noteInputEl.value = '';
-            showFlash('Note saved', 'success');
-          } catch (_error) {
-            showFlash('Could not save note', 'error');
-          } finally {
-            noteSaveBtn.disabled = false;
-            noteSaveBtn.classList.remove('is-loading');
-          }
-        });
       }
 
       taskList.appendChild(li);

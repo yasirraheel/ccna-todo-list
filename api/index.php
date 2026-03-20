@@ -457,7 +457,7 @@ function mapTaskRow(array $row): array {
         'views' => (int) ($row['views'] ?? 0),
         'ownerId' => isset($row['owner_id']) ? (int) $row['owner_id'] : (isset($row['user_id']) ? (int) $row['user_id'] : 0),
         'ownerEmail' => (string) ($row['owner_email'] ?? ''),
-        'hasNote' => isset($row['viewer_has_note']) ? ((int) $row['viewer_has_note'] === 1) : false,
+        'noteCount' => (int) ($row['note_count'] ?? 0),
         'completed' => $resolvedCompleted === 1
     ];
 }
@@ -838,8 +838,8 @@ if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'GET') {
     $playlist = trim((string) ($_GET['playlist'] ?? ''));
     if ($playlist !== '' && strtolower($playlist) !== 'all') {
         $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, 
-            CASE WHEN t.`visibility` = "public" THEN COALESCE(tc.`completed`, 0) ELSE t.`completed` END AS `viewer_completed`,
-            CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
+            (SELECT COUNT(*) FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) AS `note_count`,
+            CASE WHEN t.`visibility` = "public" THEN COALESCE(tc.`completed`, 0) ELSE t.`completed` END AS `viewer_completed`
             FROM `tasks` t
             LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`user_id` = :user_id AND t.`playlist_name` = :playlist
@@ -847,8 +847,8 @@ if (count($segments) === 1 && $segments[0] === 'tasks' && $method === 'GET') {
         $stmt->execute([':viewer_id' => $userId, ':viewer_id_note' => $userId, ':user_id' => $userId, ':playlist' => $playlist]);
     } else {
         $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, 
-            CASE WHEN t.`visibility` = "public" THEN COALESCE(tc.`completed`, 0) ELSE t.`completed` END AS `viewer_completed`,
-            CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
+            (SELECT COUNT(*) FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) AS `note_count`,
+            CASE WHEN t.`visibility` = "public" THEN COALESCE(tc.`completed`, 0) ELSE t.`completed` END AS `viewer_completed`
             FROM `tasks` t
             LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
             WHERE t.`user_id` = :user_id
@@ -864,8 +864,8 @@ if (count($segments) === 2 && $segments[0] === 'tasks' && $segments[1] === 'publ
     $playlist = trim((string) ($_GET['playlist'] ?? ''));
     if ($playlist !== '' && strtolower($playlist) !== 'all') {
         $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, 
-            COALESCE(tc.`completed`, 0) AS `viewer_completed`,
-            CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
+            (SELECT COUNT(*) FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) AS `note_count`,
+            COALESCE(tc.`completed`, 0) AS `viewer_completed`
             FROM `tasks` t
             INNER JOIN `users` u ON u.`id` = t.`user_id`
             LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
@@ -874,8 +874,8 @@ if (count($segments) === 2 && $segments[0] === 'tasks' && $segments[1] === 'publ
         $stmt->execute([':viewer_id' => $viewerId, ':viewer_id_note' => $viewerId, ':playlist' => $playlist]);
     } else {
         $stmt = $pdo->prepare('SELECT t.`id`, t.`user_id`, t.`user_id` AS `owner_id`, u.`email` AS `owner_email`, t.`text`, t.`date`, t.`priority`, t.`category`, t.`visibility`, t.`playlist_name`, t.`video_url`, t.`thumbnail_url`, t.`description`, t.`caption_path`, t.`views`, 
-            COALESCE(tc.`completed`, 0) AS `viewer_completed`,
-            CASE WHEN EXISTS (SELECT 1 FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) THEN 1 ELSE 0 END AS `viewer_has_note`
+            (SELECT COUNT(*) FROM `task_notes` n WHERE n.`task_id` = t.`id` AND (n.`author_user_id` = :viewer_id_note OR n.`visibility` = "public")) AS `note_count`,
+            COALESCE(tc.`completed`, 0) AS `viewer_completed`
             FROM `tasks` t
             INNER JOIN `users` u ON u.`id` = t.`user_id`
             LEFT JOIN `task_completions` tc ON tc.`task_id` = t.`id` AND tc.`user_id` = :viewer_id
