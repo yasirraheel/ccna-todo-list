@@ -1250,11 +1250,63 @@ header h1 {
 .task-note-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 6px;
   font-size: 0.7rem;
   color: #475569;
   margin-bottom: 4px;
   flex-wrap: wrap;
+}
+
+.task-note-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.task-note-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.note-action-btn {
+  background: none;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  transition: all 0.2s;
+}
+
+.note-action-btn.edit {
+  color: #2563eb;
+}
+
+.note-action-btn.edit:hover {
+  background: #eff6ff;
+}
+
+.note-action-btn.delete {
+  color: #ef4444;
+}
+
+.note-action-btn.delete:hover {
+  background: #fef2f2;
+}
+
+.task-note-edit-box {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.edit-input {
+  min-height: 80px !important;
 }
 
 .task-note-visibility {

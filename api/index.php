@@ -962,8 +962,10 @@ if (count($segments) === 2 && $segments[0] === 'tasks' && $segments[1] === 'bulk
     jsonResponse(200, ['deletedCount' => $deletedCount]);
 }
 
-if (count($segments) === 3 && $segments[0] === 'tasks' && $segments[2] === 'notes') {
+if ((count($segments) === 3 || count($segments) === 4) && $segments[0] === 'tasks' && $segments[2] === 'notes') {
     $taskId = (string) $segments[1];
+    $noteId = isset($segments[3]) ? (int) $segments[3] : null;
+    
     $taskStmt = $pdo->prepare('SELECT `id`, `user_id`, `visibility` FROM `tasks` WHERE `id` = :id LIMIT 1');
     $taskStmt->execute([':id' => $taskId]);
     $task = $taskStmt->fetch();
@@ -973,39 +975,88 @@ if (count($segments) === 3 && $segments[0] === 'tasks' && $segments[2] === 'note
     $canViewTask = $taskOwnerId === $userId || $taskVisibility === 'public';
     if (!$canViewTask) jsonResponse(403, ['message' => 'Not allowed']);
 
-    if ($method === 'GET') {
-        $notesStmt = $pdo->prepare('SELECT `id`, `task_id`, `author_user_id`, `note_text`, `visibility`, `updated_at`, `created_at`
-          FROM `task_notes`
-          WHERE `task_id` = :task_id AND (`author_user_id` = :viewer_id OR `visibility` = "public")
-          ORDER BY `updated_at` DESC');
-        $notesStmt->execute([':task_id' => $taskId, ':viewer_id' => $userId]);
-        $notes = array_map(fn($row) => mapTaskNoteRow($row, $userId), $notesStmt->fetchAll() ?: []);
-        jsonResponse(200, $notes);
-    }
+    if ($noteId === null) {
+        if ($method === 'GET') {
+            $notesStmt = $pdo->prepare('SELECT `id`, `task_id`, `author_user_id`, `note_text`, `visibility`, `updated_at`, `created_at`
+              FROM `task_notes`
+              WHERE `task_id` = :task_id AND (`author_user_id` = :viewer_id OR `visibility` = "public")
+              ORDER BY `updated_at` DESC');
+            $notesStmt->execute([':task_id' => $taskId, ':viewer_id' => $userId]);
+            $notes = array_map(fn($row) => mapTaskNoteRow($row, $userId), $notesStmt->fetchAll() ?: []);
+            jsonResponse(200, $notes);
+        }
 
-    if ($method === 'POST') {
-        $text = trim((string) ($body['text'] ?? ''));
-        if ($text === '') jsonResponse(400, ['message' => 'Note text is required']);
-        $requestedVisibility = normalizeVisibility($body['visibility'] ?? 'private');
-        $effectiveVisibility = $taskVisibility === 'public' ? 'private' : $requestedVisibility;
-        $nowTs = (int) round(microtime(true) * 1000);
-        $insert = $pdo->prepare('INSERT INTO `task_notes` (`task_id`, `author_user_id`, `note_text`, `visibility`, `updated_at`, `created_at`)
-          VALUES (:task_id, :author_user_id, :note_text, :visibility, :updated_at, :created_at)');
-        $insert->execute([
-            ':task_id' => $taskId,
-            ':author_user_id' => $userId,
-            ':note_text' => $text,
-            ':visibility' => $effectiveVisibility,
-            ':updated_at' => $nowTs,
-            ':created_at' => $nowTs
-        ]);
-        $noteId = (int) $pdo->lastInsertId();
-        $selectNote = $pdo->prepare('SELECT `id`, `task_id`, `author_user_id`, `note_text`, `visibility`, `updated_at`, `created_at`
-          FROM `task_notes` WHERE `id` = :id LIMIT 1');
-        $selectNote->execute([':id' => $noteId]);
-        $saved = $selectNote->fetch();
-        if (!$saved) jsonResponse(500, ['message' => 'Failed to save note']);
-        jsonResponse(200, mapTaskNoteRow($saved, $userId));
+        if ($method === 'POST') {
+            $text = trim((string) ($body['text'] ?? ''));
+            if ($text === '') jsonResponse(400, ['message' => 'Note text is required']);
+            $requestedVisibility = normalizeVisibility($body['visibility'] ?? 'private');
+            $effectiveVisibility = $taskVisibility === 'public' ? 'private' : $requestedVisibility;
+            $nowTs = (int) round(microtime(true) * 1000);
+            $insert = $pdo->prepare('INSERT INTO `task_notes` (`task_id`, `author_user_id`, `note_text`, `visibility`, `updated_at`, `created_at`)
+              VALUES (:task_id, :author_user_id, :note_text, :visibility, :updated_at, :created_at)');
+            $insert->execute([
+                ':task_id' => $taskId,
+                ':author_user_id' => $userId,
+                ':note_text' => $text,
+                ':visibility' => $effectiveVisibility,
+                ':updated_at' => $nowTs,
+                ':created_at' => $nowTs
+            ]);
+            $newNoteId = (int) $pdo->lastInsertId();
+            $selectNote = $pdo->prepare('SELECT `id`, `task_id`, `author_user_id`, `note_text`, `visibility`, `updated_at`, `created_at`
+              FROM `task_notes` WHERE `id` = :id LIMIT 1');
+            $selectNote->execute([':id' => $newNoteId]);
+            $saved = $selectNote->fetch();
+            if (!$saved) jsonResponse(500, ['message' => 'Failed to save note']);
+            jsonResponse(200, mapTaskNoteRow($saved, $userId));
+        }
+    } else {
+        // Individual note actions
+        $selectNote = $pdo->prepare('SELECT * FROM `task_notes` WHERE `id` = :id AND `task_id` = :task_id LIMIT 1');
+        $selectNote->execute([':id' => $noteId, ':task_id' => $taskId]);
+        $note = $selectNote->fetch();
+        if (!$note) jsonResponse(404, ['message' => 'Note not found']);
+        
+        $isAuthor = (int) $note['author_user_id'] === $userId;
+        if (!$isAuthor) jsonResponse(403, ['message' => 'Only the author can modify this note']);
+
+        if ($method === 'PATCH') {
+            $text = isset($body['text']) ? trim((string) $body['text']) : null;
+            $visibility = isset($body['visibility']) ? normalizeVisibility($body['visibility']) : null;
+            
+            if ($text === '') jsonResponse(400, ['message' => 'Note text cannot be empty']);
+            
+            $fields = [];
+            $params = [':id' => $noteId];
+            if ($text !== null) {
+                $fields[] = '`note_text` = :text';
+                $params[':text'] = $text;
+            }
+            if ($visibility !== null) {
+                $effectiveVisibility = $taskVisibility === 'public' ? 'private' : $visibility;
+                $fields[] = '`visibility` = :visibility';
+                $params[':visibility'] = $effectiveVisibility;
+            }
+            
+            if (empty($fields)) jsonResponse(400, ['message' => 'Nothing to update']);
+            
+            $nowTs = (int) round(microtime(true) * 1000);
+            $fields[] = '`updated_at` = :now';
+            $params[':now'] = $nowTs;
+            
+            $update = $pdo->prepare('UPDATE `task_notes` SET ' . implode(', ', $fields) . ' WHERE `id` = :id');
+            $update->execute($params);
+            
+            $selectNote->execute([':id' => $noteId, ':task_id' => $taskId]);
+            $updated = $selectNote->fetch();
+            jsonResponse(200, mapTaskNoteRow($updated, $userId));
+        }
+
+        if ($method === 'DELETE') {
+            $delete = $pdo->prepare('DELETE FROM `task_notes` WHERE `id` = :id');
+            $delete->execute([':id' => $noteId]);
+            jsonResponse(200, ['message' => 'Note deleted']);
+        }
     }
 }
 

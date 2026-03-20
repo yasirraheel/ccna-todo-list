@@ -1567,6 +1567,82 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  window.startEditNote = (taskId, noteId) => {
+    document.getElementById(`note-text-${noteId}`)?.classList.add('app-hidden');
+    document.getElementById(`note-edit-${noteId}`)?.classList.remove('app-hidden');
+  };
+
+  window.cancelEditNote = (noteId) => {
+    document.getElementById(`note-text-${noteId}`)?.classList.remove('app-hidden');
+    document.getElementById(`note-edit-${noteId}`)?.classList.add('app-hidden');
+  };
+
+  window.saveEditNote = async (taskId, noteId) => {
+    const input = document.getElementById(`note-input-${noteId}`);
+    const vis = document.getElementById(`note-vis-${noteId}`);
+    const text = input?.value.trim();
+    if (!text) {
+      showFlash('Note text cannot be empty', 'error');
+      return;
+    }
+    const visibility = vis?.value || 'private';
+    
+    try {
+      const r = await apiFetch(`${API_BASE}/${encodeURIComponent(taskId)}/notes/${noteId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, visibility })
+      });
+      if (!r.ok) {
+        showFlash(await readResponseMessage(r, 'Could not update note'), 'error');
+        return;
+      }
+      const updated = await r.json();
+      const notes = taskNotesCache.get(taskId) || [];
+      const idx = notes.findIndex(n => n.id === noteId);
+      if (idx !== -1) {
+        notes[idx] = updated;
+        taskNotesCache.set(taskId, notes);
+      }
+      const listEl = document.getElementById('modal-notes-list');
+      if (listEl) renderTaskNotesList(taskId, listEl);
+      showFlash('Note updated', 'success');
+    } catch (_e) {
+      showFlash('Failed to update note', 'error');
+    }
+  };
+
+  window.deleteTaskNote = async (taskId, noteId) => {
+    if (!await showCustomConfirm('Delete Note', 'Are you sure you want to delete this note? This action cannot be undone.')) {
+      return;
+    }
+    try {
+      const r = await apiFetch(`${API_BASE}/${encodeURIComponent(taskId)}/notes/${noteId}`, {
+        method: 'DELETE'
+      });
+      if (!r.ok) {
+        showFlash(await readResponseMessage(r, 'Could not delete note'), 'error');
+        return;
+      }
+      const notes = taskNotesCache.get(taskId) || [];
+      const nextNotes = notes.filter(n => n.id !== noteId);
+      taskNotesCache.set(taskId, nextNotes);
+      
+      // Update task note count
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        task.noteCount = Math.max(0, (task.noteCount || 0) - 1);
+        renderTasks();
+      }
+      
+      const listEl = document.getElementById('modal-notes-list');
+      if (listEl) renderTaskNotesList(taskId, listEl);
+      showFlash('Note deleted', 'success');
+    } catch (_e) {
+      showFlash('Failed to delete note', 'error');
+    }
+  };
+
   window.openNotesModal = async (taskId) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
@@ -2328,14 +2404,38 @@ document.addEventListener('DOMContentLoaded', () => {
       const tone = note.visibility === 'public' ? 'public' : 'private';
       const owner = note.isOwn ? 'You' : 'Shared';
       const visibilityLabel = note.visibility === 'public' ? 'Public' : 'Private';
+      
+      const actionsHtml = note.isOwn ? `
+        <div class="task-note-actions">
+          <button class="note-action-btn edit" onclick="window.startEditNote('${taskId}', ${note.id})"><i class="fas fa-edit"></i></button>
+          <button class="note-action-btn delete" onclick="window.deleteTaskNote('${taskId}', ${note.id})"><i class="fas fa-trash"></i></button>
+        </div>
+      ` : '';
+
       return `
-        <div class="task-note-item ${tone}">
+        <div class="task-note-item ${tone}" id="note-${note.id}">
           <div class="task-note-head">
-            <span class="task-note-owner">${owner}</span>
-            <span class="task-note-visibility">${visibilityLabel}</span>
-            ${when ? `<span class="task-note-time">${when}</span>` : ''}
+            <div class="task-note-info">
+              <span class="task-note-owner">${owner}</span>
+              <span class="task-note-visibility">${visibilityLabel}</span>
+              ${when ? `<span class="task-note-time">${when}</span>` : ''}
+            </div>
+            ${actionsHtml}
           </div>
-          <div class="task-note-text">${String(note.text || '')}</div>
+          <div class="task-note-text" id="note-text-${note.id}">${String(note.text || '')}</div>
+          <div class="task-note-edit-box app-hidden" id="note-edit-${note.id}">
+            <textarea class="task-note-input edit-input" id="note-input-${note.id}">${String(note.text || '')}</textarea>
+            <div class="task-note-row">
+              <select class="task-note-visibility edit-vis" id="note-vis-${note.id}">
+                <option value="private" ${note.visibility === 'private' ? 'selected' : ''}>Private</option>
+                <option value="public" ${note.visibility === 'public' ? 'selected' : ''}>Public</option>
+              </select>
+              <div style="display: flex; gap: 5px;">
+                <button class="bulk-btn" onclick="window.cancelEditNote(${note.id})" style="padding: 4px 8px; font-size: 0.7rem;">Cancel</button>
+                <button class="task-note-save-btn" onclick="window.saveEditNote('${taskId}', ${note.id})" style="min-height: 28px; padding: 0 8px;">Save</button>
+              </div>
+            </div>
+          </div>
         </div>
       `;
     }).join('');
