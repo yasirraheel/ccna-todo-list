@@ -307,7 +307,7 @@ function dbConnect(): PDO {
 function ensureTables(PDO $pdo): void {
     // Check if the newest column exists to skip heavy initialization
     try {
-        $cols = $pdo->query("SHOW COLUMNS FROM `tasks` LIKE 'tags'")->fetch();
+        $cols = $pdo->query("SHOW COLUMNS FROM `users` LIKE 'auth_provider'")->fetch();
         if ($cols) return; 
     } catch (Throwable $e) {
         // Table or column doesn't exist, proceed
