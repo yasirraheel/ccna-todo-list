@@ -20,7 +20,7 @@
   <meta name="twitter:description" content="Manage tasks, playlists, and progress in one place.">
   <meta name="twitter:image" content="">
   <link rel="icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAAAAMAtDSzAAAAAEElEQVR42mNkIAAYGBAAAQAA/wEAgP8AAAAASUVORK5CYII=">
-  <link rel="stylesheet" href="style.css?v=20260317-62">
+  <link rel="stylesheet" href="style.css?v=20260317-63">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -41,7 +41,7 @@
     <div class="saas-header-center">
       <div class="saas-search-wrap">
         <i class="fas fa-search"></i>
-        <input type="search" placeholder="Search tasks or playlists" aria-label="Search">
+        <input id="saas-search-input" type="search" placeholder="Search tasks or playlists" aria-label="Search">
       </div>
     </div>
     <div class="saas-header-right">
@@ -230,6 +230,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-62"></script>
+  <script src="script.js?v=20260317-63"></script>
 </body>
 </html>

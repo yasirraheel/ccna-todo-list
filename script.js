@@ -75,6 +75,9 @@ let captchaQuestion, captchaInput, currentCaptchaAnswer = null;
 let customModal, modalTitle, modalMessage, modalInput, modalCancel, modalConfirm, flashStack;
 let subModal, subModalTitle, subModalMessage, subModalCancel, subModalConfirm;
 
+// Search
+let saasSearchInput, currentSearchQuery = '';
+
 // Stats
 let statTotalEl, statCompletedEl, statPendingEl, statPlaylistEl, statProgressFill, statProgressLabel;
 
@@ -187,6 +190,18 @@ document.addEventListener('DOMContentLoaded', () => {
   generateCaptcha();
   syncFilterButtons();
   syncAuthModeUi();
+
+  saasSearchInput = document.getElementById('saas-search-input');
+  if (saasSearchInput) {
+    saasSearchInput.addEventListener('input', (e) => {
+      currentSearchQuery = (e.target.value || '').trim().toLowerCase();
+      renderTasks();
+    });
+    saasSearchInput.addEventListener('search', (e) => {
+      currentSearchQuery = (e.target.value || '').trim().toLowerCase();
+      renderTasks();
+    });
+  }
 
   if (isAdminPage) {
     adminInit().catch(() => {});
@@ -2322,7 +2337,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let filteredTasks = tasks;
     if (currentFilter === 'active') filteredTasks = tasks.filter(t => !t.completed);
     if (currentFilter === 'completed') filteredTasks = tasks.filter(t => t.completed);
-    if (currentFilter === 'has-notes') filteredTasks = tasks.filter(t => Boolean(t?.hasNote));
+    if (currentFilter === 'has-notes') filteredTasks = tasks.filter(t => Boolean(t?.noteCount > 0));
+
+    if (currentSearchQuery) {
+      filteredTasks = filteredTasks.filter(t => {
+        const text = (t.text || '').toLowerCase();
+        const desc = (t.description || '').toLowerCase();
+        const playlist = (t.playlistName || '').toLowerCase();
+        const tags = (t.tags || '').toLowerCase();
+        return text.includes(currentSearchQuery) || 
+               desc.includes(currentSearchQuery) || 
+               playlist.includes(currentSearchQuery) || 
+               tags.includes(currentSearchQuery);
+      });
+    }
     return filteredTasks;
   }
 
