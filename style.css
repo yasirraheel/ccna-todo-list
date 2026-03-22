@@ -3,6 +3,7 @@
     src: url('assets/fonts/Azonix.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
 }
 
 /* GLOBAL PAGE LOADER */

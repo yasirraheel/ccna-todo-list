@@ -564,7 +564,6 @@ require_once 'includes/config.php';
   <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
   <script>
     const assetVersion = '<?php echo $assetVersion; ?>';
-    const isAdminPage = true;
     
     // Mobile Sidebar Toggle
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');

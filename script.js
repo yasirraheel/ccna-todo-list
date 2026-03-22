@@ -2010,12 +2010,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!pageLoader) return;
     const textEl = pageLoader.querySelector('.loader-text');
     if (textEl) textEl.textContent = text;
-    pageLoader.classList.remove('hidden');
+    pageLoader.classList.remove('app-hidden');
   }
 
   function hidePageLoader() {
     if (!pageLoader) return;
-    pageLoader.classList.add('hidden');
+    pageLoader.classList.add('app-hidden');
   }
 
   async function loadTasks() {
