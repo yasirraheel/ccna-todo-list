@@ -2893,7 +2893,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // CCNA Quiz Logic
+});
+
+// CCNA Quiz Logic (Moved outside DOMContentLoaded so it runs on quiz.php which might not use the main init flow)
+document.addEventListener('DOMContentLoaded', () => {
   const ccnaSection = document.getElementById('ccna-quiz-section');
   const subnetSection = document.getElementById('subnet-quiz-section');
   const btnTypeSubnet = document.getElementById('btn-type-subnet');
@@ -2967,7 +2970,9 @@ document.addEventListener('DOMContentLoaded', () => {
     currentCcnaQuestion = null;
 
     try {
-      const r = await apiFetch(`${API_BASE}/quiz`);
+      // Allow overriding API_BASE if it's not defined globally in this context
+      const apiBase = typeof API_BASE !== 'undefined' ? API_BASE : '/api';
+      const r = await fetch(`${apiBase}/quiz`);
       if (!r.ok) throw new Error('Failed to load question');
       const q = await r.json();
       currentCcnaQuestion = q;
@@ -3010,8 +3015,12 @@ document.addEventListener('DOMContentLoaded', () => {
       elBtnCheckCcna.textContent = 'Checking...';
 
       try {
-        const r = await apiFetch(`${API_BASE}/quiz/check`, {
+        const apiBase = typeof API_BASE !== 'undefined' ? API_BASE : '/api';
+        const r = await fetch(`${apiBase}/quiz/check`, {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({
             id: currentCcnaQuestion.id,
             selected: Array.from(selectedCcnaOptions)
@@ -3054,5 +3063,4 @@ document.addEventListener('DOMContentLoaded', () => {
   if (elBtnNextCcna) {
     elBtnNextCcna.addEventListener('click', loadCcnaQuestion);
   }
-
 });

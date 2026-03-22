@@ -823,9 +823,10 @@ if (count($segments) === 2 && $segments[0] === 'uploads' && $method === 'GET') {
     exit;
 }
 
-$authUser = getAuthenticatedUser($pdo);
-$userId = (int) $authUser['id'];
+$authUser = getOptionalAuthenticatedUser($pdo);
+$userId = $authUser ? (int) $authUser['id'] : 0;
 
+// Note: We moved the quiz endpoints above the strict auth check so they can be accessed publicly
 if (count($segments) === 1 && $segments[0] === 'quiz' && $method === 'GET') {
     // Fetch a random practice question
     $stmt = $pdo->query('SELECT `id`, `question_text`, `options` FROM `practice_questions` ORDER BY RAND() LIMIT 1');
@@ -872,6 +873,10 @@ if (count($segments) === 2 && $segments[0] === 'quiz' && $segments[1] === 'check
         'correctAnswers' => $correctAnswers,
         'explanation' => $explanation
     ]);
+}
+
+if (!$authUser) {
+    jsonResponse(401, ['message' => 'Unauthorized']);
 }
 if (count($segments) === 1 && $segments[0] === 'preferences' && $method === 'GET') {
     $stmt = $pdo->prepare('SELECT `pref_key`, `pref_value` FROM `user_prefs` WHERE `user_id` = :user_id');

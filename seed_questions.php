@@ -11,10 +11,11 @@ function cliLoadEnv($path) {
 }
 cliLoadEnv(__DIR__ . '/.env');
 
-// Override required $_SERVER vars for CLI
+// Override required $_SERVER vars for CLI to prevent API auth checks from failing
 $_SERVER['HTTP_HOST'] = 'localhost';
 $_SERVER['SCRIPT_NAME'] = '/seed_questions.php';
 $_SERVER['REQUEST_METHOD'] = 'GET';
+$_SERVER['HTTP_AUTHORIZATION'] = 'Bearer CLI_MOCK_TOKEN'; // Prevent Unauthorized error if index.php expects it
 
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/api/index.php'; // To reuse dbConnect and ensureTables
