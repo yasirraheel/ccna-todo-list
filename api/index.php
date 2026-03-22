@@ -563,6 +563,11 @@ $appCanonicalUrl = trim(envValue('APP_CANONICAL_URL', ''));
 $pdo = dbConnect();
 ensureTables($pdo);
 
+// If executing from CLI, we just want to load the DB connection, not process HTTP routes
+if (php_sapi_name() === 'cli') {
+    return;
+}
+
 $segments = getApiPathSegments();
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 $body = getJsonBody();
