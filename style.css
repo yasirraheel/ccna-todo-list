@@ -523,6 +523,14 @@ h3 {
     max-width: 400px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     text-align: center;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Modifiers for different modal sizes */
+.modal-content.modal-lg {
+    max-width: 800px;
+    text-align: left; /* Better for content like notes */
 }
 
 .modal-title {
@@ -579,6 +587,150 @@ h3 {
 
 .sub-modal {
     z-index: 10001; /* Above the main modal */
+}
+
+/* Notes Modal Specific Styles */
+.notes-modal-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%;
+}
+
+.notes-modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 15px;
+}
+
+.notes-task-title {
+    font-size: 1.25rem;
+    color: #ee8331;
+    margin: 0;
+    font-weight: 600;
+}
+
+.notes-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 200px;
+    max-height: 50vh;
+    padding-right: 10px;
+}
+
+/* Scrollbar for notes list */
+.notes-modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+.notes-modal-body::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+.notes-modal-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.task-notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.task-note-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.task-note-item p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.task-note-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 10px;
+    margin-top: 5px;
+}
+
+.notes-modal-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 20px;
+    margin-top: auto;
+}
+
+.task-note-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.task-note-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+    border-radius: 8px;
+    padding: 12px 15px;
+    font-size: 1rem;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.task-note-input:focus {
+    border-color: #ee8331 !important;
+    box-shadow: 0 0 0 3px rgba(238, 131, 49, 0.15) !important;
+    outline: none;
+}
+
+.task-note-row {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.task-note-visibility {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+}
+
+.task-note-save-btn {
+    background: #ee8331;
+    color: #fff;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.task-note-save-btn:hover {
+    background: #d9772c;
+}
+
+.task-note-hint {
+    font-size: 0.8rem;
+    color: #f59e0b;
+    text-align: right;
 }
 
 /* UTILS */
