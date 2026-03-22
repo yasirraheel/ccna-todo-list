@@ -55,38 +55,42 @@ ob_start();
         </div>
     </section>
 
-    <section class="entry-grid">
-        <form id="todo-form">
+        <form id="todo-form" class="mb-5">
             <h3 class="section-title">Add New Task</h3>
-            <div class="playlist-input-wrapper">
-                <div class="playlist-url-row">
-                    <input type="text" id="task-input" placeholder="What needs to be done?" required autocomplete="off">
+            <div class="entry-grid">
+                <div class="input-group">
+                    <input type="text" id="task-input" class="form-control" placeholder="What needs to be done?" required autocomplete="off">
                 </div>
-                <div class="playlist-attributes-row">
-                    <input type="date" id="task-date">
-                    <select id="task-priority">
+                <div class="input-group">
+                    <input type="date" id="task-date" class="form-control">
+                </div>
+                <div class="input-group">
+                    <select id="task-priority" class="form-select">
                         <option value="low">Low Priority</option>
                         <option value="medium" selected>Medium Priority</option>
                         <option value="high">High Priority</option>
                     </select>
-                    <select id="task-category">
+                </div>
+                <div class="input-group">
+                    <select id="task-category" class="form-select">
                         <option value="General" selected>General</option>
                         <option value="Work">Work</option>
                         <option value="Personal">Personal</option>
                         <option value="Learning">Learning</option>
                     </select>
                 </div>
-                <div id="playlist-url-row" class="playlist-url-row">
-                    <input type="url" id="playlist-url" placeholder="Paste YouTube Playlist URL (Optional)" autocomplete="off">
-                    <button type="button" id="import-playlist-btn" class="bulk-btn success">
-                        <i class="fas fa-file-import"></i> Import
-                    </button>
+                <div class="input-group">
+                    <input type="url" id="playlist-url" class="form-control" placeholder="Paste YouTube Playlist URL (Optional)" autocomplete="off">
                 </div>
-                <div class="form-actions">
-                    <button type="submit" id="add-task-btn" class="bulk-btn primary">
-                        <i class="fas fa-plus"></i> Add Task
-                    </button>
-                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <button type="button" id="import-playlist-btn" class="bulk-btn success">
+                    <i class="fas fa-file-import"></i> Import Playlist
+                </button>
+                <button type="submit" id="add-task-btn" class="bulk-btn primary" style="padding: 12px 30px; font-size: 1.1rem;">
+                    <i class="fas fa-plus"></i> Add Task
+                </button>
             </div>
         </form>
 
