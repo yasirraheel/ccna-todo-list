@@ -38,13 +38,16 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <link rel="apple-touch-icon" href="https://ccnax.com/wp-content/themes/ccnax/assets/images/apple-touch-icon.png">
     
     <!-- External Resources -->
-    <link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.0.8/css/all.css' media='all' />
-    <link href="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/aos/aos.css" rel="stylesheet">
-    <link href="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css' media='all' />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" rel="stylesheet">
     <link href="https://ccnax.com/wp-content/themes/ccnax/assets/css/main.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=<?php echo $assetVersion; ?>">
+    
+    <!-- jQuery must be in head because inline scripts in quiz.php depend on it -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 
 <body>

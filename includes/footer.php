@@ -37,10 +37,10 @@
     </footer>
 
     <!-- Global Scripts -->
-    <script src='https://ccnax.com/wp-content/themes/ccnax/assets/js/jquery.min.js'></script>
-    <script src="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/aos/aos.js"></script>
-    <script src="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@srexi/purecounterjs/dist/purecounter_vanilla.js"></script>
     <script src="https://ccnax.com/wp-content/themes/ccnax/assets/js/main.js"></script>
 
     <script>
