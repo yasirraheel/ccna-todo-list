@@ -486,11 +486,7 @@ h3 {
 
     .qtext1,
     .qtext2 {
-        float: left;
-        width: calc(25% - 8px); /* Increased spacing */
-        margin-bottom: 8px;
-        padding: 0 4px; /* Added internal padding to prevent text merging */
-        box-sizing: border-box;
+        flex: 1;
     }
 
     .qtext1 {
@@ -498,7 +494,22 @@ h3 {
     }
 
     .qtext2 {
-        margin-left: 10px; /* Increased margin */
+        margin-left: 0;
+    }
+
+    .ip-input-row {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+        align-items: flex-end; /* Align inputs and dots nicely */
+    }
+
+    .ip-dot {
+        color: #fff;
+        font-size: 24px;
+        font-weight: bold;
+        padding-bottom: 5px;
+        line-height: 1;
     }
 
     .answer-status {
