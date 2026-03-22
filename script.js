@@ -1137,6 +1137,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function adminInit() {
+    console.log('Initializing admin application...');
     try {
       await resolveApiBase();
       const authed = await authenticateWithStoredToken();
@@ -1159,6 +1160,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       showPageLoader('Loading admin data...');
       await loadAdminDashboard();
+      hidePageLoader(); // Hide loader after data is loaded
+
       
       // Setup Admin Navigation
       adminNavItems.forEach(item => {
@@ -1174,6 +1177,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (['dashboard', 'users', 'tasks', 'settings'].includes(initialSection)) {
         switchAdminSection(initialSection);
       }
+
 
       if (adminTaskSearch) {
         let searchTimeout;
