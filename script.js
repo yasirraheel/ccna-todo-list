@@ -2970,10 +2970,9 @@ document.addEventListener('DOMContentLoaded', () => {
     currentCcnaQuestion = null;
 
     try {
-      // For local development / relative paths, we need to handle the path correctly.
-      // Assuming the API is at the root /api/index.php if not otherwise defined.
-      const apiBase = typeof API_BASE !== 'undefined' ? API_BASE : 'api/index.php';
-      const r = await fetch(`${apiBase}/quiz`);
+      // API_BASE is defined globally as '/api/tasks' or a full URL. We need to strip '/tasks' to hit the root API for the quiz endpoints.
+      const baseUrl = typeof API_BASE !== 'undefined' ? API_BASE.replace('/tasks', '') : '/api';
+      const r = await fetch(`${baseUrl}/quiz`);
       if (!r.ok) throw new Error('Failed to load question');
       const q = await r.json();
       currentCcnaQuestion = q;
@@ -3016,8 +3015,8 @@ document.addEventListener('DOMContentLoaded', () => {
       elBtnCheckCcna.textContent = 'Checking...';
 
       try {
-        const apiBase = typeof API_BASE !== 'undefined' ? API_BASE : 'api/index.php';
-        const r = await fetch(`${apiBase}/quiz/check`, {
+        const baseUrl = typeof API_BASE !== 'undefined' ? API_BASE.replace('/tasks', '') : '/api';
+        const r = await fetch(`${baseUrl}/quiz/check`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
