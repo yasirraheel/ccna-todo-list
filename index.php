@@ -34,6 +34,7 @@
       <a id="app-home-link" href="/" class="saas-logo">Team Hifsa</a>
       <nav class="saas-nav">
         <a href="/" class="saas-nav-item active">Dashboard</a>
+        <a href="/quiz.php" class="saas-nav-item">Subnet Quiz</a>
         <a href="#todo-form" class="saas-nav-item">Tasks</a>
         <a href="#playlist-url" class="saas-nav-item">Playlists</a>
       </nav>
@@ -99,113 +100,63 @@
               <option value="high">High Priority</option>
             </select>
             <select id="task-category">
-              <option value="personal">Personal</option>
-              <option value="work">Work</option>
-              <option value="shopping">Shopping</option>
+              <option value="General" selected>General</option>
+              <option value="Work">Work</option>
+              <option value="Personal">Personal</option>
+              <option value="Learning">Learning</option>
             </select>
-            <select id="task-visibility">
-              <option value="private">Private Task</option>
-              <option value="public">Public Task</option>
-            </select>
-            <button type="submit" class="playlist-btn">Add Task</button>
+          </div>
+          <div id="playlist-url-row" class="playlist-url-row">
+            <input type="url" id="playlist-url" placeholder="Paste YouTube Playlist URL (Optional)" autocomplete="off">
+            <button type="button" id="import-playlist-btn" class="bulk-btn success">
+              <i class="fas fa-file-import"></i> Import
+            </button>
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="add-task-btn" class="bulk-btn primary">
+              <i class="fas fa-plus"></i> Add Task
+            </button>
           </div>
         </div>
       </form>
 
-      <div class="playlist-import">
-        <h3 class="section-title">Import YouTube Playlist</h3>
-        <div class="playlist-input-wrapper">
-          <div class="playlist-url-row">
-            <input type="text" id="playlist-url" placeholder="Paste YouTube Playlist URL here..." autocomplete="off">
+      <div class="view-controls">
+        <h3 class="section-title">My Tasks</h3>
+        <div class="filter-row">
+          <div class="filter-group">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="active">Active</button>
+            <button class="filter-btn" data-filter="completed">Completed</button>
+            <button class="filter-btn" data-filter="has-notes">Notes</button>
           </div>
-          <div class="playlist-attributes-row">
-            <input type="text" id="playlist-name" placeholder="Playlist Name (optional)">
-            <input type="date" id="playlist-date">
-            <select id="playlist-priority">
-              <option value="">Priority</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
+          <div class="playlist-filter-wrap">
+            <select id="playlist-filter" class="playlist-select">
+              <option value="all">All Playlists</option>
             </select>
-            <select id="playlist-type">
-              <option value="">Category</option>
-              <option value="personal">Personal</option>
-              <option value="work">Work</option>
-              <option value="education">Education</option>
-            </select>
-            <select id="playlist-visibility">
-              <option value="private">Private</option>
-              <option value="public">Public</option>
-            </select>
-            <button type="button" id="import-playlist-btn" class="playlist-btn">Import Playlist</button>
           </div>
-          <div id="playlist-status" class="playlist-status"></div>
+        </div>
+        <div id="bulk-actions" class="bulk-actions-row">
+          <label class="select-all-wrap">
+            <input type="checkbox" id="select-all-tasks" class="custom-checkbox">
+            <span>Select All</span>
+          </label>
+          <div class="bulk-buttons">
+            <button type="button" id="delete-selected-btn" class="bulk-btn danger" disabled>
+              <i class="fas fa-trash-can"></i> Delete Selected
+            </button>
+            <button type="button" id="delete-all-btn" class="bulk-btn danger">
+              <i class="fas fa-dumpster"></i> Delete All
+            </button>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="toolbar">
-      <div class="filters">
-        <div class="playlist-toolbar">
-          <select id="playlist-filter" class="filter-select">
-            <option value="all">All Playlists</option>
-          </select>
-          <select id="scope-filter" class="filter-select">
-            <option value="my">My Tasks</option>
-            <option value="public">Public Library</option>
-          </select>
-          <button type="button" id="playlist-visibility-btn" class="bulk-btn" title="Toggle Playlist Visibility">
-            <i class="fas fa-eye"></i> Visibility
-          </button>
-          <button type="button" id="playlist-rename-btn" class="bulk-btn" title="Rename Playlist">
-            <i class="fas fa-edit"></i> Rename
-          </button>
-          <button type="button" id="playlist-delete-btn" class="bulk-btn danger" title="Clear Playlist (move to Unassigned)">
-            <i class="fas fa-trash-can"></i> Delete
-          </button>
-        </div>
-        <div class="status-filters">
-          <button class="filter-btn active" data-filter="all">All</button>
-          <button class="filter-btn" data-filter="active">Active</button>
-          <button class="filter-btn" data-filter="completed">Completed</button>
-          <button class="filter-btn" data-filter="has-notes">Has Notes</button>
-        </div>
-      </div>
-
-      <div class="bulk-actions">
-        <div class="select-all-wrap">
-          <input type="checkbox" id="select-all-tasks" class="task-select">
-          <label for="select-all-tasks">Select Visible</label>
-        </div>
-        <button id="delete-selected-btn" class="bulk-btn danger" disabled>Delete Selected</button>
-        <button id="delete-all-btn" class="bulk-btn danger">Delete All</button>
-      </div>
-    </section>
-
-    <ul id="task-list"></ul>
-    
-    <div class="pagination-footer">
-      <button id="load-more-btn" class="playlist-btn">Load More Tasks</button>
+    <ul id="task-list" class="task-list"></ul>
+    <div class="load-more-wrap">
+      <button id="load-more-btn" class="bulk-btn">Load More Tasks</button>
     </div>
   </main>
-
-  <button id="scroll-top-btn" class="scroll-top-btn" title="Scroll to top">
-    <i class="fas fa-arrow-up"></i>
-  </button>
-
-  <footer class="app-footer">
-    <div class="footer-content">
-      <div class="footer-brand">
-        <h3 id="footer-title">© 2025 Team Hifsa</h3>
-        <p id="footer-description">The ultimate task management for learners.</p>
-      </div>
-      <div class="footer-links">
-        <a href="#">Privacy</a>
-        <a href="#">Terms</a>
-        <a href="#">Support</a>
-      </div>
-    </div>
-  </footer>
 
   <div id="custom-modal" class="modal-overlay">
     <div class="modal-content">
