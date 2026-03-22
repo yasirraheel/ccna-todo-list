@@ -1,6 +1,5 @@
 <?php
-$appName = "Team Hifsa";
-$assetVersion = "20260317-65";
+require_once 'includes/config.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
