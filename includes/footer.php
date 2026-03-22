@@ -45,6 +45,10 @@
 
     <script>
         $(document).ready(function() {
+            // Check if we are on login.php or quiz.php
+            const isLoginPage = window.location.pathname.toLowerCase().endsWith('login.php');
+            const isQuizPage = window.location.pathname.toLowerCase().endsWith('quiz.php');
+
             // Global Session Handling
             const AUTH_TOKEN_KEY = 'todo_auth_token';
             const token = localStorage.getItem(AUTH_TOKEN_KEY);
@@ -59,7 +63,8 @@
                     }
                 })
                 .catch(() => {});
-            } else if (!window.location.pathname.includes('login.php')) {
+            } else if (!isLoginPage && !isQuizPage) {
+                // Only redirect if not on login or quiz page
                 window.location.href = '/login.php';
             }
 
