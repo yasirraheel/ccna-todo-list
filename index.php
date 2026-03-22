@@ -13,12 +13,7 @@ ob_start();
 <div id="flash-stack" class="flash-stack"></div>
 
 <main id="app-container" class="app-container">
-    <section class="page-title-row">
-        <h1 class="page-title">Dashboard Overview</h1>
-        <p id="current-date" class="date-display text-muted d-none"></p>
-    </section>
-
-    <section class="dashboard">
+    <section class="dashboard mt-4">
         <div class="stats-grid mb-4">
             <div class="stat-card">
                 <div class="stat-label"><i class="fas fa-layer-group"></i> Total</div>
@@ -34,16 +29,12 @@ ob_start();
             </div>
             <div class="stat-card">
                 <div class="stat-label"><i class="fas fa-chart-simple"></i> Progress</div>
-                <div class="progress-wrap">
+                <div class="progress-wrap w-100">
                     <div class="progress-bar">
                         <div id="stat-progress-fill" class="progress-fill" style="width:0%"></div>
                     </div>
-                    <div id="stat-progress-label" class="progress-label">0%</div>
+                    <div id="stat-progress-label" class="progress-label mt-2">0%</div>
                 </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label"><i class="fas fa-list"></i> Active Playlist</div>
-                <div id="stat-playlist" class="stat-value small">All</div>
             </div>
         </div>
     </section>
@@ -88,8 +79,13 @@ ob_start();
         </form>
 
         <div class="view-controls">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="section-title mb-0">My Tasks</h3>
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <h3 class="section-title mb-0">My Tasks</h3>
+                    <div class="active-playlist-badge d-flex align-items-center gap-2" style="background: rgba(238, 131, 49, 0.1); border: 1px solid rgba(238, 131, 49, 0.3); color: #ee8331; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                        <i class="fas fa-list"></i> <span id="stat-playlist">All</span>
+                    </div>
+                </div>
                 <div class="dropdown-container">
                     <button type="button" class="dropdown-btn" id="bulk-actions-btn" onclick="document.getElementById('bulk-actions-menu').classList.toggle('show')">
                         <i class="fas fa-ellipsis-v"></i> Actions
