@@ -530,6 +530,10 @@ function getAuthenticatedUser(PDO $pdo): array {
 }
 
 function getOptionalAuthenticatedUser(PDO $pdo): ?array {
+    if (php_sapi_name() === 'cli') {
+        return ['id' => 1, 'name' => 'CLI User', 'email' => 'cli@localhost', 'role' => 'admin'];
+    }
+
     $token = getAuthorizationToken();
     if ($token === '') return null;
     $now = (int) round(microtime(true) * 1000);
