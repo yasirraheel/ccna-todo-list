@@ -1,7 +1,7 @@
 <?php
 $appName = "Team Hifsa";
 $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
-$assetVersion = "1.1.35";
+$assetVersion = "1.1.36";
 ?>
 <!doctype html>
 <html lang="en-GB">
