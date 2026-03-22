@@ -1,4 +1,5 @@
 <?php
+require_once 'includes/config.php';
 $pageTitle = "Dashboard";
 $pageDesc = "Manage your CCNA study tasks and track your progress efficiently.";
 

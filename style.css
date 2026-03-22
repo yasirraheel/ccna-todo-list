@@ -497,6 +497,11 @@ h3 {
     }
 }
 
+/* UTILS */
+.app-hidden {
+    display: none !important;
+}
+
 /* DASHBOARD SPECIFIC OVERRIDES - INTEGRATED FROM INDEX.PHP */
 body {
     background-color: #000000 !important;

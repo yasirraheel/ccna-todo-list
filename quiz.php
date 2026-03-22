@@ -1,4 +1,5 @@
 <?php
+require_once 'includes/config.php';
 $pageTitle = "Subnet Quiz";
 $pageDesc = "Test your networking knowledge with our interactive subnetting quiz.";
 

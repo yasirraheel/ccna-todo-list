@@ -1,8 +1,11 @@
 <?php
 // Global Configuration
 $appName = "Team Hifsa";
-$baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
-$assetVersion = "1.1.40"; // Incremented version
+$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
+$host = $_SERVER['HTTP_HOST'];
+$dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+$baseUrl = $protocol . "://" . $host . ($dir === '/' ? "" : $dir);
+$assetVersion = "1.1.41"; // Incremented version
 
 // Default SEO values
 if (!isset($pageTitle)) $pageTitle = "Master Your Skills";

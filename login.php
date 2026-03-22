@@ -6,7 +6,7 @@ require_once 'includes/config.php';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="todo-api-base" content="">
+  <meta name="todo-api-base" content="<?php echo $baseUrl; ?>">
   <title>Login | <?php echo $appName; ?></title>
   <link rel="icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAAAAMAtDSzAAAAAEElEQVR42mNkIAAYGBAAAQAA/wEAgP8AAAAASUVORK5CYII=">
   

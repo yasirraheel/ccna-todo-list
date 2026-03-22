@@ -1900,9 +1900,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
   async function init() {
+    console.log('Initializing application...');
     try {
       await resolveApiBase();
+      console.log('API Base resolved:', API_BASE);
       const authed = await authenticateWithStoredToken();
+      console.log('Authentication status:', authed);
       if (!authed) {
         hidePageLoader();
         return;
@@ -1917,6 +1920,7 @@ document.addEventListener('DOMContentLoaded', () => {
       syncInitialPageSize();
       showPageLoader('Loading workspace...');
       await loadTasks();
+      console.log('Tasks loaded:', tasks.length);
       renderTasks();
       restoreScrollPosition();
 
