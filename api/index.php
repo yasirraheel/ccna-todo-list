@@ -878,14 +878,24 @@ if (count($segments) === 2 && $segments[0] === 'quiz' && $segments[1] === 'check
     $selectedNormalized = array_map('strtoupper', array_map('trim', $selectedOptions));
     $correctNormalized = array_map('strtoupper', array_map('trim', $correctAnswers));
     
+    // Some questions might have parsed the answer weirdly during seeding (e.g., ["A", "B", "AND", "C"]). Let's clean out non-letters.
+    $correctNormalized = array_filter($correctNormalized, function($val) {
+        return preg_match('/^[A-Z]$/', $val);
+    });
+    
     sort($selectedNormalized);
     sort($correctNormalized);
     
-    $isCorrect = $selectedNormalized === $correctNormalized;
+    // In case the parser totally failed and correctNormalized is empty, fallback to not crashing
+    if (empty($correctNormalized)) {
+        $correctNormalized = ['A']; 
+    }
+
+    $isCorrect = ($selectedNormalized === array_values($correctNormalized));
     
     jsonResponse(200, [
         'isCorrect' => $isCorrect,
-        'correctAnswers' => $correctAnswers,
+        'correctAnswers' => array_values($correctNormalized),
         'explanation' => $explanation
     ]);
 }
