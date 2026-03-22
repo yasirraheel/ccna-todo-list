@@ -510,7 +510,7 @@ $assetVersion = "1.1.33";
     <header id="header" class="header d-flex align-items-center">
         <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
             <a href="<?php echo $baseUrl; ?>" class="logo d-flex align-items-center">
-                <span style="font-size: 24px; font-weight: 700; color: #fff;"><?php echo $appName; ?></span>
+                <span><?php echo $appName; ?></span>
             </a>
             <nav id="navbar" class="navbar">
                 <ul>
