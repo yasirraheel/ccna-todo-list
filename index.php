@@ -13,13 +13,13 @@ ob_start();
 <div id="flash-stack" class="flash-stack"></div>
 
 <main id="app-container" class="app-container">
-    <section class="page-title-row mb-4">
-        <h1 class="page-title">Dashboard</h1>
-        <p id="current-date" class="date-display text-muted"></p>
+    <section class="page-title-row">
+        <h1 class="page-title">Dashboard Overview</h1>
+        <p id="current-date" class="date-display text-muted d-none"></p>
     </section>
 
-    <section class="dashboard mb-5">
-        <div class="stats-grid">
+    <section class="dashboard">
+        <div class="stats-grid mb-4">
             <div class="stat-card">
                 <div class="stat-label"><i class="fas fa-layer-group"></i> Total</div>
                 <div id="stat-total" class="stat-value">0</div>
