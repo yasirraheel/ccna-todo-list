@@ -1,7 +1,7 @@
 <?php
 $appName = "Team Hifsa";
 $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
-$assetVersion = "1.1.30";
+$assetVersion = "1.1.33";
 ?>
 <!doctype html>
 <html lang="en-GB">
@@ -11,140 +11,96 @@ $assetVersion = "1.1.30";
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="author" content="<?php echo $appName; ?>">
-    <meta name="copyright" content="<?php echo $appName; ?>">
+    <meta name="author" content="Davidbombal">
+    <meta name="copyright" content="DavidBombal">
     <meta name="coverage" content="Worldwide">
     <meta name="distribution" content="Global">
     <meta name="allow-search" content="yes" />
-    <link rel="profile" href="https://gmpg.org/xfn/11">
-    <link rel="shortcut icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAAAAMAtDSzAAAAAEElEQVR42mNkIAAYGBAAAQAA/wEAgP8AAAAASUVORK5CYII=">
-    <meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
-    <title>Subnet Quiz | <?php echo $appName; ?></title>
-    <link rel="canonical" href="<?php echo $baseUrl; ?>/quiz.php" />
-    <meta property="og:locale" content="en_GB" />
-    <meta property="og:type" content="article" />
-    <meta property="og:title" content="Subnet Quiz | <?php echo $appName; ?>" />
-    <meta property="og:description" content="Test your subnetting skills with our interactive quiz." />
-    <meta property="og:url" content="<?php echo $baseUrl; ?>/quiz.php" />
-    <meta property="og:site_name" content="<?php echo $appName; ?>" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Subnet Quiz | <?php echo $appName; ?>" />
+    <link rel="shortcut icon" href="https://ccnax.com/wp-content/themes/ccnax/assets/images/favicon.png">
+    <link rel="apple-touch-icon" href="https://ccnax.com/wp-content/themes/ccnax/assets/images/apple-touch-icon.png">
+    <title>Subnet Quiz - <?php echo $appName; ?></title>
     
-    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css' media='all' />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style id='wp-img-auto-sizes-contain-inline-css' type='text/css'>
+        img:is([sizes=auto i], [sizes^="auto,"i]) {
+            contain-intrinsic-size: 3000px 1500px
+        }
+    </style>
+    <style id='classic-theme-styles-inline-css' type='text/css'>
+        .wp-block-button__link {
+            color: #fff;
+            background-color: #32373c;
+            border-radius: 9999px;
+            box-shadow: none;
+            text-decoration: none;
+            padding: calc(.667em + 2px) calc(1.333em + 2px);
+            font-size: 1.125em
+        }
+
+        .wp-block-file__button {
+            background: #32373c;
+            color: #fff;
+            text-decoration: none
+        }
+    </style>
+    <link rel='stylesheet' id='wp-block-paragraph-css'
+        href='https://ccnax.com/wp-includes/blocks/paragraph/style.min.css?ver=6.9.4' type='text/css' media='all' />
+    
+    <link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.0.8/css/all.css' media='all' />
+    <link href="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/bootstrap/css/bootstrap.min.css"
+        rel="stylesheet">
+    <link href="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/bootstrap-icons/bootstrap-icons.css"
+        rel="stylesheet">
     <link href="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/aos/aos.css" rel="stylesheet">
     <link href="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
     <link href="https://ccnax.com/wp-content/themes/ccnax/assets/css/main.css" rel="stylesheet">
-    
+
     <style>
-        /* DASHBOARD UNIFIED HEADER STYLES */
-        :root {
-            --primary: #3b82f6;
-            --bg-dark: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --input-bg: #0f172a;
+        /* DASHBOARD INTEGRATION - LOGOUT BUTTON AND SESSION INFO */
+        .session-info-wrap {
+            display: flex;
+            align-items: center;
+            margin-left: 30px;
         }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
-            margin: 0;
+        .session-email {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            margin-right: 15px;
         }
-
-        #header {
-            background: rgba(15, 23, 42, 0.8) !important;
-            backdrop-filter: blur(12px) !important;
-            -webkit-backdrop-filter: blur(12px) !important;
-            border-bottom: 1px solid var(--border) !important;
-            height: 70px !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            z-index: 1000 !important;
-            display: flex !important;
-            align-items: center !important;
-        }
-
-        .header .logo {
-            font-size: 24px !important;
-            font-weight: 800 !important;
-            color: var(--primary) !important;
-            text-decoration: none !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 10px !important;
-        }
-
-        .header .logo span {
-            color: var(--primary) !important;
-            margin: 0;
-        }
-
-        .navbar ul {
-            display: flex !important;
-            list-style: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            gap: 24px !important;
-        }
-
-        .navbar ul li a {
-            color: var(--text-muted) !important;
-            font-weight: 600 !important;
-            text-decoration: none !important;
-            font-size: 0.95rem !important;
-            transition: all 0.2s !important;
-        }
-
-        .navbar ul li a:hover, .navbar ul li a.active {
-            color: var(--primary) !important;
-        }
-
-        .bulk-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 10px;
+        .logout-btn {
+            background: #ee8331;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 14px;
             font-weight: 600;
+            border: none;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: 0.3s;
+        }
+        .logout-btn:hover {
+            background: #d66d1b;
+        }
+        @media (max-width: 991.98px) {
+            .session-info-wrap { margin: 15px 0 0 0; flex-direction: column; gap: 10px; }
+            .session-email { margin: 0; }
         }
 
-        /* ORIGINAL QUIZ STYLES FROM INDEX.HTML */
-        #main {
-            padding-top: 100px;
-            background-color: #000000;
-            min-height: 100vh;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .section-header h2 {
+        /* ORIGINAL STYLES FROM INDEX.HTML */
+        .content-header {
             font-size: 45px;
-            color: #005568; /* Keeping original header color from file */
-            font-weight: 700;
         }
 
-        .section-header h3 {
+        h3 {
             color: #FFFFFF;
-            font-size: 24px;
-            font-weight: 400;
         }
 
         .section-content {
             text-align: center;
             width: 100%;
-            margin-bottom: 20px;
+        }
+
+        .section-header {
+            color: #005568;
         }
 
         .form-line {
@@ -152,23 +108,36 @@ $assetVersion = "1.1.30";
         }
 
         .form-group {
-            margin-top: 20px;
-        }
-
-        .form-group label h3 {
-            color: #FFFFFF;
-            font-size: 20px;
-            margin-bottom: 10px;
+            margin-top: 10px;
         }
 
         .textform {
             font-size: 24px;
             text-align: center;
             color: #080808;
-            background-color: #ffffff !important;
-            border: 1px solid #ced4da !important;
-            border-radius: 4px !important;
-            min-height: 48px;
+        }
+
+        #convertion {
+            padding-top: 60px;
+            width: 100%;
+        }
+
+        .convertion-section {
+            padding-top: 40px;
+            padding-bottom: 40px;
+            width: 100%;
+        }
+
+        .submit {
+            font-size: 1.1em;
+            float: left;
+            width: 150px;
+            background-color: transparent;
+            color: #fff;
+        }
+
+        .alert strong {
+            font-size: 18px;
         }
 
         .taskIP {
@@ -181,11 +150,20 @@ $assetVersion = "1.1.30";
             padding: 10px;
             text-align: center;
             font-size: 24px;
-            color: #FFFFFF;
         }
 
         #taskBitmask {
             width: 70px;
+        }
+
+        .correct-answer {
+            font-weight: bold;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .inline {
+            display: inline-block;
         }
 
         .answer-status {
@@ -195,26 +173,43 @@ $assetVersion = "1.1.30";
             vertical-align: middle;
         }
 
-        .status-correct { color: #5cb85c; }
-        .status-wrong { color: #ff4a4a; }
-        .status-pending { color: #f4c542; }
+        .answer-status .fa {
+            margin-right: 4px;
+        }
+
+        .status-correct {
+            color: #5cb85c;
+        }
+
+        .status-wrong {
+            color: #ff4a4a;
+        }
+
+        .status-pending {
+            color: #f4c542;
+        }
+
+        #btnCheckAnswer:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
 
         .history-panel {
             margin-top: 20px;
             border: 1px solid #555;
             border-radius: 6px;
-            padding: 15px;
+            padding: 10px;
             background: rgba(255, 255, 255, 0.04);
         }
 
         .history-panel h4 {
-            margin: 0 0 12px 0;
+            margin: 0 0 8px 0;
             color: #fff;
             font-size: 18px;
         }
 
         .history-table-wrap {
-            max-height: 300px;
+            max-height: 240px;
             overflow-y: auto;
             border: 1px solid rgba(255, 255, 255, 0.18);
             border-radius: 6px;
@@ -232,20 +227,47 @@ $assetVersion = "1.1.30";
             color: #fff;
             font-size: 12px;
             letter-spacing: 0.5px;
-            padding: 10px;
+            padding: 8px 10px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             text-transform: uppercase;
         }
 
         .history-item td {
-            padding: 10px;
+            padding: 6px 10px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             color: #fff;
-            font-size: 14px;
+            font-size: 13px;
+        }
+
+        .history-table th:last-child,
+        .history-item td:last-child {
+            text-align: center;
+            width: 70px;
+        }
+
+        .history-item:last-child td {
+            border-bottom: none;
+        }
+
+        .history-item-resumable {
+            cursor: pointer;
+        }
+
+        .history-item-resumable:hover td {
+            background: rgba(79, 195, 247, 0.12);
+        }
+
+        .history-item-active td {
+            background: rgba(92, 184, 92, 0.16);
+            box-shadow: inset 0 0 0 1px rgba(92, 184, 92, 0.65);
+        }
+
+        .history-question {
+            font-family: monospace;
         }
 
         .history-result {
-            padding: 4px 10px;
+            padding: 2px 7px;
             border-radius: 12px;
             font-size: 11px;
             font-weight: 700;
@@ -253,65 +275,254 @@ $assetVersion = "1.1.30";
             display: inline-block;
         }
 
-        .history-result-correct { background: rgba(92, 184, 92, 0.2); color: #5cb85c; }
-        .history-result-giveup { background: rgba(252, 197, 0, 0.2); color: #fcc500; }
-        .history-result-pending { background: rgba(33, 150, 243, 0.2); color: #4fc3f7; }
+        .history-result-correct {
+            background: rgba(92, 184, 92, 0.2);
+            color: #5cb85c;
+        }
+
+        .history-result-giveup {
+            background: rgba(252, 197, 0, 0.2);
+            color: #fcc500;
+        }
+
+        .history-result-pending {
+            background: rgba(33, 150, 243, 0.2);
+            color: #4fc3f7;
+        }
 
         .history-delete-btn {
             border: 1px solid rgba(255, 74, 74, 0.7);
             background: rgba(255, 74, 74, 0.14);
             color: #ff8f8f;
             border-radius: 4px;
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            font-size: 12px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
 
-        .qtext1 { float: left; width: 23%; }
-        .qtext2 { float: left; width: 23%; margin-left: 8px; }
-
-        .btn-lg {
-            padding: 15px 30px;
-            font-weight: 700;
-            border-radius: 8px;
+        .history-delete-btn:hover {
+            background: rgba(255, 74, 74, 0.28);
+            color: #fff;
         }
 
-        /* Mobile Adjustments */
+        .fa-check {
+            color: green;
+        }
+
+        .fa-times {
+            color: red;
+        }
+
+        .qtext1 {
+            float: left;
+            width: 23%;
+        }
+
+        .qtext2 {
+            float: left;
+            width: 23%;
+            margin-left: 8px;
+        }
+
+        .dropdown-indicator-text {
+            display: inline-block;
+            margin-left: 6px;
+            font-size: 12px;
+            line-height: 1;
+            vertical-align: middle;
+            color: #fff;
+        }
+
+        .footersocial .social-icon {
+            padding: 5px;
+            font-size: 25px;
+            width: 49px;
+            height: 49px;
+            border-radius: 50%;
+            text-decoration: none;
+            margin: 5px 3px;
+            background: #ee8331;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .footersocial .social-icon:hover {
+            opacity: 0.7;
+            color: white;
+        }
+
+        .footer .copyright,
+        .footer .credits {
+            color: #ffffff;
+            text-align: center;
+        }
+
         @media (max-width: 991.98px) {
-            .form-line { border-right: none; border-bottom: 1px solid #B29999; padding-bottom: 20px; margin-bottom: 20px; }
-            .btn-lg { width: 100%; display: block; margin: 8px 0; }
+            #header .container-fluid.container-xl {
+                flex-wrap: wrap;
+                gap: 10px;
+                justify-content: center !important;
+            }
+
+            #navbar ul {
+                flex-wrap: wrap;
+                justify-content: center;
+                row-gap: 8px;
+            }
+
+            .section-header h2 {
+                font-size: 34px;
+            }
+
+            .section-header h3 {
+                font-size: 20px;
+                line-height: 1.35;
+            }
+
+            .section-content h3 {
+                font-size: 24px;
+            }
+
+            .form-line {
+                border-right: none;
+                border-bottom: 1px solid #B29999;
+                padding-bottom: 20px;
+                margin-bottom: 20px;
+            }
+
+            .task {
+                font-size: 20px;
+                padding: 7px;
+            }
+
+            .textform {
+                font-size: 20px;
+                min-height: 48px;
+            }
+
+            #btnCheckAnswer,
+            #btnNext,
+            #cmdgiveup {
+                width: 100%;
+                display: block;
+                margin: 8px 0;
+            }
+
+            .history-panel {
+                margin-top: 16px;
+            }
         }
 
         @media (max-width: 767.98px) {
-            .qtext1, .qtext2 { width: calc(25% - 6px); margin-bottom: 8px; }
-            .qtext2 { margin-left: 8px; }
-            .section-header h2 { font-size: 32px; }
-            .section-header h3 { font-size: 18px; }
+            .section-header h2 {
+                font-size: 28px;
+            }
+
+            .section-header h3 {
+                font-size: 17px;
+            }
+
+            .section-content h3 {
+                font-size: 19px;
+                line-height: 1.35;
+            }
+
+            .form-group h3 {
+                font-size: 24px;
+                line-height: 1.3;
+            }
+
+            .task {
+                font-size: 16px;
+                padding: 6px;
+            }
+
+            .taskIP {
+                width: auto;
+                min-width: 38px;
+            }
+
+            #taskBitmask {
+                width: auto;
+            }
+
+            .qtext1,
+            .qtext2 {
+                float: left;
+                width: calc(25% - 6px);
+                margin-bottom: 8px;
+            }
+
+            .qtext1 {
+                margin-left: 0;
+            }
+
+            .qtext2 {
+                margin-left: 8px;
+            }
+
+            .answer-status {
+                font-size: 16px;
+            }
+
+            .history-table th,
+            .history-item td {
+                font-size: 11px;
+                padding: 6px 7px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .textform {
+                font-size: 16px;
+                min-height: 40px;
+            }
+
+            .form-group h3 {
+                font-size: 21px;
+            }
+
+            .qtext1,
+            .qtext2 {
+                width: calc(25% - 4.5px);
+                margin-bottom: 6px;
+            }
+
+            .qtext2 {
+                margin-left: 6px;
+            }
+
+            .history-panel h4 {
+                font-size: 15px;
+            }
         }
     </style>
 </head>
 
-<body class="page-blog">
-    <header id="header" class="header d-flex align-items-center fixed-top">
+<body>
+    <header id="header" class="header d-flex align-items-center">
         <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
             <a href="<?php echo $baseUrl; ?>" class="logo d-flex align-items-center">
-                <i class="fas fa-check-double" style="color: #3b82f6; font-size: 24px; margin-right: 10px;"></i>
-                <span><?php echo $appName; ?></span>
+                <span style="font-size: 24px; font-weight: 700; color: #fff;"><?php echo $appName; ?></span>
             </a>
             <nav id="navbar" class="navbar">
-                <ul class="d-flex list-unstyled m-0 p-0 gap-4">
-                    <li><a href="<?php echo $baseUrl; ?>">Dashboard</a></li>
+                <ul>
+                    <li><a href="<?php echo $baseUrl; ?>">Home</a></li>
                     <li><a href="<?php echo $baseUrl; ?>/quiz.php" class="active">Subnet Quiz</a></li>
+                    <div class="session-info-wrap">
+                        <span id="session-email" class="session-email d-none d-md-inline"></span>
+                        <button type="button" id="logout-btn" class="logout-btn">Logout</button>
+                    </div>
                 </ul>
             </nav>
-            <div class="d-flex align-items-center gap-3">
-                <span id="session-email" class="session-email d-none d-md-inline" style="color: #64748b; font-size: 0.9rem;"></span>
-                <button type="button" id="logout-btn" class="bulk-btn" style="padding: 6px 16px; font-size: 0.85rem;">Logout</button>
-            </div>
-            <i class="mobile-nav-toggle mobile-nav-show bi bi-list d-none"></i>
+            <i class="mobile-nav-toggle mobile-nav-show bi bi-list"></i>
             <i class="mobile-nav-toggle mobile-nav-hide d-none bi bi-x"></i>
         </div>
     </header>
@@ -326,11 +537,11 @@ $assetVersion = "1.1.30";
                 </div>
             </div>
         </section>
-
-        <section id="blog-content" class="blog" style="background-color:#000000; padding-top: 20px;">
+        <section id="blog" class="blog" style="background-color:#000000;">
             <div class="container" data-aos="fade-up">
-                <div class="row mb-4">
-                    <div class="col-12 text-center">
+                <div class="row" style="width:100%;">
+                    <input type="hidden" name="countdown" id="txtcountdown">
+                    <div class="section-content">
                         <h3 style="color:#FFFFFF;"><i class="fa fa-check-circle" style="color:#5cb85c;"></i> Correct Ans
                             : <span id="correctCount" style="color:#5cb85c;">0</span> <i class="fa fa-times-circle"
                                 style="color:#fcc500;padding-left:10px;"></i> Give Up : <span id="giveUpCount"
@@ -339,84 +550,120 @@ $assetVersion = "1.1.30";
                                     style="padding:4px 4px 2px 4px;line-height:20px;">Clear</a></span></h3>
                     </div>
                 </div>
-
-                <form name="calculator" id="calculator">
-                    <div class="row">
+                <form name="calculator" id="calculator" method="post" action="">
+                    <div class="row" class="convertion-section" style="width:100%;">
+                        <div class="col-md-12"></div>
                         <div class="col-md-6 form-line">
-                            <div class="form-group mb-4">
-                                <label><h3>IP Address</h3></label>
+                            <div class="form-group">
+                                <label>
+                                    <h3>IP Address</h3>
+                                </label>
                                 <div style="width:100%;color:#FFFFFF;">
                                     <div id="ip-octet-1" class="task taskIP">253</div>
                                     <div id="ip-octet-2" class="task taskIP">118</div>
                                     <div id="ip-octet-3" class="task taskIP">117</div>
                                     <div id="ip-octet-4" class="task taskIP">112</div>
-                                    <div class="task" id="taskBitmask"><span id="ip-mask-value">/23</span></div>
-                                    <input type="hidden" name="mask_bits" id="mask_bits" value="23">
+                                    <div class="task" id="taskBitmask"><span id="ip-mask-value">/23</span><input type="hidden" name="mask_bits"
+                                            id="mask_bits" value="23" size="10" readonly></div>
                                 </div>
                             </div>
-
                             <div class="form-group">
-                                <label><h3>Network Address <span id="status-network" class="answer-status"></span></h3></label>
+                                <label>
+                                    <h3>Network Address <span id="status-network" class="answer-status"></span></h3>
+                                </label>
                                 <div style="width:100%;">
-                                    <div class="qtext1"><input type="text" class="form-control textform" name="NetAddO1" id="NetAddO1"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="NetAddO2" id="NetAddO2"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="NetAddO3" id="NetAddO3"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="NetAddO4" id="NetAddO4"></div>
+                                    <div class="qtext1"><input type="text" class="form-control textform" name="NetAddO1"
+                                            value="" id="NetAddO1"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="NetAddO2"
+                                            value="" id="NetAddO2"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="NetAddO3"
+                                            value="" id="NetAddO3"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="NetAddO4"
+                                            value="" id="NetAddO4"></div>
                                 </div>
                             </div>
-
                             <div class="form-group">
-                                <label style="padding-top:10px;"><h3>First Host Address <span id="status-firstHost" class="answer-status"></span></h3></label>
+                                <label style="padding-top:10px;">
+                                    <h3>First Host Address <span id="status-firstHost" class="answer-status"></span></h3>
+                                </label>
                                 <div style="width:100%;">
-                                    <div class="qtext1"><input type="text" class="form-control textform" name="fhost1" id="fhost1"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="fhost2" id="fhost2"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="fhost3" id="fhost3"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="fhost4" id="fhost4"></div>
+                                    <div class="qtext1"><input type="text" class="form-control textform" name="fhost1"
+                                            value="" id="fhost1"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="fhost2"
+                                            value="" id="fhost2"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="fhost3"
+                                            value="" id="fhost3"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="fhost4"
+                                            value="" id="fhost4"></div>
                                 </div>
                             </div>
-
                             <div class="form-group">
-                                <label style="padding-top:10px;"><h3>Last Host Address <span id="status-lastHost" class="answer-status"></span></h3></label>
+                                <label style="padding-top:10px;">
+                                    <h3>Last Host Address <span id="status-lastHost" class="answer-status"></span></h3>
+                                </label>
                                 <div style="width:100%;">
-                                    <div class="qtext1"><input type="text" class="form-control textform" name="lhost1" id="lhost1"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="lhost2" id="lhost2"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="lhost3" id="lhost3"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="lhost4" id="lhost4"></div>
+                                    <div class="qtext1"><input type="text" class="form-control textform" name="lhost1"
+                                            value="" id="lhost1"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="lhost2"
+                                            value="" id="lhost2"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="lhost3"
+                                            value="" id="lhost3"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="lhost4"
+                                            value="" id="lhost4"></div>
                                 </div>
                             </div>
-
                             <div class="form-group">
-                                <label style="padding-top:10px;"><h3>Broadcast Address <span id="status-broadcast" class="answer-status"></span></h3></label>
+                                <label style="padding-top:10px;">
+                                    <h3>Broadcast Address <span id="status-broadcast" class="answer-status"></span></h3>
+                                </label>
                                 <div style="width:100%;">
-                                    <div class="qtext1"><input type="text" class="form-control textform" name="BroadAddO1" id="BroadAddO1"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="BroadAddO2" id="BroadAddO2"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="BroadAddO3" id="BroadAddO3"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="BroadAddO4" id="BroadAddO4"></div>
+                                    <div class="qtext1"><input type="text"
+                                            class="form-control textform user-answer broadcast" name="BroadAddO1"
+                                            value="" id="BroadAddO1"></div>
+                                    <div class="qtext2"><input type="text"
+                                            class="form-control textform user-answer broadcast" name="BroadAddO2"
+                                            value="" id="BroadAddO2"></div>
+                                    <div class="qtext2"><input type="text"
+                                            class="form-control textform user-answer broadcast" name="BroadAddO3"
+                                            value="" id="BroadAddO3"></div>
+                                    <div class="qtext2"><input type="text"
+                                            class="form-control textform user-answer broadcast" name="BroadAddO4"
+                                            value="" id="BroadAddO4"></div>
                                 </div>
                             </div>
-
                             <div class="form-group" style="padding-top:10px;">
-                                <label style="padding-top:10px;"><h3>Subnet Mask <span id="status-subnetMask" class="answer-status"></span></h3></label>
+                                <label style="padding-top:10px;">
+                                    <h3>Subnet Mask <span id="status-subnetMask" class="answer-status"></span></h3>
+                                </label>
                                 <div style="width:100%;">
-                                    <div class="qtext1"><input type="text" class="form-control textform" name="SubnetMaskO1" id="SubnetMaskO1"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="SubnetMaskO2" id="SubnetMaskO2"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="SubnetMaskO3" id="SubnetMaskO3"></div>
-                                    <div class="qtext2"><input type="text" class="form-control textform" name="SubnetMaskO4" id="SubnetMaskO4"></div>
+                                    <div class="qtext1"><input type="text"
+                                            class="form-control textform user-answer subnet" name="SubnetMaskO1"
+                                            value="" id="SubnetMaskO1"></div>
+                                    <div class="qtext2"><input type="text"
+                                            class="form-control textform user-answer subnet" name="SubnetMaskO2"
+                                            value="" id="SubnetMaskO2"></div>
+                                    <div class="qtext2"><input type="text"
+                                            class="form-control textform user-answer subnet" name="SubnetMaskO3"
+                                            value="" id="SubnetMaskO3"></div>
+                                    <div class="qtext2"><input type="text"
+                                            class="form-control textform user-answer subnet" name="SubnetMaskO4"
+                                            value="" id="SubnetMaskO4"></div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="col-md-6 ps-md-5">
-                            <div class="form-group mb-4">
-                                <h3 style="color: #fff; font-size: 1.1rem; line-height: 1.6;">Type your answer in the text box and click "Check Answers" to see your result.</h3>
-                                <h3 style="color: #aaa; font-size: 1rem;">Stumped? Click "Give Up" to see the answer.</h3>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <h3>Type your answer in the text box and click "Check Answers" to see your result.</h3>
+                                <h3>Stumped? Click "Give Up" to see the answer.</h3>
                             </div>
-                            <div class="d-flex flex-wrap gap-2 mb-5">
-                                <input type="button" class="btn btn-success btn-lg" value="Check Answer" id="btnCheckAnswer">
-                                <input type="button" class="btn btn-info btn-lg text-white" value="Next" id="btnNext">
-                                <input type="button" class="btn btn-primary btn-lg" value="Give Up?" id="cmdgiveup">
+                            <div>
+                                <input type="button" class="btn btn-success btn-lg" value="Check Answer"
+                                    id="btnCheckAnswer">&nbsp;&nbsp;
+                                <input type="button" class="btn btn-info btn-lg" value="Next"
+                                    id="btnNext">&nbsp;&nbsp;
+                                <input type="button" class="btn btn-primary btn-lg" value="Give Up?"
+                                    id="cmdgiveup">
                             </div>
-
                             <div class="history-panel">
                                 <h4>History (Last <span id="historyCount">0</span>/50)</h4>
                                 <div class="history-table-wrap">
@@ -425,7 +672,7 @@ $assetVersion = "1.1.30";
                                             <tr>
                                                 <th>Question</th>
                                                 <th>Status</th>
-                                                <th class="text-center">Action</th>
+                                                <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody id="historyList"></tbody>
@@ -439,32 +686,50 @@ $assetVersion = "1.1.30";
         </section>
     </main>
 
-    <footer id="footer" class="footer mt-5" style="background: #0a0a0a; border-top: 1px solid var(--border); padding: 60px 0 30px;">
+    <footer id="footer" class="footer">
         <div class="container">
-            <div class="text-center mb-4">
-                <h4 class="text-white">Give us a follow</h4>
-                <div class="d-flex justify-content-center mt-3 gap-3">
-                    <a href="https://www.youtube.com/davidbombal" target="_blank" class="text-muted fs-4"><i class="fab fa-youtube"></i></a>
-                    <a href="https://x.com/davidbombal" target="_blank" class="text-muted fs-4"><i class="fab fa-twitter"></i></a>
-                    <a href="https://www.linkedin.com/in/davidbombal" target="_blank" class="text-muted fs-4"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="https://www.facebook.com/davidbombal.co" target="_blank" class="text-muted fs-4"><i class="fab fa-facebook-f"></i></a>
-                    <a href="https://www.instagram.com/davidbombal/" target="_blank" class="text-muted fs-4"><i class="fab fa-instagram"></i></a>
-                    <a href="https://www.tiktok.com/@davidbombal" target="_blank" class="text-muted fs-4"><i class="fab fa-music"></i></a>
+            <div class="row gy-3">
+                <div class="col-lg-12 footer-links">
+                    <center>
+                        <h4>Give us a follow</h4>
+                    </center>
+                    <div class="row">
+                        <div class="d-flex justify-content-center footersocial">
+                            <div class="d-flex" style="text-align:center;">
+                                <a href="https://www.youtube.com/davidbombal" target="_blank" class="social-icon fab fa-youtube"></a>
+                                <a href="https://x.com/davidbombal" target="_blank" class="social-icon"><img src="https://ccnax.com/wp-content/uploads/2025/04/x.png" width="27"></a>
+                                <a href="https://www.linkedin.com/in/davidbombal" target="_blank"
+                                    class="social-icon fab fa-linkedin-in"></a>
+                                <a href="https://www.facebook.com/davidbombal.co" target="_blank"
+                                    class="social-icon fab fa-facebook-f"></a>
+                                <a href="https://www.instagram.com/davidbombal/" target="_blank"
+                                    class="social-icon fab fa-instagram"></a>
+                                <a href="https://www.tiktok.com/@davidbombal" target="_blank" class="social-icon fas fa-music"></a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="text-center border-top border-secondary pt-4">
-                <p class="mb-2"><a href="#" class="text-muted text-decoration-none">Terms & Conditions</a> | <a href="#" class="text-muted text-decoration-none">Privacy Policy</a></p>
-                <div class="copyright text-muted">
-                    &copy; <?php echo date('Y'); ?> <?php echo $appName; ?>. All Rights Reserved.
-                </div>
+        </div>
+        <div class="container">
+            <p style="text-align:center;"><a href="https://ccnax.com/terms-and-conditions/">Terms & Conditions</a> <span
+                    style="margin-left:5px;margin-right:5px;">|</span> <a
+                    href="https://ccnax.com/privacy-policy/">Privacy Policy</a></p>
+            <div class="copyright">
+                If you have other issues or non-course questions, send us an
+            </div>
+            <div class="credits">
+                email at support@davidbombal.com. ↑
             </div>
         </div>
     </footer>
 
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src='https://ccnax.com/wp-content/themes/ccnax/assets/js/jquery.min.js'></script>
+    <script src="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/aos/aos.js"></script>
     <script src="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="https://ccnax.com/wp-content/themes/ccnax/assets/js/main.js"></script>
+
     <script>
         (function () {
             const STORAGE_KEY = "subnetQuizProgressV1";
@@ -1019,4 +1284,5 @@ $assetVersion = "1.1.30";
         })();
     </script>
 </body>
+
 </html>
