@@ -32,19 +32,33 @@ $assetVersion = "20260317-65";
   <link rel="stylesheet" href="style.css?v=<?php echo $assetVersion; ?>">
 
   <style>
-    /* Dark Theme & Unified Header Integration */
     :root {
-      --primary-blue: #2563eb;
-      --bg-dark: #000000;
-      --card-bg: #111111;
-      --text-main: #ffffff;
+      --primary-blue: #3b82f6;
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
       --text-muted: #94a3b8;
+      --border-color: #334155;
     }
 
     body {
       background-color: var(--bg-dark);
       color: var(--text-main);
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+      margin: 0;
+    }
+
+    #header {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      height: 70px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
     }
 
     .header .logo {
@@ -56,127 +70,133 @@ $assetVersion = "20260317-65";
       align-items: center;
       gap: 10px;
     }
-    .header .logo i {
-      font-size: 28px;
-    }
-    #header {
-      background: #ffffff;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      height: 70px;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-    }
+
     .navbar ul li a {
-      color: #64748b;
-      font-weight: 500;
+      color: var(--text-muted);
+      font-weight: 600;
       text-decoration: none;
+      font-size: 0.95rem;
+      transition: all 0.2s;
     }
+
     .navbar ul li a:hover, .navbar ul li a.active {
       color: var(--primary-blue);
     }
 
     .app-container {
-      margin-top: 90px;
-      padding: 20px;
+      margin-top: 100px;
+      padding: 24px;
       max-width: 1400px;
       margin-left: auto;
       margin-right: auto;
     }
 
-    .page-title {
-      color: var(--primary-blue);
-      font-weight: 700;
-    }
-
     .stat-card {
       background: var(--card-bg);
-      border: 1px solid #333;
-      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
     }
 
     .stat-label {
+      font-size: 0.85rem;
+      font-weight: 600;
       color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stat-label i {
+      color: var(--primary-blue);
     }
 
     .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
       color: var(--text-main);
     }
 
     #todo-form, .view-controls {
       background: var(--card-bg);
-      border: 1px solid #333;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 24px;
     }
 
     .section-title {
-      color: var(--primary-blue);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 20px;
+    }
+
+    input, select, textarea {
+      background: #0f172a !important;
+      border: 1px solid var(--border-color) !important;
+      color: #ffffff !important;
+      border-radius: 10px !important;
+      padding: 12px 16px !important;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary-blue) !important;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15) !important;
+      outline: none !important;
     }
 
     .task-item {
       background: var(--card-bg);
-      border: 1px solid #333;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px;
+      transition: all 0.2s;
     }
 
-    .task-content {
-      color: var(--text-main);
-    }
-
-    .task-description {
-      color: var(--text-muted);
-    }
-
-    .task-meta span {
-      color: var(--text-muted);
-    }
-
-    input[type="text"], input[type="url"], input[type="date"], select, textarea {
-      background: #1e293b !important;
-      border: 1px solid #334155 !important;
-      color: white !important;
-    }
-
-    .saas-search-wrap {
-      background: #1e293b;
-      border: 1px solid #334155;
-    }
-
-    #saas-search-input {
-      color: white;
+    .task-item:hover {
+      border-color: var(--primary-blue);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
 
     .footer {
       background: #0a0a0a;
-      padding: 40px 0;
+      padding: 60px 0 30px;
+      border-top: 1px solid var(--border-color);
       margin-top: 60px;
-      border-top: 1px solid #222;
     }
 
-    .footer .copyright, .footer .credits {
-      color: var(--text-muted);
-    }
-
-    .footersocial .social-icon {
-      background: #2563eb;
-      color: white;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: inline-flex;
+    .saas-search-wrap {
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 10px 16px;
+      display: flex;
       align-items: center;
-      justify-content: center;
-      margin: 0 5px;
-      text-decoration: none;
-      transition: transform 0.2s;
+      gap: 12px;
+      width: 100%;
+      max-width: 500px;
     }
 
-    .footersocial .social-icon:hover {
-      transform: translateY(-3px);
-      background: #1d4ed8;
+    #saas-search-input {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      width: 100%;
+      color: white !important;
     }
 
-    /* Override the Azonix font issue with system font */
+    #saas-search-input:focus {
+      box-shadow: none !important;
+    }
+
     * {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
     }
