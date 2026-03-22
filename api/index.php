@@ -31,7 +31,11 @@ function loadEnvFile(string $filePath): void {
 }
 
 function envValue(string $key, string $default = ''): string {
+    // If not in standard environment variable, check $_ENV which our loader populates
     $value = getenv($key);
+    if ($value === false && isset($_ENV[$key])) {
+        $value = $_ENV[$key];
+    }
     return $value === false ? $default : (string) $value;
 }
 
@@ -286,8 +290,8 @@ function dbConnect(): PDO {
     if ($pdo instanceof PDO) return $pdo;
     $host = trim(envValue('DB_HOST', '127.0.0.1'));
     $port = trim(envValue('DB_PORT', '3306'));
-    $dbName = trim(envValue('DB_NAME', ''));
-    $dbUser = trim(envValue('DB_USER', ''));
+    $dbName = trim(envValue('DB_NAME', 'learn_ccna_todo'));
+    $dbUser = trim(envValue('DB_USER', 'root'));
     $dbPass = envValue('DB_PASS', '');
     $charset = trim(envValue('DB_CHARSET', 'utf8mb4'));
     if ($dbName === '' || $dbUser === '') {
@@ -299,6 +303,9 @@ function dbConnect(): PDO {
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
         ]);
     } catch (Throwable $error) {
+        if (php_sapi_name() === 'cli') {
+            die("Database connection failed: " . $error->getMessage() . "\n");
+        }
         jsonResponse(500, ['message' => 'Failed to connect database']);
     }
     return $pdo;
@@ -350,6 +357,17 @@ function ensureTables(PDO $pdo): void {
     try {
         $pdo->exec('ALTER TABLE `users` ADD COLUMN `auth_provider` VARCHAR(32) NOT NULL DEFAULT "email"');
     } catch (Throwable $e) {}
+
+    $pdo->exec('CREATE TABLE IF NOT EXISTS `practice_questions` (
+      `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+      `question_text` TEXT NOT NULL,
+      `options` JSON NOT NULL,
+      `correct_answers` JSON NOT NULL,
+      `explanation` TEXT NOT NULL,
+      `created_at` BIGINT NOT NULL,
+      PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+
     $pdo->exec('CREATE TABLE IF NOT EXISTS `user_tokens` (
       `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
       `user_id` BIGINT UNSIGNED NOT NULL,
@@ -808,7 +826,53 @@ if (count($segments) === 2 && $segments[0] === 'uploads' && $method === 'GET') {
 $authUser = getAuthenticatedUser($pdo);
 $userId = (int) $authUser['id'];
 
-if (count($segments) === 1 && $segments[0] === 'preferences' && $method === 'GET') {
+if (count($segments) === 1 && $segments[0] === 'quiz' && $method === 'GET') {
+    // Fetch a random practice question
+    $stmt = $pdo->query('SELECT `id`, `question_text`, `options` FROM `practice_questions` ORDER BY RAND() LIMIT 1');
+    $question = $stmt->fetch();
+    if (!$question) {
+        jsonResponse(404, ['message' => 'No practice questions available']);
+    }
+    
+    // Decode options json for frontend
+    $question['options'] = json_decode($question['options'], true);
+    jsonResponse(200, $question);
+}
+
+if (count($segments) === 2 && $segments[0] === 'quiz' && $segments[1] === 'check' && $method === 'POST') {
+    $questionId = (int) ($body['id'] ?? 0);
+    $selectedOptions = $body['selected'] ?? [];
+    
+    if (!$questionId || !is_array($selectedOptions)) {
+        jsonResponse(400, ['message' => 'Invalid payload']);
+    }
+    
+    $stmt = $pdo->prepare('SELECT `correct_answers`, `explanation` FROM `practice_questions` WHERE `id` = ?');
+    $stmt->execute([$questionId]);
+    $question = $stmt->fetch();
+    
+    if (!$question) {
+        jsonResponse(404, ['message' => 'Question not found']);
+    }
+    
+    $correctAnswers = json_decode($question['correct_answers'], true);
+    $explanation = $question['explanation'];
+    
+    // Check if the selected options exactly match the correct options (ignoring order)
+    $selectedNormalized = array_map('strtoupper', array_map('trim', $selectedOptions));
+    $correctNormalized = array_map('strtoupper', array_map('trim', $correctAnswers));
+    
+    sort($selectedNormalized);
+    sort($correctNormalized);
+    
+    $isCorrect = $selectedNormalized === $correctNormalized;
+    
+    jsonResponse(200, [
+        'isCorrect' => $isCorrect,
+        'correctAnswers' => $correctAnswers,
+        'explanation' => $explanation
+    ]);
+}
     $stmt = $pdo->prepare('SELECT `pref_key`, `pref_value` FROM `user_prefs` WHERE `user_id` = :user_id');
     $stmt->execute([':user_id' => $userId]);
     $prefs = [];

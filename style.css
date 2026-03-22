@@ -1360,3 +1360,46 @@ select option {
     border-color: #ee8331;
     color: white;
 }
+
+/* CCNA Quiz Styles */
+.ccna-option {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 12px 20px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    font-size: 1.1rem;
+}
+
+.ccna-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.ccna-option.selected {
+    background: rgba(238, 131, 49, 0.15);
+    border-color: #ee8331;
+}
+
+.ccna-option.correct {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #10b981;
+}
+
+.ccna-option.incorrect {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #ef4444;
+}
+
+.ccna-option-letter {
+    font-weight: bold;
+    color: #ee8331;
+    min-width: 25px;
+}
+
+.ccna-option.correct .ccna-option-letter { color: #10b981; }
+.ccna-option.incorrect .ccna-option-letter { color: #ef4444; }

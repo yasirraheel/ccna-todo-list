@@ -9,14 +9,22 @@ ob_start();
 <main id="main">
     <section class="blog" style="padding-bottom:10px; margin-bottom:0; padding-top: 100px;">
         <div class="container" data-aos="fade-up">
-            <div class="section-header">
-                <h2>Subnet Quiz</h2>
-                <h3 style="color:#FFFFFF;">What are the network address, first host address, last host address,
-                    broadcast address, and the subnet mask for a host with the IP Address below?</h3>
+            <div class="section-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2 id="quiz-main-title">Subnet Quiz</h2>
+                    <h3 id="quiz-main-desc" style="color:#FFFFFF;">What are the network address, first host address, last host address,
+                        broadcast address, and the subnet mask for a host with the IP Address below?</h3>
+                </div>
+                <div class="quiz-type-toggle">
+                    <button id="btn-type-subnet" class="bulk-btn active" style="padding: 8px 16px;">Subnetting</button>
+                    <button id="btn-type-ccna" class="bulk-btn" style="padding: 8px 16px;">CCNA Practice</button>
+                </div>
             </div>
         </div>
     </section>
-    <section id="blog" class="blog" style="background-color:#000000; padding-top: 10px;">
+    
+    <!-- SUBNET QUIZ SECTION (Existing) -->
+    <section id="subnet-quiz-section" class="blog" style="background-color:#000000; padding-top: 10px;">
         <div class="container" data-aos="fade-up">
             <div class="row" style="width:100%;">
                 <input type="hidden" name="countdown" id="txtcountdown">
@@ -166,6 +174,41 @@ ob_start();
             </form>
         </div>
     </section>
+
+    <!-- CCNA PRACTICE QUIZ SECTION (New) -->
+    <section id="ccna-quiz-section" class="blog app-hidden" style="background-color:#000000; padding-top: 10px;">
+        <div class="container" data-aos="fade-up">
+            <div class="row" style="width:100%;">
+                <div class="section-content d-flex justify-content-between align-items-center mb-4">
+                    <h3 style="color:#FFFFFF; margin:0;"><i class="fa fa-check-circle" style="color:#5cb85c;"></i> Correct : <span id="ccnaCorrectCount" style="color:#5cb85c;">0</span> <i class="fa fa-times-circle" style="color:#fcc500;padding-left:10px;"></i> Incorrect : <span id="ccnaIncorrectCount" style="color:#fcc500;">0</span></h3>
+                    <button id="ccnaClearScoreBtn" class="btn btn-primary btn-sm" style="padding:4px 8px;line-height:20px;">Clear Score</button>
+                </div>
+            </div>
+            
+            <div class="row" style="width:100%;">
+                <div class="col-md-12">
+                    <div class="form-group quiz-question-block" style="background: rgba(238, 131, 49, 0.1); border: 1px solid rgba(238, 131, 49, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <h3 id="ccna-question-text" style="color:#fff; font-size: 1.3rem; line-height: 1.5; margin-bottom: 20px;">Loading question...</h3>
+                        <div id="ccna-options-container" style="display: flex; flex-direction: column; gap: 10px;">
+                            <!-- Options injected via JS -->
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 mt-3">
+                    <div id="ccna-feedback-alert" class="alert app-hidden" role="alert" style="margin-bottom: 20px; border-radius: 8px;">
+                        <strong id="ccna-feedback-title"></strong>
+                        <p id="ccna-feedback-desc" style="margin-top: 10px; margin-bottom: 0; white-space: pre-wrap;"></p>
+                    </div>
+                    
+                    <div class="d-flex gap-3">
+                        <button type="button" id="btnCheckCcnaAnswer" class="btn btn-success" style="font-size: 1.1em; width: 150px;" disabled>Check Answer</button>
+                        <button type="button" id="btnNextCcna" class="btn btn-primary" style="font-size: 1.1em; width: 150px;">Next Question</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
 </main>
 
 <script>
