@@ -312,13 +312,19 @@ function dbConnect(): PDO {
 }
 
 function ensureTables(PDO $pdo): void {
-    // Check if the newest column exists to skip heavy initialization
+    // Check if the newest tables/columns exist to skip heavy initialization
+    $needsInit = false;
     try {
         $cols = $pdo->query("SHOW COLUMNS FROM `users` LIKE 'auth_provider'")->fetch();
-        if ($cols) return; 
+        if (!$cols) $needsInit = true;
+        
+        $pq = $pdo->query("SHOW TABLES LIKE 'practice_questions'")->fetch();
+        if (!$pq) $needsInit = true;
     } catch (Throwable $e) {
-        // Table or column doesn't exist, proceed
+        $needsInit = true;
     }
+
+    if (!$needsInit) return;
 
     $pdo->exec('CREATE TABLE IF NOT EXISTS `users` (
       `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
