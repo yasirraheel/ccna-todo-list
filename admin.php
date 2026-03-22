@@ -199,7 +199,12 @@ require_once 'includes/config.php';
 
     .admin-table th, .admin-table td {
       padding: 15px 20px;
-      white-space: nowrap;
+      /* Remove white-space: nowrap to allow long text and button groups to wrap naturally */
+    }
+
+    /* Force the actions column to wrap instead of causing horizontal scroll */
+    .admin-table td.admin-actions {
+      white-space: normal;
     }
 
     .admin-table th {
