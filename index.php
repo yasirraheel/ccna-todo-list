@@ -91,7 +91,23 @@ ob_start();
         </form>
 
         <div class="view-controls">
-            <h3 class="section-title">My Tasks</h3>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="section-title mb-0">My Tasks</h3>
+                <div class="dropdown-container">
+                    <button type="button" class="dropdown-btn" id="bulk-actions-btn" onclick="document.getElementById('bulk-actions-menu').classList.toggle('show')">
+                        <i class="fas fa-ellipsis-v"></i> Actions
+                    </button>
+                    <div id="bulk-actions-menu" class="dropdown-content">
+                        <button type="button" id="delete-selected-btn" class="dropdown-item danger" disabled>
+                            <i class="fas fa-trash-can"></i> Delete Selected
+                        </button>
+                        <button type="button" id="delete-all-btn" class="dropdown-item danger">
+                            <i class="fas fa-dumpster"></i> Delete All
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
             <div class="filter-row">
                 <div class="filter-group">
                     <button class="filter-btn active" data-filter="all">All</button>
@@ -99,24 +115,14 @@ ob_start();
                     <button class="filter-btn" data-filter="completed">Completed</button>
                     <button class="filter-btn" data-filter="has-notes">Notes</button>
                 </div>
-                <div class="playlist-filter-wrap">
+                <div class="playlist-filter-wrap d-flex align-items-center gap-3">
+                    <label class="select-all-wrap mb-0">
+                        <input type="checkbox" id="select-all-tasks" class="custom-checkbox">
+                        <span class="ms-2">Select All</span>
+                    </label>
                     <select id="playlist-filter" class="playlist-select">
                         <option value="all">All Playlists</option>
                     </select>
-                </div>
-            </div>
-            <div id="bulk-actions" class="bulk-actions-row">
-                <label class="select-all-wrap">
-                    <input type="checkbox" id="select-all-tasks" class="custom-checkbox">
-                    <span>Select All</span>
-                </label>
-                <div class="bulk-buttons">
-                    <button type="button" id="delete-selected-btn" class="bulk-btn danger" disabled>
-                        <i class="fas fa-trash-can"></i> Delete Selected
-                    </button>
-                    <button type="button" id="delete-all-btn" class="bulk-btn danger">
-                        <i class="fas fa-dumpster"></i> Delete All
-                    </button>
                 </div>
             </div>
         </div>

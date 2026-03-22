@@ -203,6 +203,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.dropdown-container')) {
+      document.querySelectorAll('.dropdown-content.show').forEach(dropdown => {
+        dropdown.classList.remove('show');
+      });
+    }
+  });
+
   if (isAdminPage) {
     adminInit().catch(() => {});
   } else {
