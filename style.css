@@ -92,11 +92,15 @@ h3 {
 }
 
 .textform {
-    font-size: 24px;
-    text-align: center;
-    color: #080808;
+    font-size: 24px !important;
+    text-align: center !important;
+    color: #080808 !important;
     background-color: #ffffff !important;
     border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+    min-height: 40px !important;
+    width: 100% !important;
+    padding: 5px !important;
 }
 
 #convertion {
@@ -528,15 +532,22 @@ body {
     color: #fff !important;
 }
 
-input, select, textarea {
+/* GLOBAL FORM ELEMENTS - DASHBOARD STYLE */
+input:not([type="button"]):not([type="submit"]):not([type="reset"]), 
+select, 
+textarea {
     background: rgba(255, 255, 255, 0.05) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     color: #fff !important;
+    padding: 10px 15px !important;
+    border-radius: 8px !important;
 }
 
-input:focus, select:focus {
+input:not([type="button"]):not([type="submit"]):not([type="reset"]):focus, 
+select:focus {
     border-color: #ee8331 !important;
     box-shadow: 0 0 0 4px rgba(238, 131, 49, 0.15) !important;
+    outline: none !important;
 }
 
 .bulk-btn.primary { background: #3b82f6; }

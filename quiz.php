@@ -135,12 +135,12 @@ ob_start();
                             <h3>Stumped? Click "Give Up" to see the answer.</h3>
                         </div>
                         <div>
-                            <input type="button" class="btn btn-success btn-lg" value="Check Answer"
-                                id="btnCheckAnswer">&nbsp;&nbsp;
-                            <input type="button" class="btn btn-info btn-lg" value="Next"
-                                id="btnNext">&nbsp;&nbsp;
-                            <input type="button" class="btn btn-primary btn-lg" value="Give Up?"
-                                id="cmdgiveup">
+                            <input type="submit" class="btn btn-success btn-lg" value="Check Answer"
+                                name="btnCheckAnswer" id="btnCheckAnswer">&nbsp;&nbsp;
+                            <input type="submit" class="btn btn-info btn-lg" value="Next"
+                                name="btnNext" id="btnNext">&nbsp;&nbsp;
+                            <input type="submit" class="btn btn-primary btn-lg" value="Give Up?"
+                                name="cmdgiveup" id="cmdgiveup">
                         </div>
                         <div class="history-panel">
                             <h4>History (Last <span id="historyCount">0</span>/50)</h4>
@@ -673,15 +673,6 @@ ob_start();
             if (!restoreState()) {
                 nextQuestion();
             }
-
-            // Auto-tab between octets
-            $('.textform').on('input', function() {
-                if (this.value.length >= 3) {
-                    const inputs = $('.textform');
-                    const index = inputs.index(this);
-                    if (index < inputs.length - 1) inputs.eq(index + 1).focus();
-                }
-            });
         });
     })();
 </script>
