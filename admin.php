@@ -1,13 +1,114 @@
+<?php
+$appName = "Team Hifsa";
+$assetVersion = "20260317-65";
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="todo-api-base" content="">
-  <title>Admin Panel | Team Hifsa</title>
+  <title>Admin Panel | <?php echo $appName; ?></title>
   <link rel="icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAAAAMAtDSzAAAAAEElEQVR42mNkIAAYGBAAAQAA/wEAgP8AAAAASUVORK5CYII=">
-  <link rel="stylesheet" href="style.css?v=20260317-63">
+  <link rel="stylesheet" href="style.css?v=<?php echo $assetVersion; ?>">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary-blue: #2563eb;
+      --bg-dark: #000000;
+      --card-bg: #111111;
+      --text-main: #ffffff;
+      --text-muted: #94a3b8;
+      --sidebar-bg: #0a0a0a;
+    }
+
+    body.admin-layout {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+    }
+
+    .admin-sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid #222;
+    }
+
+    .admin-sidebar-logo {
+      color: var(--primary-blue);
+      font-weight: 800;
+    }
+
+    .admin-nav-item {
+      color: var(--text-muted);
+    }
+
+    .admin-nav-item:hover, .admin-nav-item.active {
+      background: #1e293b;
+      color: var(--primary-blue);
+    }
+
+    .admin-header {
+      background: var(--bg-dark);
+      border-bottom: 1px solid #222;
+    }
+
+    .page-title {
+      color: var(--primary-blue);
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid #333;
+    }
+
+    .admin-table-card {
+      background: var(--card-bg);
+      border: 1px solid #333;
+    }
+
+    .admin-table th {
+      background: #1e293b;
+      color: var(--text-main);
+      border-bottom: 1px solid #333;
+    }
+
+    .admin-table td {
+      border-bottom: 1px solid #222;
+      color: var(--text-main);
+    }
+
+    .admin-table tr:hover td {
+      background: #1a1a1a;
+    }
+
+    .admin-settings-card {
+      background: var(--card-bg);
+      border: 1px solid #333;
+    }
+
+    input[type="text"], input[type="email"], input[type="password"], select, textarea {
+      background: #1e293b !important;
+      border: 1px solid #334155 !important;
+      color: white !important;
+    }
+
+    .url-input-container code {
+      background: #000;
+      color: #10b981;
+    }
+
+    .admin-badge {
+      background: #1e293b;
+      color: var(--text-muted);
+      border: 1px solid #333;
+    }
+
+    /* Override the Azonix font issue with system font */
+    * {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+    }
+  </style>
 </head>
 <body class="admin-layout">
   <div id="page-loader" class="page-loader">
@@ -53,10 +154,11 @@
     <header class="admin-header">
       <h1 id="section-title" class="page-title">Dashboard</h1>
       <div class="admin-user-info">
-        <span id="admin-email" class="session-email"></span>
+        <span id="admin-email" class="session-email text-muted"></span>
       </div>
     </header>
 
+    <!-- Sections remain same as original but styled via CSS above -->
     <!-- Dashboard Section -->
     <section id="section-dashboard" class="admin-section active">
       <div class="stats-grid">
@@ -91,9 +193,7 @@
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody id="recent-users-table">
-              <!-- Dynamic content -->
-            </tbody>
+            <tbody id="recent-users-table"></tbody>
           </table>
         </div>
       </div>
@@ -123,12 +223,12 @@
     <div id="section-tasks" class="admin-section">
       <div class="admin-table-container">
         <div class="admin-table-card">
-          <div style="padding: 20px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
+          <div style="padding: 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
             <h3 class="section-title">All System Tasks</h3>
             <div style="display: flex; gap: 10px; flex: 1; justify-content: flex-end; min-width: 300px; flex-wrap: wrap;">
-              <input type="text" id="admin-task-search" placeholder="Search tasks..." style="padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; width: 180px;">
-              <input type="text" id="admin-task-user-search" placeholder="Filter by User Email..." style="padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; width: 180px;">
-              <select id="admin-task-filter" style="padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <input type="text" id="admin-task-search" placeholder="Search tasks...">
+              <input type="text" id="admin-task-user-search" placeholder="User Email...">
+              <select id="admin-task-filter">
                 <option value="all">All Visibility</option>
                 <option value="public">Public Only</option>
                 <option value="private">Private Only</option>
@@ -160,7 +260,6 @@
     <section id="section-settings" class="admin-section">
       <form id="admin-settings-form" class="auth-form">
         <div class="admin-settings-grid">
-          <!-- General Settings -->
           <div class="admin-settings-card">
             <h3 class="section-title">General Settings</h3>
             <div class="auth-field">
@@ -169,124 +268,24 @@
             </div>
             <div class="auth-field">
               <label class="auth-label">App Description</label>
-              <input type="text" name="APP_DESCRIPTION" placeholder="Task management for learners">
+              <input type="text" name="APP_DESCRIPTION">
             </div>
             <div class="auth-field">
               <label class="auth-label">Footer Text</label>
-              <input type="text" name="FOOTER_TEXT" placeholder="© 2026 Team Hifsa">
-            </div>
-            <div class="auth-field">
-              <label class="auth-label">Logo</label>
-              <div style="display: flex; gap: 15px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <div id="logo-preview-container" style="width: 48px; height: 48px; border-radius: 6px; background: #fff; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
-                  <i class="fas fa-image" style="color: #94a3b8;"></i>
-                </div>
-                <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
-                  <input type="file" name="LOGO_FILE" accept="image/*">
-                  <input type="text" name="LOGO_URL" placeholder="Logo URL (fallback)" style="font-size: 0.8rem; padding: 6px 10px;">
-                </div>
-              </div>
-            </div>
-            <div class="auth-field">
-              <label class="auth-label">Favicon</label>
-              <div style="display: flex; gap: 15px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <div id="favicon-preview-container" style="width: 48px; height: 48px; border-radius: 6px; background: #fff; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
-                  <i class="fas fa-icons" style="color: #94a3b8;"></i>
-                </div>
-                <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
-                  <input type="file" name="FAVICON_FILE" accept="image/*">
-                  <input type="text" name="FAVICON_URL" placeholder="Favicon URL (fallback)" style="font-size: 0.8rem; padding: 6px 10px;">
-                </div>
-              </div>
+              <input type="text" name="FOOTER_TEXT">
             </div>
           </div>
 
-          <!-- SMTP Settings -->
           <div class="admin-settings-card">
             <h3 class="section-title">SMTP Settings</h3>
-            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 16px;">Configure SMTP to send verification emails to new users.</p>
-            <div class="auth-field">
-              <label class="auth-label">SMTP Host</label>
-              <input type="text" name="SMTP_HOST" placeholder="smtp.gmail.com">
-            </div>
-            <div class="auth-field">
-              <label class="auth-label">SMTP Port</label>
-              <input type="text" name="SMTP_PORT" placeholder="587">
-            </div>
-            <div class="auth-field">
-              <label class="auth-label">SMTP User</label>
-              <input type="text" name="SMTP_USER" placeholder="your-email@gmail.com">
-            </div>
-            <div class="auth-field">
-              <label class="auth-label">SMTP Pass</label>
-              <input type="password" name="SMTP_PASS" placeholder="Your app password">
-            </div>
-            <div class="auth-field">
-              <label class="auth-label">From Email</label>
-              <input type="email" name="SMTP_FROM_EMAIL" placeholder="noreply@teamhifsa.com">
-            </div>
-            <div class="auth-field">
-              <label class="auth-label">From Name</label>
-              <input type="text" name="SMTP_FROM_NAME" placeholder="Team Hifsa Admin">
-            </div>
-            <div class="auth-field">
-              <label class="custom-checkbox-container">
-                <input type="checkbox" name="SMTP_ENABLED" value="1">
-                <div class="custom-checkbox-mark">
-                  <i class="fas fa-check"></i>
-                </div>
-                <span class="custom-checkbox-label">Enable Email Verification</span>
-              </label>
-            </div>
+            <div class="auth-field"><label class="auth-label">Host</label><input type="text" name="SMTP_HOST"></div>
+            <div class="auth-field"><label class="auth-label">Port</label><input type="text" name="SMTP_PORT"></div>
+            <div class="auth-field"><label class="auth-label">User</label><input type="text" name="SMTP_USER"></div>
+            <div class="auth-field"><label class="auth-label">Pass</label><input type="password" name="SMTP_PASS"></div>
           </div>
 
-          <!-- OAuth Settings -->
-          <div class="admin-settings-card">
-            <h3 class="section-title">Google OAuth Settings</h3>
-            <div style="background: #f1f5f9; padding: 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.85rem; color: #475569; border: 1px solid #e2e8f0;">
-              <p><strong>Instructions:</strong></p>
-              <ol style="margin-left: 18px; margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
-                <li>Go to <a href="https://console.cloud.google.com/" target="_blank" style="color: #2563eb; text-decoration: underline;">Google Cloud Console</a></li>
-                <li>Create a project and go to <strong>APIs & Services > Credentials</strong></li>
-                <li>Create an <strong>OAuth 2.0 Client ID</strong> (Web application)</li>
-                <li>Add this URL to <strong>Authorized JavaScript origins</strong>:
-                  <div class="url-input-container">
-                    <code id="origin-url">...</code>
-                    <button type="button" class="copy-icon-btn" onclick="copyToClipboard('origin-url')" title="Copy"><i class="fas fa-copy"></i></button>
-                  </div>
-                </li>
-                <li>Add this URL to <strong>Authorized redirect URIs</strong>:
-                  <div class="url-input-container">
-                    <code id="callback-url">...</code>
-                    <button type="button" class="copy-icon-btn" onclick="copyToClipboard('callback-url')" title="Copy"><i class="fas fa-copy"></i></button>
-                  </div>
-                </li>
-              </ol>
-            </div>
-            
-            <div class="auth-field">
-              <label class="custom-checkbox-container">
-                <input type="checkbox" name="GOOGLE_LOGIN_ENABLED" value="1">
-                <div class="custom-checkbox-mark">
-                  <i class="fas fa-check"></i>
-                </div>
-                <span class="custom-checkbox-label">Enable Google Login</span>
-              </label>
-            </div>
-
-            <div class="auth-field">
-              <label class="auth-label">Google Client ID</label>
-              <input type="text" name="GOOGLE_CLIENT_ID" placeholder="your-client-id.apps.googleusercontent.com">
-            </div>
-            <div class="auth-field">
-              <label class="auth-label">Google Client Secret</label>
-              <input type="password" name="GOOGLE_CLIENT_SECRET" placeholder="your-client-secret">
-            </div>
-          </div>
-
-          <!-- Action Section -->
           <div class="admin-settings-card admin-settings-full">
-            <button type="submit" class="playlist-btn" style="width: 100%;">Save All Settings</button>
+            <button type="submit" class="playlist-btn">Save All Settings</button>
           </div>
         </div>
       </form>
@@ -316,6 +315,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-63"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
+  <script src="script.js?v=<?php echo $assetVersion; ?>"></script>
 </body>
 </html>

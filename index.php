@@ -1,27 +1,186 @@
+<?php
+$appName = "Team Hifsa";
+$baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
+$assetVersion = "20260317-65";
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="todo-api-base" content="">
-  <title>Team Hifsa</title>
+  <title><?php echo $appName; ?> - Dashboard</title>
   <meta name="description" content="Manage tasks, playlists, and progress in one place.">
   <meta name="robots" content="index,follow">
   <meta name="theme-color" content="#0f172a">
-  <link rel="canonical" href="">
+  <link rel="canonical" href="<?php echo $baseUrl; ?>">
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="My Tasks">
-  <meta property="og:title" content="My Tasks">
+  <meta property="og:site_name" content="<?php echo $appName; ?>">
+  <meta property="og:title" content="<?php echo $appName; ?> - Dashboard">
   <meta property="og:description" content="Manage tasks, playlists, and progress in one place.">
-  <meta property="og:url" content="">
-  <meta property="og:image" content="">
+  <meta property="og:url" content="<?php echo $baseUrl; ?>">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="My Tasks">
-  <meta name="twitter:description" content="Manage tasks, playlists, and progress in one place.">
-  <meta name="twitter:image" content="">
+  <meta name="twitter:title" content="<?php echo $appName; ?> - Dashboard">
+  
   <link rel="icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAAAAMAtDSzAAAAAEElEQVR42mNkIAAYGBAAAQAA/wEAgP8AAAAASUVORK5CYII=">
-  <link rel="stylesheet" href="style.css?v=20260317-63">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css' media='all' />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/aos/aos.css" rel="stylesheet">
+  <link href="https://ccnax.com/wp-content/themes/ccnax/assets/css/main.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=<?php echo $assetVersion; ?>">
+
+  <style>
+    /* Dark Theme & Unified Header Integration */
+    :root {
+      --primary-blue: #2563eb;
+      --bg-dark: #000000;
+      --card-bg: #111111;
+      --text-main: #ffffff;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .header .logo {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary-blue);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header .logo i {
+      font-size: 28px;
+    }
+    #header {
+      background: #ffffff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      height: 70px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+    }
+    .navbar ul li a {
+      color: #64748b;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .navbar ul li a:hover, .navbar ul li a.active {
+      color: var(--primary-blue);
+    }
+
+    .app-container {
+      margin-top: 90px;
+      padding: 20px;
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .page-title {
+      color: var(--primary-blue);
+      font-weight: 700;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid #333;
+      color: var(--text-main);
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+    }
+
+    .stat-value {
+      color: var(--text-main);
+    }
+
+    #todo-form, .view-controls {
+      background: var(--card-bg);
+      border: 1px solid #333;
+    }
+
+    .section-title {
+      color: var(--primary-blue);
+    }
+
+    .task-item {
+      background: var(--card-bg);
+      border: 1px solid #333;
+    }
+
+    .task-content {
+      color: var(--text-main);
+    }
+
+    .task-description {
+      color: var(--text-muted);
+    }
+
+    .task-meta span {
+      color: var(--text-muted);
+    }
+
+    input[type="text"], input[type="url"], input[type="date"], select, textarea {
+      background: #1e293b !important;
+      border: 1px solid #334155 !important;
+      color: white !important;
+    }
+
+    .saas-search-wrap {
+      background: #1e293b;
+      border: 1px solid #334155;
+    }
+
+    #saas-search-input {
+      color: white;
+    }
+
+    .footer {
+      background: #0a0a0a;
+      padding: 40px 0;
+      margin-top: 60px;
+      border-top: 1px solid #222;
+    }
+
+    .footer .copyright, .footer .credits {
+      color: var(--text-muted);
+    }
+
+    .footersocial .social-icon {
+      background: #2563eb;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 5px;
+      text-decoration: none;
+      transition: transform 0.2s;
+    }
+
+    .footersocial .social-icon:hover {
+      transform: translateY(-3px);
+      background: #1d4ed8;
+    }
+
+    /* Override the Azonix font issue with system font */
+    * {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+    }
+  </style>
 </head>
 <body>
   <div id="page-loader" class="page-loader">
@@ -29,35 +188,39 @@
     <div class="loader-text">Loading workspace...</div>
   </div>
   <div id="flash-stack" class="flash-stack"></div>
-  <header class="saas-header">
-    <div class="saas-header-left">
-      <a id="app-home-link" href="/" class="saas-logo">Team Hifsa</a>
-      <nav class="saas-nav">
-        <a href="/" class="saas-nav-item active">Dashboard</a>
-        <a href="/quiz.php" class="saas-nav-item">Subnet Quiz</a>
-        <a href="#todo-form" class="saas-nav-item">Tasks</a>
-        <a href="#playlist-url" class="saas-nav-item">Playlists</a>
+
+  <header id="header" class="header d-flex align-items-center">
+    <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
+      <a href="<?php echo $baseUrl; ?>" class="logo d-flex align-items-center">
+        <i class="fas fa-check-double"></i> <span><?php echo $appName; ?></span>
+      </a>
+      <nav id="navbar" class="navbar">
+        <ul class="d-flex list-unstyled m-0 p-0 gap-4">
+          <li><a href="<?php echo $baseUrl; ?>" class="active">Dashboard</a></li>
+          <li><a href="<?php echo $baseUrl; ?>/quiz.php">Subnet Quiz</a></li>
+        </ul>
       </nav>
-    </div>
-    <div class="saas-header-center">
-      <div class="saas-search-wrap">
-        <i class="fas fa-search"></i>
-        <input id="saas-search-input" type="search" placeholder="Search tasks or playlists" aria-label="Search">
+      <div class="d-flex align-items-center gap-3">
+        <span id="session-email" class="session-email d-none d-md-inline" style="color: #64748b; font-size: 0.9rem;"></span>
+        <button type="button" id="logout-btn" class="bulk-btn">Logout</button>
       </div>
-    </div>
-    <div class="saas-header-right">
-      <span id="session-email" class="session-email"></span>
-      <button type="button" id="logout-btn" class="bulk-btn">Logout</button>
     </div>
   </header>
 
   <main id="app-container" class="app-container">
-    <section class="page-title-row">
+    <div class="saas-header-center mb-4 d-flex justify-content-center">
+      <div class="saas-search-wrap w-100" style="max-width: 600px;">
+        <i class="fas fa-search"></i>
+        <input id="saas-search-input" type="search" placeholder="Search tasks or playlists" aria-label="Search">
+      </div>
+    </div>
+
+    <section class="page-title-row mb-4">
       <h1 class="page-title">Dashboard</h1>
-      <p id="current-date" class="date-display"></p>
+      <p id="current-date" class="date-display text-muted"></p>
     </section>
 
-    <section class="dashboard">
+    <section class="dashboard mb-5">
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-label"><i class="fas fa-layer-group"></i> Total</div>
@@ -152,11 +315,33 @@
       </div>
     </section>
 
-    <ul id="task-list" class="task-list"></ul>
-    <div class="load-more-wrap">
+    <ul id="task-list" class="task-list mt-4"></ul>
+    <div class="load-more-wrap mt-4 text-center">
       <button id="load-more-btn" class="bulk-btn">Load More Tasks</button>
     </div>
   </main>
+
+  <footer id="footer" class="footer mt-5">
+    <div class="container">
+      <div class="text-center mb-4">
+        <h4 class="text-white">Give us a follow</h4>
+        <div class="footersocial d-flex justify-content-center mt-3">
+          <a href="https://www.youtube.com/davidbombal" target="_blank" class="social-icon fab fa-youtube"></a>
+          <a href="https://x.com/davidbombal" target="_blank" class="social-icon fab fa-twitter"></a>
+          <a href="https://www.linkedin.com/in/davidbombal" target="_blank" class="social-icon fab fa-linkedin-in"></a>
+          <a href="https://www.facebook.com/davidbombal.co" target="_blank" class="social-icon fab fa-facebook-f"></a>
+          <a href="https://www.instagram.com/davidbombal/" target="_blank" class="social-icon fab fa-instagram"></a>
+          <a href="https://www.tiktok.com/@davidbombal" target="_blank" class="social-icon fas fa-music"></a>
+        </div>
+      </div>
+      <div class="text-center border-top border-secondary pt-4">
+        <p class="mb-2"><a href="#" class="text-muted text-decoration-none">Terms & Conditions</a> | <a href="#" class="text-muted text-decoration-none">Privacy Policy</a></p>
+        <div class="copyright text-muted">
+          &copy; <?php echo date('Y'); ?> <?php echo $appName; ?>. All Rights Reserved.
+        </div>
+      </div>
+    </div>
+  </footer>
 
   <div id="custom-modal" class="modal-overlay">
     <div class="modal-content">
@@ -181,6 +366,8 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260317-63"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="script.js?v=<?php echo $assetVersion; ?>"></script>
 </body>
 </html>
