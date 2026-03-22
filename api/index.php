@@ -873,6 +873,7 @@ if (count($segments) === 2 && $segments[0] === 'quiz' && $segments[1] === 'check
         'explanation' => $explanation
     ]);
 }
+if (count($segments) === 1 && $segments[0] === 'preferences' && $method === 'GET') {
     $stmt = $pdo->prepare('SELECT `pref_key`, `pref_value` FROM `user_prefs` WHERE `user_id` = :user_id');
     $stmt->execute([':user_id' => $userId]);
     $prefs = [];
