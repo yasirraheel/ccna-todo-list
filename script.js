@@ -2335,10 +2335,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getFilteredTasks() {
     let filteredTasks = tasks;
-    if (currentFilter === 'active') filteredTasks = tasks.filter(t => !t.completed);
-    if (currentFilter === 'completed') filteredTasks = tasks.filter(t => t.completed);
-    if (currentFilter === 'has-notes') filteredTasks = tasks.filter(t => Boolean(t?.noteCount > 0));
+    
+    // Apply playlist filter
+    if (currentPlaylistFilter && currentPlaylistFilter !== 'all') {
+      filteredTasks = filteredTasks.filter(t => (t.playlistName || '').toLowerCase() === currentPlaylistFilter.toLowerCase());
+    }
 
+    // Apply status filter
+    if (currentFilter === 'active') filteredTasks = filteredTasks.filter(t => !t.completed);
+    if (currentFilter === 'completed') filteredTasks = filteredTasks.filter(t => t.completed);
+    if (currentFilter === 'has-notes') filteredTasks = filteredTasks.filter(t => Boolean(t?.noteCount > 0));
+
+    // Apply search query
     if (currentSearchQuery) {
       filteredTasks = filteredTasks.filter(t => {
         const text = (t.text || '').toLowerCase();

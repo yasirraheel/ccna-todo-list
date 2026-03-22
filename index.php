@@ -1,7 +1,7 @@
 <?php
 $appName = "Team Hifsa";
 $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
-$assetVersion = "20260317-65";
+$assetVersion = "1.1.30";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -32,173 +32,105 @@ $assetVersion = "20260317-65";
   <link rel="stylesheet" href="style.css?v=<?php echo $assetVersion; ?>">
 
   <style>
-    :root {
-      --primary-blue: #3b82f6;
-      --bg-dark: #0f172a;
-      --card-bg: #1e293b;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --border-color: #334155;
-    }
-
-    body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
-      margin: 0;
-    }
-
-    #header {
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border-color);
-      height: 70px;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-    }
-
-    .header .logo {
-      font-size: 24px;
-      font-weight: 800;
-      color: var(--primary-blue);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .navbar ul li a {
-      color: var(--text-muted);
-      font-weight: 600;
-      text-decoration: none;
-      font-size: 0.95rem;
-      transition: all 0.2s;
-    }
-
-    .navbar ul li a:hover, .navbar ul li a.active {
-      color: var(--primary-blue);
-    }
-
+    /* Dashboard Specific Styles */
     .app-container {
       margin-top: 100px;
-      padding: 24px;
-      max-width: 1400px;
-      margin-left: auto;
-      margin-right: auto;
     }
 
-    .stat-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s;
+    .progress-bar {
+      background: #334155;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 12px;
     }
 
-    .stat-card:hover {
-      transform: translateY(-4px);
+    .progress-fill {
+      background: var(--primary);
+      height: 100%;
+      transition: width 0.3s ease;
     }
 
-    .stat-label {
-      font-size: 0.85rem;
-      font-weight: 600;
+    .progress-label {
+      font-size: 0.75rem;
       color: var(--text-muted);
-      margin-bottom: 8px;
+      margin-top: 4px;
+      text-align: right;
+    }
+
+    .playlist-input-wrapper {
       display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .playlist-attributes-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .filter-row {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 8px;
-    }
-
-    .stat-label i {
-      color: var(--primary-blue);
-    }
-
-    .stat-value {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    #todo-form, .view-controls {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 24px;
-      margin-bottom: 24px;
-    }
-
-    .section-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--text-main);
+      gap: 16px;
       margin-bottom: 20px;
     }
 
-    input, select, textarea {
-      background: #0f172a !important;
-      border: 1px solid var(--border-color) !important;
-      color: #ffffff !important;
-      border-radius: 10px !important;
-      padding: 12px 16px !important;
+    .filter-group {
+      display: flex;
+      gap: 8px;
     }
 
-    input:focus, select:focus {
-      border-color: var(--primary-blue) !important;
-      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15) !important;
-      outline: none !important;
-    }
-
-    .task-item {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 16px;
+    .filter-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
       transition: all 0.2s;
     }
 
-    .task-item:hover {
-      border-color: var(--primary-blue);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
     }
 
-    .footer {
-      background: #0a0a0a;
-      padding: 60px 0 30px;
-      border-top: 1px solid var(--border-color);
-      margin-top: 60px;
+    .playlist-filter-wrap {
+      flex: 1;
+      max-width: 300px;
     }
 
-    .saas-search-wrap {
-      background: #0f172a;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 10px 16px;
+    .bulk-actions-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .select-all-wrap {
       display: flex;
       align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .bulk-buttons {
+      display: flex;
       gap: 12px;
-      width: 100%;
-      max-width: 500px;
-    }
-
-    #saas-search-input {
-      background: transparent !important;
-      border: none !important;
-      padding: 0 !important;
-      width: 100%;
-      color: white !important;
-    }
-
-    #saas-search-input:focus {
-      box-shadow: none !important;
-    }
-
-    * {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
     }
   </style>
 </head>
