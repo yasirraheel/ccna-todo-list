@@ -2970,8 +2970,9 @@ document.addEventListener('DOMContentLoaded', () => {
     currentCcnaQuestion = null;
 
     try {
-      // Allow overriding API_BASE if it's not defined globally in this context
-      const apiBase = typeof API_BASE !== 'undefined' ? API_BASE : '/api';
+      // For local development / relative paths, we need to handle the path correctly.
+      // Assuming the API is at the root /api/index.php if not otherwise defined.
+      const apiBase = typeof API_BASE !== 'undefined' ? API_BASE : 'api/index.php';
       const r = await fetch(`${apiBase}/quiz`);
       if (!r.ok) throw new Error('Failed to load question');
       const q = await r.json();
@@ -3015,7 +3016,7 @@ document.addEventListener('DOMContentLoaded', () => {
       elBtnCheckCcna.textContent = 'Checking...';
 
       try {
-        const apiBase = typeof API_BASE !== 'undefined' ? API_BASE : '/api';
+        const apiBase = typeof API_BASE !== 'undefined' ? API_BASE : 'api/index.php';
         const r = await fetch(`${apiBase}/quiz/check`, {
           method: 'POST',
           headers: {
