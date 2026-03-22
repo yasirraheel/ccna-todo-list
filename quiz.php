@@ -7,7 +7,7 @@ ob_start();
 ?>
 
 <main id="main">
-    <section class="blog" style="padding-bottom:0;margin-bottom:0;">
+    <section class="blog" style="padding-bottom:10px; margin-bottom:0; padding-top: 100px;">
         <div class="container" data-aos="fade-up">
             <div class="section-header">
                 <h2>Subnet Quiz</h2>
@@ -16,7 +16,7 @@ ob_start();
             </div>
         </div>
     </section>
-    <section id="blog" class="blog" style="background-color:#000000;">
+    <section id="blog" class="blog" style="background-color:#000000; padding-top: 10px;">
         <div class="container" data-aos="fade-up">
             <div class="row" style="width:100%;">
                 <input type="hidden" name="countdown" id="txtcountdown">
@@ -29,8 +29,8 @@ ob_start();
                                 style="padding:4px 4px 2px 4px;line-height:20px;">Clear</a></span></h3>
                 </div>
             </div>
-            <form name="calculator" id="calculator" method="post" action="">
-                <div class="row" class="convertion-section" style="width:100%;">
+            <form name="calculator" id="calculator" method="post" action="" style="margin-top: 10px;">
+                <div class="row convertion-section" style="width:100%; padding-top: 10px;">
                     <div class="col-md-12"></div>
                     <div class="col-md-6 form-line">
                         <div class="form-group quiz-question-block" style="background: rgba(238, 131, 49, 0.1); border: 1px solid rgba(238, 131, 49, 0.3); border-radius: 12px; padding: 10px 15px; margin-bottom: 15px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
