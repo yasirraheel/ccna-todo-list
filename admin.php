@@ -14,98 +14,340 @@ require_once 'includes/config.php';
   
   <style>
     :root {
-      --primary-blue: #2563eb;
+      --primary-orange: #ee8331;
       --bg-dark: #000000;
-      --card-bg: #111111;
+      --card-bg: rgba(255, 255, 255, 0.05);
       --text-main: #ffffff;
-      --text-muted: #94a3b8;
-      --sidebar-bg: #0a0a0a;
+      --text-muted: rgba(255, 255, 255, 0.6);
+      --sidebar-bg: rgba(255, 255, 255, 0.03);
+      --border-color: rgba(255, 255, 255, 0.1);
     }
 
     body.admin-layout {
       background-color: var(--bg-dark);
       color: var(--text-main);
+      font-family: 'Azonix', sans-serif !important;
+      display: flex;
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+    }
+
+    /* Override for standard text elements to stay readable */
+    body.admin-layout p, 
+    body.admin-layout span, 
+    body.admin-layout div:not(.page-title):not(.stat-value), 
+    body.admin-layout td, 
+    body.admin-layout th,
+    body.admin-layout input,
+    body.admin-layout select,
+    body.admin-layout textarea {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
     }
 
     .admin-sidebar {
       background: var(--sidebar-bg);
-      border-right: 1px solid #222;
+      border-right: 1px solid var(--border-color);
+      width: 260px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .admin-sidebar-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .admin-sidebar-logo {
-      color: var(--primary-blue);
+      color: var(--primary-orange);
       font-weight: 800;
+      font-size: 1.2rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Azonix', sans-serif !important;
+    }
+
+    .admin-nav {
+      padding: 20px 0;
+      flex: 1;
     }
 
     .admin-nav-item {
       color: var(--text-muted);
+      padding: 15px 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+      font-weight: 500;
     }
 
     .admin-nav-item:hover, .admin-nav-item.active {
-      background: #1e293b;
-      color: var(--primary-blue);
+      background: rgba(238, 131, 49, 0.1);
+      color: var(--primary-orange);
+      border-left-color: var(--primary-orange);
+    }
+
+    .admin-sidebar-footer {
+      padding: 20px 0;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .admin-main {
+      flex: 1;
+      margin-left: 260px;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      transition: margin-left 0.3s ease;
     }
 
     .admin-header {
       background: var(--bg-dark);
-      border-bottom: 1px solid #222;
+      border-bottom: 1px solid var(--border-color);
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-main);
+      font-size: 1.5rem;
+      cursor: pointer;
     }
 
     .page-title {
-      color: var(--primary-blue);
+      color: var(--text-main);
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .admin-section {
+      padding: 30px;
+      display: none;
+    }
+
+    .admin-section.active {
+      display: block;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+      margin-bottom: 30px;
     }
 
     .stat-card {
       background: var(--card-bg);
-      border: 1px solid #333;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    .admin-table-card {
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      color: #fff;
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .admin-table-container {
+      overflow-x: auto;
       background: var(--card-bg);
-      border: 1px solid #333;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      margin-bottom: 30px;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .admin-table th, .admin-table td {
+      padding: 15px 20px;
+      white-space: nowrap;
     }
 
     .admin-table th {
-      background: #1e293b;
-      color: var(--text-main);
-      border-bottom: 1px solid #333;
+      background: rgba(0, 0, 0, 0.3);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .admin-table td {
-      border-bottom: 1px solid #222;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       color: var(--text-main);
     }
 
+    .admin-table tr:last-child td {
+      border-bottom: none;
+    }
+
     .admin-table tr:hover td {
-      background: #1a1a1a;
+      background: rgba(255, 255, 255, 0.02);
     }
 
     .admin-settings-card {
       background: var(--card-bg);
-      border: 1px solid #333;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 800px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-muted);
     }
 
     input[type="text"], input[type="email"], input[type="password"], select, textarea {
-      background: #1e293b !important;
-      border: 1px solid #334155 !important;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid var(--border-color) !important;
       color: white !important;
+      padding: 10px 15px !important;
+      border-radius: 8px !important;
+      transition: all 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary-orange) !important;
+      box-shadow: 0 0 0 3px rgba(238, 131, 49, 0.15) !important;
+      outline: none;
+    }
+
+    .url-input-container {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
     }
 
     .url-input-container code {
-      background: #000;
-      color: #10b981;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      padding: 10px 15px;
+      border-right: 1px solid var(--border-color);
+    }
+
+    .url-input-container input {
+      border: none !important;
+      background: transparent !important;
+      border-radius: 0 !important;
     }
 
     .admin-badge {
-      background: #1e293b;
-      color: var(--text-muted);
-      border: 1px solid #333;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    
+    .admin-badge.admin {
+      background: rgba(238, 131, 49, 0.1);
+      color: var(--primary-orange);
+      border-color: rgba(238, 131, 49, 0.3);
     }
 
-    /* Override the Azonix font issue with system font */
-    * {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+    .action-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 0.85rem;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .action-btn.danger {
+      color: #ef4444;
+    }
+
+    .action-btn.danger:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-primary {
+      background: var(--primary-orange);
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: #d9772c;
+    }
+
+    @media (max-width: 992px) {
+      .admin-sidebar {
+        transform: translateX(-100%);
+      }
+      .admin-sidebar.open {
+        transform: translateX(0);
+      }
+      .admin-main {
+        margin-left: 0;
+      }
+      .mobile-menu-btn {
+        display: block;
+      }
     }
   </style>
 </head>
@@ -116,7 +358,7 @@ require_once 'includes/config.php';
   </div>
   <div id="flash-stack" class="flash-stack"></div>
 
-  <aside class="admin-sidebar">
+  <aside class="admin-sidebar" id="admin-sidebar">
     <div class="admin-sidebar-header">
       <a href="/" class="admin-sidebar-logo">
         <i class="fas fa-shield-halved"></i>
@@ -151,7 +393,12 @@ require_once 'includes/config.php';
 
   <main class="admin-main">
     <header class="admin-header">
-      <h1 id="section-title" class="page-title">Dashboard</h1>
+      <div class="d-flex align-items-center gap-3">
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <i class="fas fa-bars"></i>
+        </button>
+        <h1 id="section-title" class="page-title">Dashboard</h1>
+      </div>
       <div class="admin-user-info">
         <span id="admin-email" class="session-email text-muted"></span>
       </div>
@@ -315,6 +562,29 @@ require_once 'includes/config.php';
   </div>
 
   <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
+  <script>
+    const assetVersion = '<?php echo $assetVersion; ?>';
+    const isAdminPage = true;
+    
+    // Mobile Sidebar Toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const adminSidebar = document.getElementById('admin-sidebar');
+    
+    if (mobileMenuBtn && adminSidebar) {
+      mobileMenuBtn.addEventListener('click', () => {
+        adminSidebar.classList.toggle('open');
+      });
+      
+      // Close sidebar when clicking outside on mobile
+      document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 992) {
+          if (!adminSidebar.contains(e.target) && !mobileMenuBtn.contains(e.target) && adminSidebar.classList.contains('open')) {
+            adminSidebar.classList.remove('open');
+          }
+        }
+      });
+    }
+  </script>
   <script src="script.js?v=<?php echo $assetVersion; ?>"></script>
 </body>
 </html>
