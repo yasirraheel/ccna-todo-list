@@ -349,42 +349,6 @@ require_once 'includes/config.php';
         display: block;
       }
     }
-
-    /* Page Loader Fix for Admin */
-    .page-loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--bg-dark);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      transition: opacity 0.3s ease;
-    }
-    .page-loader.app-hidden {
-      display: none !important;
-    }
-    .loader-spinner {
-      width: 50px;
-      height: 50px;
-      border: 4px solid rgba(238, 131, 49, 0.2);
-      border-top-color: var(--primary-orange);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 20px;
-    }
-    .loader-text {
-      color: var(--text-muted);
-      font-size: 1.1rem;
-      font-family: 'Azonix', sans-serif !important;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
   </style>
 </head>
 <body class="admin-layout">

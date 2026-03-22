@@ -1159,8 +1159,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       showPageLoader('Loading admin data...');
-      await loadAdminDashboard();
-      hidePageLoader(); // Hide loader after data is loaded
+      try {
+        await loadAdminDashboard();
+      } catch (err) {
+        console.error('Failed to load admin dashboard data:', err);
+        showFlash('Failed to load admin dashboard', 'error');
+      } finally {
+        hidePageLoader(); // Always hide loader, even if it fails
+      }
+
 
       
       // Setup Admin Navigation
