@@ -38,7 +38,7 @@ $assetVersion = "1.1.30";
     <link href="https://ccnax.com/wp-content/themes/ccnax/assets/css/main.css" rel="stylesheet">
     
     <style>
-        /* Restoring original look while integrating unified header */
+        /* DASHBOARD UNIFIED HEADER STYLES */
         :root {
             --primary: #3b82f6;
             --bg-dark: #0f172a;
@@ -57,122 +57,239 @@ $assetVersion = "1.1.30";
         }
 
         #header {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-            height: 70px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
+            background: rgba(15, 23, 42, 0.8) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border-bottom: 1px solid var(--border) !important;
+            height: 70px !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 1000 !important;
+            display: flex !important;
+            align-items: center !important;
         }
 
         .header .logo {
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--primary);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            font-size: 24px !important;
+            font-weight: 800 !important;
+            color: var(--primary) !important;
+            text-decoration: none !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
         }
 
         .header .logo span {
-            color: var(--primary);
+            color: var(--primary) !important;
             margin: 0;
         }
 
+        .navbar ul {
+            display: flex !important;
+            list-style: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            gap: 24px !important;
+        }
+
         .navbar ul li a {
-            color: var(--text-muted);
-            font-weight: 600;
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: all 0.2s;
+            color: var(--text-muted) !important;
+            font-weight: 600 !important;
+            text-decoration: none !important;
+            font-size: 0.95rem !important;
+            transition: all 0.2s !important;
         }
 
         .navbar ul li a:hover, .navbar ul li a.active {
-            color: var(--primary);
+            color: var(--primary) !important;
         }
 
-        /* Quiz Specific Overrides for high contrast */
+        .bulk-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        /* ORIGINAL QUIZ STYLES FROM INDEX.HTML */
         #main {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            min-height: 100vh;
             padding-top: 100px;
+            background-color: #000000;
+            min-height: 100vh;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 30px;
         }
 
         .section-header h2 {
-            color: var(--primary) !important;
-            font-weight: 800;
-        }
-
-        .textform {
-            background: #1e293b !important;
-            border: 1px solid #334155 !important;
-            color: #ffffff !important;
-            border-radius: 8px !important;
-            padding: 10px !important;
-            text-align: center;
-            font-size: 1.1rem;
+            font-size: 45px;
+            color: #005568; /* Keeping original header color from file */
             font-weight: 700;
-            transition: all 0.2s;
         }
 
-        .textform:focus {
-            border-color: var(--primary) !important;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15) !important;
-            outline: none !important;
+        .section-header h3 {
+            color: #FFFFFF;
+            font-size: 24px;
+            font-weight: 400;
         }
 
-        label h3 {
-            color: #ffffff !important;
-            font-size: 1rem !important;
-            font-weight: 600 !important;
+        .section-content {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .form-line {
+            border-right: 1px solid #B29999;
+        }
+
+        .form-group {
+            margin-top: 20px;
+        }
+
+        .form-group label h3 {
+            color: #FFFFFF;
+            font-size: 20px;
             margin-bottom: 10px;
         }
 
-        .btn-lg {
-            padding: 12px 24px;
-            font-weight: 700;
-            border-radius: 12px;
-            transition: all 0.2s;
+        .textform {
+            font-size: 24px;
+            text-align: center;
+            color: #080808;
+            background-color: #ffffff !important;
+            border: 1px solid #ced4da !important;
+            border-radius: 4px !important;
+            min-height: 48px;
         }
 
-        .btn-lg:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.3);
+        .taskIP {
+            width: 50px;
         }
 
-        .history-panel {
-            background: var(--card-bg) !important;
-            border: 1px solid var(--border) !important;
-            border-radius: 16px !important;
+        .task {
+            font-weight: bold;
+            display: inline-block;
+            padding: 10px;
+            text-align: center;
+            font-size: 24px;
+            color: #FFFFFF;
         }
 
-        .table-dark {
-            background: transparent !important;
+        #taskBitmask {
+            width: 70px;
         }
 
-        .table-dark th {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-bottom-color: var(--border);
-        }
-
-        .table-dark td {
-            border-bottom-color: rgba(255,255,255,0.05);
+        .answer-status {
+            margin-left: 6px;
+            font-size: 20px;
+            font-weight: 600;
             vertical-align: middle;
         }
 
+        .status-correct { color: #5cb85c; }
+        .status-wrong { color: #ff4a4a; }
+        .status-pending { color: #f4c542; }
+
+        .history-panel {
+            margin-top: 20px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .history-panel h4 {
+            margin: 0 0 12px 0;
+            color: #fff;
+            font-size: 18px;
+        }
+
+        .history-table-wrap {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 6px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th {
+            position: sticky;
+            top: 0;
+            background: #111;
+            color: #fff;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            text-transform: uppercase;
+        }
+
+        .history-item td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .history-result {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .history-result-correct { background: rgba(92, 184, 92, 0.2); color: #5cb85c; }
+        .history-result-giveup { background: rgba(252, 197, 0, 0.2); color: #fcc500; }
+        .history-result-pending { background: rgba(33, 150, 243, 0.2); color: #4fc3f7; }
+
+        .history-delete-btn {
+            border: 1px solid rgba(255, 74, 74, 0.7);
+            background: rgba(255, 74, 74, 0.14);
+            color: #ff8f8f;
+            border-radius: 4px;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qtext1 { float: left; width: 23%; }
+        .qtext2 { float: left; width: 23%; margin-left: 8px; }
+
+        .btn-lg {
+            padding: 15px 30px;
+            font-weight: 700;
+            border-radius: 8px;
+        }
+
         /* Mobile Adjustments */
-        @media (max-width: 768px) {
-            #header { height: auto; padding: 15px 0; }
-            .navbar { display: none; }
+        @media (max-width: 991.98px) {
+            .form-line { border-right: none; border-bottom: 1px solid #B29999; padding-bottom: 20px; margin-bottom: 20px; }
+            .btn-lg { width: 100%; display: block; margin: 8px 0; }
+        }
+
+        @media (max-width: 767.98px) {
+            .qtext1, .qtext2 { width: calc(25% - 6px); margin-bottom: 8px; }
+            .qtext2 { margin-left: 8px; }
+            .section-header h2 { font-size: 32px; }
+            .section-header h3 { font-size: 18px; }
         }
     </style>
 </head>
@@ -200,11 +317,11 @@ $assetVersion = "1.1.30";
     </header>
 
     <main id="main">
-        <section class="blog" style="padding-bottom:0;margin-bottom:0; padding-top: 100px;">
+        <section class="blog" style="padding-bottom:0;margin-bottom:0;">
             <div class="container" data-aos="fade-up">
-                <div class="section-header text-center">
+                <div class="section-header">
                     <h2>Subnet Quiz</h2>
-                    <h3 style="color:#FFFFFF; font-size: 1.2rem; font-weight: 400; opacity: 0.8;">What are the network address, first host address, last host address,
+                    <h3 style="color:#FFFFFF;">What are the network address, first host address, last host address,
                         broadcast address, and the subnet mask for a host with the IP Address below?</h3>
                 </div>
             </div>
@@ -219,47 +336,74 @@ $assetVersion = "1.1.30";
                                 style="color:#fcc500;padding-left:10px;"></i> Give Up : <span id="giveUpCount"
                                 style="color:#fcc500;">0</span> <span style="padding-left:10px;"><a href="#"
                                     id="clearScoreBtn" class="btn btn-primary btn-sm"
-                                    style="padding:4px 8px; font-size: 0.8rem;">Clear</a></span></h3>
+                                    style="padding:4px 4px 2px 4px;line-height:20px;">Clear</a></span></h3>
                     </div>
                 </div>
 
                 <form name="calculator" id="calculator">
                     <div class="row">
-                        <div class="col-md-6 form-line" style="border-right: 1px solid rgba(255,255,255,0.1);">
+                        <div class="col-md-6 form-line">
                             <div class="form-group mb-4">
-                                <label><h3 style="color: #fff;">IP Address</h3></label>
-                                <div class="d-flex align-items-center gap-2" style="color:#FFFFFF;">
-                                    <div id="ip-octet-1" class="task taskIP" style="font-size: 24px; font-weight: bold;">253</div>
-                                    <div style="font-size: 24px;">.</div>
-                                    <div id="ip-octet-2" class="task taskIP" style="font-size: 24px; font-weight: bold;">118</div>
-                                    <div style="font-size: 24px;">.</div>
-                                    <div id="ip-octet-3" class="task taskIP" style="font-size: 24px; font-weight: bold;">117</div>
-                                    <div style="font-size: 24px;">.</div>
-                                    <div id="ip-octet-4" class="task taskIP" style="font-size: 24px; font-weight: bold;">112</div>
-                                    <div class="task ms-3" id="taskBitmask" style="font-size: 24px; font-weight: bold; color: #2563eb;">/23</div>
+                                <label><h3>IP Address</h3></label>
+                                <div style="width:100%;color:#FFFFFF;">
+                                    <div id="ip-octet-1" class="task taskIP">253</div>
+                                    <div id="ip-octet-2" class="task taskIP">118</div>
+                                    <div id="ip-octet-3" class="task taskIP">117</div>
+                                    <div id="ip-octet-4" class="task taskIP">112</div>
+                                    <div class="task" id="taskBitmask"><span id="ip-mask-value">/23</span></div>
+                                    <input type="hidden" name="mask_bits" id="mask_bits" value="23">
                                 </div>
                             </div>
 
-                            <?php 
-                            $fields = [
-                                'Network Address' => 'NetAddO',
-                                'First Host Address' => 'fhost',
-                                'Last Host Address' => 'lhost',
-                                'Broadcast Address' => 'BroadAddO',
-                                'Subnet Mask' => 'SubnetMaskO'
-                            ];
-                            foreach($fields as $label => $idPrefix): ?>
-                            <div class="form-group mb-4">
-                                <label><h3 style="color: #fff; font-size: 1.1rem;"><?php echo $label; ?> <span id="status-<?php echo $idPrefix; ?>" class="answer-status"></span></h3></label>
-                                <div class="row g-2">
-                                    <?php for($i=1; $i<=4; $i++): ?>
-                                    <div class="col-3">
-                                        <input type="text" class="form-control textform" name="<?php echo $idPrefix.$i; ?>" id="<?php echo $idPrefix.$i; ?>" style="text-align: center; font-size: 18px; font-weight: bold;">
-                                    </div>
-                                    <?php endfor; ?>
+                            <div class="form-group">
+                                <label><h3>Network Address <span id="status-network" class="answer-status"></span></h3></label>
+                                <div style="width:100%;">
+                                    <div class="qtext1"><input type="text" class="form-control textform" name="NetAddO1" id="NetAddO1"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="NetAddO2" id="NetAddO2"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="NetAddO3" id="NetAddO3"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="NetAddO4" id="NetAddO4"></div>
                                 </div>
                             </div>
-                            <?php endforeach; ?>
+
+                            <div class="form-group">
+                                <label style="padding-top:10px;"><h3>First Host Address <span id="status-firstHost" class="answer-status"></span></h3></label>
+                                <div style="width:100%;">
+                                    <div class="qtext1"><input type="text" class="form-control textform" name="fhost1" id="fhost1"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="fhost2" id="fhost2"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="fhost3" id="fhost3"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="fhost4" id="fhost4"></div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label style="padding-top:10px;"><h3>Last Host Address <span id="status-lastHost" class="answer-status"></span></h3></label>
+                                <div style="width:100%;">
+                                    <div class="qtext1"><input type="text" class="form-control textform" name="lhost1" id="lhost1"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="lhost2" id="lhost2"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="lhost3" id="lhost3"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="lhost4" id="lhost4"></div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label style="padding-top:10px;"><h3>Broadcast Address <span id="status-broadcast" class="answer-status"></span></h3></label>
+                                <div style="width:100%;">
+                                    <div class="qtext1"><input type="text" class="form-control textform" name="BroadAddO1" id="BroadAddO1"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="BroadAddO2" id="BroadAddO2"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="BroadAddO3" id="BroadAddO3"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="BroadAddO4" id="BroadAddO4"></div>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="padding-top:10px;">
+                                <label style="padding-top:10px;"><h3>Subnet Mask <span id="status-subnetMask" class="answer-status"></span></h3></label>
+                                <div style="width:100%;">
+                                    <div class="qtext1"><input type="text" class="form-control textform" name="SubnetMaskO1" id="SubnetMaskO1"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="SubnetMaskO2" id="SubnetMaskO2"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="SubnetMaskO3" id="SubnetMaskO3"></div>
+                                    <div class="qtext2"><input type="text" class="form-control textform" name="SubnetMaskO4" id="SubnetMaskO4"></div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-md-6 ps-md-5">
@@ -273,10 +417,10 @@ $assetVersion = "1.1.30";
                                 <input type="button" class="btn btn-primary btn-lg" value="Give Up?" id="cmdgiveup">
                             </div>
 
-                            <div class="history-panel" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px;">
-                                <h4 style="color: #fff; margin-bottom: 15px;">History (Last <span id="historyCount">0</span>/50)</h4>
-                                <div class="table-responsive" style="max-height: 300px;">
-                                    <table class="table table-dark table-hover mb-0">
+                            <div class="history-panel">
+                                <h4>History (Last <span id="historyCount">0</span>/50)</h4>
+                                <div class="history-table-wrap">
+                                    <table class="history-table">
                                         <thead>
                                             <tr>
                                                 <th>Question</th>
@@ -323,130 +467,462 @@ $assetVersion = "1.1.30";
     <script src="https://ccnax.com/wp-content/themes/ccnax/assets/vendor/swiper/swiper-bundle.min.js"></script>
     <script>
         (function () {
+            const STORAGE_KEY = "subnetQuizProgressV1";
+            const HISTORY_LIMIT = 50;
             let correctCount = 0;
             let giveUpCount = 0;
-            let history = [];
-            let currentTask = null;
+            let currentQuestionAnswered = false;
+            let currentAnswers = null;
+            let questionHistory = [];
+            let currentHistoryIndex = -1;
 
-            function generateTask() {
-                const octets = Array.from({length: 4}, () => Math.floor(Math.random() * 256));
-                const mask = Math.floor(Math.random() * 23) + 8; // Mask between 8 and 30
-                
-                currentTask = {
-                    ip: octets,
-                    mask: mask,
-                    answers: calculateSubnet(octets, mask)
-                };
-
-                $('#ip-octet-1').text(octets[0]);
-                $('#ip-octet-2').text(octets[1]);
-                $('#ip-octet-3').text(octets[2]);
-                $('#ip-octet-4').text(octets[3]);
-                $('#taskBitmask').text('/' + mask);
-
-                // Clear fields
-                $('.textform').val('').removeClass('is-valid is-invalid');
-                $('.answer-status').html('');
-            }
-
-            function calculateSubnet(ip, mask) {
-                const ipNum = (ip[0] << 24) | (ip[1] << 16) | (ip[2] << 8) | ip[3];
-                const maskNum = -1 << (32 - mask);
-                
-                const netNum = ipNum & maskNum;
-                const broadNum = netNum | ~maskNum;
-                
-                const firstHost = netNum + 1;
-                const lastHost = broadNum - 1;
-
-                const toOctets = (num) => [
-                    (num >>> 24) & 0xFF,
-                    (num >>> 16) & 0xFF,
-                    (num >>> 8) & 0xFF,
-                    num & 0xFF
-                ];
-
-                return {
-                    NetAddO: toOctets(netNum),
-                    fhost: toOctets(firstHost),
-                    lhost: toOctets(lastHost),
-                    BroadAddO: toOctets(broadNum),
-                    SubnetMaskO: toOctets(maskNum)
-                };
-            }
-
-            function checkAnswers() {
-                if (!currentTask) return;
-                
-                let allCorrect = true;
-                const fields = ['NetAddO', 'fhost', 'lhost', 'BroadAddO', 'SubnetMaskO'];
-                
-                fields.forEach(field => {
-                    let fieldCorrect = true;
-                    for (let i = 1; i <= 4; i++) {
-                        const val = parseInt($(`#${field}${i}`).val());
-                        if (val !== currentTask.answers[field][i-1]) {
-                            fieldCorrect = false;
-                            $(`#${field}${i}`).addClass('is-invalid').removeClass('is-valid');
-                        } else {
-                            $(`#${field}${i}`).addClass('is-valid').removeClass('is-invalid');
-                        }
-                    }
-                    
-                    if (fieldCorrect) {
-                        $(`#status-${field}`).html('<i class="fa fa-check text-success"></i>');
-                    } else {
-                        $(`#status-${field}`).html('<i class="fa fa-times text-danger"></i>');
-                        allCorrect = false;
-                    }
+            const fieldMap = {
+                network: ["NetAddO1", "NetAddO2", "NetAddO3", "NetAddO4"],
+                firstHost: ["fhost1", "fhost2", "fhost3", "fhost4"],
+                lastHost: ["lhost1", "lhost2", "lhost3", "lhost4"],
+                broadcast: ["BroadAddO1", "BroadAddO2", "BroadAddO3", "BroadAddO4"],
+                subnetMask: ["SubnetMaskO1", "SubnetMaskO2", "SubnetMaskO3", "SubnetMaskO4"]
+            };
+            const inputIdToFieldKey = {};
+            Object.keys(fieldMap).forEach((fieldKey) => {
+                fieldMap[fieldKey].forEach((id) => {
+                    inputIdToFieldKey[id] = fieldKey;
                 });
+            });
 
-                if (allCorrect) {
-                    correctCount++;
-                    $('#correctCount').text(correctCount);
-                    addToHistory(currentTask, 'Correct');
-                    setTimeout(generateTask, 2000);
+            const statusMap = {
+                network: "status-network",
+                firstHost: "status-firstHost",
+                lastHost: "status-lastHost",
+                broadcast: "status-broadcast",
+                subnetMask: "status-subnetMask"
+            };
+
+            function readStorage() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (!raw) return null;
+                    return JSON.parse(raw);
+                } catch (_error) {
+                    return null;
                 }
             }
 
-            function giveUp() {
-                if (!currentTask) return;
-                
-                giveUpCount++;
-                $('#giveUpCount').text(giveUpCount);
-                
-                const fields = ['NetAddO', 'fhost', 'lhost', 'BroadAddO', 'SubnetMaskO'];
-                fields.forEach(field => {
-                    for (let i = 1; i <= 4; i++) {
-                        $(`#${field}${i}`).val(currentTask.answers[field][i-1]).addClass('is-valid').removeClass('is-invalid');
+            function writeStorage() {
+                updateActiveHistorySnapshot();
+                const inputValues = collectInputValues();
+                const statusValues = collectStatusValues();
+                const data = {
+                    correctCount,
+                    giveUpCount,
+                    currentQuestionAnswered,
+                    currentAnswers,
+                    questionHistory,
+                    currentHistoryIndex,
+                    inputValues,
+                    statusValues
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            }
+
+            function toInt(octets) {
+                return (((octets[0] << 24) >>> 0) | (octets[1] << 16) | (octets[2] << 8) | octets[3]) >>> 0;
+            }
+
+            function toOctets(value) {
+                return [
+                    (value >>> 24) & 255,
+                    (value >>> 16) & 255,
+                    (value >>> 8) & 255,
+                    value & 255
+                ];
+            }
+
+            function randomInt(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            function randomValidFirstOctet() {
+                const value = randomInt(1, 223);
+                if (value === 127) {
+                    return randomValidFirstOctet();
+                }
+                return value;
+            }
+
+            function questionKey(question) {
+                return question.ip.join(".") + "/" + question.prefix;
+            }
+
+            function parseQuestionKey(key) {
+                if (typeof key !== "string" || key.indexOf("/") === -1) return null;
+                const parts = key.split("/");
+                const ipPart = parts[0].split(".").map((v) => Number(v));
+                const prefix = Number(parts[1]);
+                if (ipPart.length !== 4 || ipPart.some((n) => Number.isNaN(n) || n < 0 || n > 255)) return null;
+                if (ipPart[0] === 127 || ipPart[0] === 0 || ipPart[0] > 223) return null;
+                if (Number.isNaN(prefix) || prefix < 8 || prefix > 30) return null;
+                return { ip: ipPart, prefix };
+            }
+
+            function buildQuestionFromIpPrefix(ip, prefix) {
+                const ipInt = toInt(ip);
+                const maskInt = (0xFFFFFFFF << (32 - prefix)) >>> 0;
+                const networkInt = (ipInt & maskInt) >>> 0;
+                const broadcastInt = (networkInt | (~maskInt >>> 0)) >>> 0;
+                const firstHostInt = networkInt + 1;
+                const lastHostInt = broadcastInt - 1;
+                return {
+                    ip: ip.slice(),
+                    prefix,
+                    network: toOctets(networkInt),
+                    firstHost: toOctets(firstHostInt),
+                    lastHost: toOctets(lastHostInt),
+                    broadcast: toOctets(broadcastInt),
+                    subnetMask: toOctets(maskInt)
+                };
+            }
+
+            function cloneQuestion(question) {
+                return JSON.parse(JSON.stringify(question));
+            }
+
+            function collectStatusValues() {
+                const statusValues = {};
+                Object.keys(statusMap).forEach((fieldKey) => {
+                    const statusEl = document.getElementById(statusMap[fieldKey]);
+                    statusValues[fieldKey] = statusEl.className.includes("status-correct")
+                        ? "correct"
+                        : statusEl.className.includes("status-wrong")
+                            ? "wrong"
+                            : statusEl.className.includes("status-pending")
+                                ? "pending"
+                                : "";
+                });
+                return statusValues;
+            }
+
+            function collectInputValues() {
+                const inputValues = {};
+                Object.keys(fieldMap).forEach((fieldKey) => {
+                    inputValues[fieldKey] = getFieldValues(fieldKey);
+                });
+                return inputValues;
+            }
+
+            function updateActiveHistorySnapshot() {
+                if (currentHistoryIndex < 0 || !questionHistory[currentHistoryIndex]) return;
+                questionHistory[currentHistoryIndex].question = cloneQuestion(currentAnswers);
+                questionHistory[currentHistoryIndex].inputValues = collectInputValues();
+                questionHistory[currentHistoryIndex].statusValues = collectStatusValues();
+                questionHistory[currentHistoryIndex].isAnswered = currentQuestionAnswered;
+            }
+
+            function loadHistoryAttempt(index) {
+                const item = questionHistory[index];
+                if (!item || (item.result !== "pending" && item.result !== "giveup")) return;
+                if (!item.question && item.key) {
+                    const parsed = parseQuestionKey(item.key);
+                    if (parsed) {
+                        item.question = buildQuestionFromIpPrefix(parsed.ip, parsed.prefix);
                     }
-                    $(`#status-${field}`).html('<i class="fa fa-info-circle text-info"></i>');
-                });
-                
-                addToHistory(currentTask, 'Gave Up');
-                $('#btnNext').focus();
+                }
+                if (!item.question) return;
+                if (item.result === "giveup") {
+                    item.result = "pending";
+                    item.inputValues = {};
+                    item.statusValues = {};
+                    item.isAnswered = false;
+                }
+                currentHistoryIndex = index;
+                currentQuestionAnswered = false;
+                currentAnswers = cloneQuestion(item.question);
+                updateDisplayedQuestion(currentAnswers);
+                clearInputsAndStatus();
+                restoreInputValues(item.inputValues || {});
+                restoreStatusValues(item.statusValues || {});
+                document.getElementById("btnCheckAnswer").disabled = false;
+                writeStorage();
+                renderHistory();
             }
 
-            function addToHistory(task, status) {
-                const qText = `${task.ip.join('.')}/${task.mask}`;
-                history.unshift({q: qText, status: status});
-                if (history.length > 50) history.pop();
-                
-                updateHistoryUI();
+            function deleteHistoryItem(index) {
+                if (index < 0 || index >= questionHistory.length) return;
+                questionHistory.splice(index, 1);
+                if (currentHistoryIndex === index) {
+                    currentHistoryIndex = -1;
+                } else if (currentHistoryIndex > index) {
+                    currentHistoryIndex -= 1;
+                }
+                renderHistory();
+                writeStorage();
             }
 
-            function updateHistoryUI() {
-                $('#historyCount').text(history.length);
-                let html = '';
-                history.forEach(item => {
-                    const statusClass = item.status === 'Correct' ? 'text-success' : 'text-warning';
-                    html += `<tr>
-                        <td>${item.q}</td>
-                        <td class="${statusClass}">${item.status}</td>
-                        <td class="text-center"><i class="fa ${item.status === 'Correct' ? 'fa-check' : 'fa-times'}"></i></td>
-                    </tr>`;
+            function renderHistory() {
+                const listEl = document.getElementById("historyList");
+                const countEl = document.getElementById("historyCount");
+                if (!listEl || !countEl) return;
+                countEl.textContent = String(questionHistory.length);
+                listEl.innerHTML = "";
+                for (let index = questionHistory.length - 1; index >= 0; index -= 1) {
+                    const item = questionHistory[index];
+                    const tr = document.createElement("tr");
+                    tr.className = "history-item";
+                    tr.dataset.index = String(index);
+                    const resultClass = item.result === "correct"
+                        ? "history-result-correct"
+                        : item.result === "giveup"
+                            ? "history-result-giveup"
+                            : "history-result-pending";
+                    if (item.result === "pending" || item.result === "giveup") {
+                        tr.classList.add("history-item-resumable");
+                    }
+                    if (index === currentHistoryIndex) {
+                        tr.classList.add("history-item-active");
+                    }
+                    tr.innerHTML = '<td class="history-question">' + item.key + '</td><td><span class="history-result ' + resultClass + '">' + item.result + '</span></td><td><button type="button" class="history-delete-btn" data-delete-index="' + index + '" aria-label="Delete history item"><i class="fa fa-trash"></i></button></td>';
+                    listEl.appendChild(tr);
+                }
+            }
+
+            function addQuestionToHistory(question) {
+                if (!question) return;
+                questionHistory.push({
+                    key: questionKey(question),
+                    question: cloneQuestion(question),
+                    timestamp: Date.now(),
+                    result: "pending",
+                    inputValues: {},
+                    statusValues: {},
+                    isAnswered: false
                 });
-                $('#historyList').html(html);
+                if (questionHistory.length > HISTORY_LIMIT) {
+                    questionHistory = questionHistory.slice(questionHistory.length - HISTORY_LIMIT);
+                }
+                currentHistoryIndex = questionHistory.length - 1;
+                renderHistory();
+            }
+
+            function updateQuestionHistoryResult(result) {
+                if (currentHistoryIndex >= 0 && questionHistory[currentHistoryIndex] && questionHistory[currentHistoryIndex].result === "pending") {
+                    questionHistory[currentHistoryIndex].result = result;
+                    questionHistory[currentHistoryIndex].isAnswered = true;
+                    renderHistory();
+                    return;
+                }
+                const activeKey = currentAnswers ? questionKey(currentAnswers) : "";
+                for (let i = questionHistory.length - 1; i >= 0; i -= 1) {
+                    if (questionHistory[i].result !== "pending") continue;
+                    if (!activeKey || questionHistory[i].key === activeKey) {
+                        questionHistory[i].result = result;
+                        questionHistory[i].isAnswered = true;
+                        currentHistoryIndex = i;
+                        renderHistory();
+                        return;
+                    }
+                }
+            }
+
+            function buildQuestion() {
+                const prefix = randomInt(8, 30);
+                const ip = [randomValidFirstOctet(), randomInt(0, 255), randomInt(0, 255), randomInt(1, 254)];
+                return buildQuestionFromIpPrefix(ip, prefix);
+            }
+
+            function updateDisplayedQuestion(question) {
+                document.getElementById("ip-octet-1").firstChild.nodeValue = String(question.ip[0]);
+                document.getElementById("ip-octet-2").firstChild.nodeValue = String(question.ip[1]);
+                document.getElementById("ip-octet-3").firstChild.nodeValue = String(question.ip[2]);
+                document.getElementById("ip-octet-4").firstChild.nodeValue = String(question.ip[3]);
+                document.getElementById("ip-mask-value").textContent = "/" + question.prefix;
+                document.getElementById("mask_bits").value = String(question.prefix);
+            }
+
+            function clearInputsAndStatus() {
+                Object.keys(fieldMap).forEach((key) => {
+                    fieldMap[key].forEach((id) => {
+                        const input = document.getElementById(id);
+                        input.value = "";
+                        input.style.borderColor = "";
+                    });
+                    const statusEl = document.getElementById(statusMap[key]);
+                    statusEl.innerHTML = "";
+                    statusEl.className = "answer-status";
+                });
+            }
+
+            function restoreInputValues(savedInputValues) {
+                if (!savedInputValues) return;
+                Object.keys(fieldMap).forEach((fieldKey) => {
+                    const values = Array.isArray(savedInputValues[fieldKey]) ? savedInputValues[fieldKey] : [];
+                    fieldMap[fieldKey].forEach((id, index) => {
+                        document.getElementById(id).value = values[index] || "";
+                    });
+                });
+            }
+
+            function restoreStatusValues(savedStatusValues) {
+                if (!savedStatusValues) return;
+                Object.keys(statusMap).forEach((fieldKey) => {
+                    const value = savedStatusValues[fieldKey];
+                    if (value === "correct") {
+                        setStatus(fieldKey, true);
+                    } else if (value === "wrong") {
+                        setStatus(fieldKey, false);
+                    } else if (value === "pending") {
+                        setPendingStatus(fieldKey);
+                    }
+                });
+            }
+
+            function getFieldValues(fieldKey) {
+                return fieldMap[fieldKey].map((id) => document.getElementById(id).value.trim());
+            }
+
+            function isValidOctets(values) {
+                if (values.some((v) => v === "")) return false;
+                return values.every((v) => /^\d+$/.test(v) && Number(v) >= 0 && Number(v) <= 255);
+            }
+
+            function setStatus(fieldKey, ok) {
+                const statusEl = document.getElementById(statusMap[fieldKey]);
+                if (ok) {
+                    statusEl.className = "answer-status status-correct";
+                    statusEl.innerHTML = '<i class="fa fa-check"></i>Correct';
+                } else {
+                    statusEl.className = "answer-status status-wrong";
+                    statusEl.innerHTML = '<i class="fa fa-times"></i>Wrong';
+                }
+                fieldMap[fieldKey].forEach((id) => {
+                    document.getElementById(id).style.borderColor = ok ? "#5cb85c" : "#ff4a4a";
+                });
+            }
+
+            function setPendingStatus(fieldKey) {
+                const statusEl = document.getElementById(statusMap[fieldKey]);
+                statusEl.className = "answer-status status-pending";
+                statusEl.innerHTML = 'Incomplete';
+                fieldMap[fieldKey].forEach((id) => {
+                    document.getElementById(id).style.borderColor = "#f4c542";
+                });
+            }
+
+            function clearFieldStatus(fieldKey) {
+                const statusEl = document.getElementById(statusMap[fieldKey]);
+                statusEl.className = "answer-status";
+                statusEl.innerHTML = "";
+                fieldMap[fieldKey].forEach((id) => {
+                    document.getElementById(id).style.borderColor = "";
+                });
+            }
+
+            function fieldMatches(fieldKey) {
+                const values = getFieldValues(fieldKey);
+                if (!isValidOctets(values)) return null;
+                return values.every((v, index) => Number(v) === currentAnswers[fieldKey][index]);
+            }
+
+            function checkAnswers() {
+                if (!currentAnswers || currentQuestionAnswered) return;
+                const keys = Object.keys(fieldMap);
+                let allCorrect = true;
+                keys.forEach((key) => {
+                    const ok = fieldMatches(key);
+                    if (ok === null) {
+                        setPendingStatus(key);
+                        allCorrect = false;
+                    } else {
+                        setStatus(key, ok);
+                        if (!ok) allCorrect = false;
+                    }
+                });
+                if (allCorrect) {
+                    currentQuestionAnswered = true;
+                    correctCount += 1;
+                    document.getElementById("correctCount").textContent = String(correctCount);
+                    document.getElementById("btnCheckAnswer").disabled = true;
+                    updateQuestionHistoryResult("correct");
+                }
+                writeStorage();
+            }
+
+            function showAnswersAsGiveUp() {
+                if (!currentAnswers || currentQuestionAnswered) return;
+                Object.keys(fieldMap).forEach((fieldKey) => {
+                    fieldMap[fieldKey].forEach((id, idx) => {
+                        document.getElementById(id).value = String(currentAnswers[fieldKey][idx]);
+                    });
+                    setStatus(fieldKey, true);
+                });
+                currentQuestionAnswered = true;
+                giveUpCount += 1;
+                document.getElementById("giveUpCount").textContent = String(giveUpCount);
+                document.getElementById("btnCheckAnswer").disabled = true;
+                updateQuestionHistoryResult("giveup");
+                writeStorage();
+            }
+
+            function nextQuestion() {
+                currentQuestionAnswered = false;
+                document.getElementById("btnCheckAnswer").disabled = false;
+                currentAnswers = buildQuestion();
+                addQuestionToHistory(currentAnswers);
+                updateDisplayedQuestion(currentAnswers);
+                clearInputsAndStatus();
+                writeStorage();
+            }
+
+            function clearScores(event) {
+                event.preventDefault();
+                correctCount = 0;
+                giveUpCount = 0;
+                currentQuestionAnswered = false;
+                questionHistory = [];
+                currentHistoryIndex = -1;
+                renderHistory();
+                document.getElementById("correctCount").textContent = "0";
+                document.getElementById("giveUpCount").textContent = "0";
+                localStorage.removeItem(STORAGE_KEY);
+                nextQuestion();
+            }
+
+            function restoreState() {
+                const saved = readStorage();
+                if (!saved || !saved.currentAnswers) return false;
+                currentAnswers = saved.currentAnswers;
+                correctCount = Number(saved.correctCount) || 0;
+                giveUpCount = Number(saved.giveUpCount) || 0;
+                currentQuestionAnswered = Boolean(saved.currentQuestionAnswered);
+                questionHistory = Array.isArray(saved.questionHistory) ? saved.questionHistory.slice(-HISTORY_LIMIT) : [];
+                currentHistoryIndex = typeof saved.currentHistoryIndex === "number" ? saved.currentHistoryIndex : -1;
+                if (currentHistoryIndex >= questionHistory.length) {
+                    currentHistoryIndex = questionHistory.length - 1;
+                }
+                if (currentHistoryIndex < 0 && currentAnswers) {
+                    const activeKey = questionKey(currentAnswers);
+                    for (let i = questionHistory.length - 1; i >= 0; i -= 1) {
+                        if (questionHistory[i].key === activeKey && questionHistory[i].result === "pending") {
+                            currentHistoryIndex = i;
+                            break;
+                        }
+                    }
+                    if (currentHistoryIndex < 0 && questionHistory.length) {
+                        currentHistoryIndex = questionHistory.length - 1;
+                    }
+                }
+                document.getElementById("correctCount").textContent = String(correctCount);
+                document.getElementById("giveUpCount").textContent = String(giveUpCount);
+                updateDisplayedQuestion(currentAnswers);
+                clearInputsAndStatus();
+                restoreInputValues(saved.inputValues);
+                restoreStatusValues(saved.statusValues);
+                document.getElementById("btnCheckAnswer").disabled = currentQuestionAnswered;
+                if (!questionHistory.length || questionHistory[questionHistory.length - 1].key !== questionKey(currentAnswers)) {
+                    addQuestionToHistory(currentAnswers);
+                }
+                updateActiveHistorySnapshot();
+                renderHistory();
+                return true;
             }
 
             $(document).ready(function() {
@@ -473,20 +949,54 @@ $assetVersion = "1.1.30";
                     window.location.href = '/login.php';
                 });
 
-                generateTask();
-                
-                $('#btnCheckAnswer').click(checkAnswers);
-                $('#btnNext').click(generateTask);
-                $('#cmdgiveup').click(giveUp);
-                $('#clearScoreBtn').click(function(e) {
-                    e.preventDefault();
-                    correctCount = 0;
-                    giveUpCount = 0;
-                    history = [];
-                    $('#correctCount').text(0);
-                    $('#giveUpCount').text(0);
-                    updateHistoryUI();
+                document.getElementById("btnCheckAnswer").addEventListener("click", function (event) {
+                    event.preventDefault();
+                    checkAnswers();
                 });
+                document.getElementById("btnNext").addEventListener("click", function (event) {
+                    event.preventDefault();
+                    nextQuestion();
+                });
+                document.getElementById("cmdgiveup").addEventListener("click", function (event) {
+                    event.preventDefault();
+                    showAnswersAsGiveUp();
+                });
+                document.getElementById("clearScoreBtn").addEventListener("click", clearScores);
+                document.getElementById("historyList").addEventListener("click", function (event) {
+                    const deleteButton = event.target.closest("button.history-delete-btn");
+                    if (deleteButton) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const deleteIndex = Number(deleteButton.dataset.deleteIndex);
+                        if (!Number.isNaN(deleteIndex)) {
+                            deleteHistoryItem(deleteIndex);
+                        }
+                        return;
+                    }
+                    const row = event.target.closest("tr.history-item-resumable");
+                    if (!row) return;
+                    const index = Number(row.dataset.index);
+                    if (Number.isNaN(index)) return;
+                    loadHistoryAttempt(index);
+                });
+
+                Object.keys(fieldMap).forEach((fieldKey) => {
+                    fieldMap[fieldKey].forEach((id) => {
+                        const input = document.getElementById(id);
+                        if (input) {
+                            input.addEventListener("input", function () {
+                                if (!currentQuestionAnswered) {
+                                    clearFieldStatus(inputIdToFieldKey[id]);
+                                }
+                                writeStorage();
+                            });
+                        }
+                    });
+                });
+
+                if (!restoreState()) {
+                    nextQuestion();
+                }
 
                 // Auto-tab between octets
                 $('.textform').on('input', function() {
