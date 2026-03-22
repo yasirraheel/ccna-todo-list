@@ -41,7 +41,7 @@
     <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@srexi/purecounterjs/dist/purecounter_vanilla.js"></script>
-    <script src="https://ccnax.com/wp-content/themes/ccnax/assets/js/main.js"></script>
+    <script src="assets/js/main.js?v=<?php echo $assetVersion; ?>"></script>
 
     <script>
         $(document).ready(function() {
