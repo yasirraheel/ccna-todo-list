@@ -33,11 +33,11 @@ ob_start();
                 <div class="row" class="convertion-section" style="width:100%;">
                     <div class="col-md-12"></div>
                     <div class="col-md-6 form-line">
-                        <div class="form-group quiz-question-block" style="background: rgba(238, 131, 49, 0.1); border: 1px solid rgba(238, 131, 49, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 30px; display: flex; flex-direction: column; gap: 10px;">
+                        <div class="form-group quiz-question-block" style="background: rgba(238, 131, 49, 0.1); border: 1px solid rgba(238, 131, 49, 0.3); border-radius: 12px; padding: 10px 15px; margin-bottom: 15px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
                             <label style="margin: 0;">
-                                <h3 style="margin: 0; color: #ee8331; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px;"><i class="fas fa-network-wired"></i> Target IP Address</h3>
+                                <h3 style="margin: 0; color: #ee8331; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;"><i class="fas fa-network-wired"></i> Target IP</h3>
                             </label>
-                            <div style="width:100%;color:#FFFFFF; display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
+                            <div style="color:#FFFFFF; display:flex; flex-wrap:wrap; align-items:center; gap:2px; justify-content: center;">
                                 <div id="ip-octet-1" class="task taskIP">253</div>
                                 <div class="ip-dot">.</div>
                                 <div id="ip-octet-2" class="task taskIP">118</div>
@@ -45,7 +45,7 @@ ob_start();
                                 <div id="ip-octet-3" class="task taskIP">117</div>
                                 <div class="ip-dot">.</div>
                                 <div id="ip-octet-4" class="task taskIP">112</div>
-                                <div class="task" id="taskBitmask" style="background: #ee8331; color: #fff; margin-left: 10px; padding: 10px 15px;"><span id="ip-mask-value">/23</span><input type="hidden" name="mask_bits"
+                                <div class="task" id="taskBitmask" style="background: #ee8331; color: #fff; margin-left: 5px; padding: 4px 10px; font-size: 18px;"><span id="ip-mask-value">/23</span><input type="hidden" name="mask_bits"
                                         id="mask_bits" value="23" size="10" readonly></div>
                             </div>
                         </div>
