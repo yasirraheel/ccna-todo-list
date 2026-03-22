@@ -37,7 +37,7 @@ ob_start();
                             <label>
                                 <h3>IP Address</h3>
                             </label>
-                            <div style="width:100%;color:#FFFFFF;">
+                            <div style="width:100%;color:#FFFFFF; display:flex; flex-wrap:wrap; align-items:center; gap:4px;">
                                 <div id="ip-octet-1" class="task taskIP">253</div>
                                 <div id="ip-octet-2" class="task taskIP">118</div>
                                 <div id="ip-octet-3" class="task taskIP">117</div>
@@ -50,16 +50,13 @@ ob_start();
                             <label>
                                 <h3>Network Address <span id="status-network" class="answer-status"></span></h3>
                             </label>
-                            <div class="ip-input-row">
+                            <div style="width:100%;">
                                 <div class="qtext1"><input type="text" class="form-control textform" name="NetAddO1"
                                         value="" id="NetAddO1"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text" class="form-control textform" name="NetAddO2"
                                         value="" id="NetAddO2"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text" class="form-control textform" name="NetAddO3"
                                         value="" id="NetAddO3"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text" class="form-control textform" name="NetAddO4"
                                         value="" id="NetAddO4"></div>
                             </div>
@@ -68,16 +65,13 @@ ob_start();
                             <label style="padding-top:10px;">
                                 <h3>First Host Address <span id="status-firstHost" class="answer-status"></span></h3>
                             </label>
-                            <div class="ip-input-row">
+                            <div style="width:100%;">
                                 <div class="qtext1"><input type="text" class="form-control textform" name="fhost1"
                                         value="" id="fhost1"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text" class="form-control textform" name="fhost2"
                                         value="" id="fhost2"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text" class="form-control textform" name="fhost3"
                                         value="" id="fhost3"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text" class="form-control textform" name="fhost4"
                                         value="" id="fhost4"></div>
                             </div>
@@ -86,16 +80,13 @@ ob_start();
                             <label style="padding-top:10px;">
                                 <h3>Last Host Address <span id="status-lastHost" class="answer-status"></span></h3>
                             </label>
-                            <div class="ip-input-row">
+                            <div style="width:100%;">
                                 <div class="qtext1"><input type="text" class="form-control textform" name="lhost1"
                                         value="" id="lhost1"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text" class="form-control textform" name="lhost2"
                                         value="" id="lhost2"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text" class="form-control textform" name="lhost3"
                                         value="" id="lhost3"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text" class="form-control textform" name="lhost4"
                                         value="" id="lhost4"></div>
                             </div>
@@ -104,19 +95,16 @@ ob_start();
                             <label style="padding-top:10px;">
                                 <h3>Broadcast Address <span id="status-broadcast" class="answer-status"></span></h3>
                             </label>
-                            <div class="ip-input-row">
+                            <div style="width:100%;">
                                 <div class="qtext1"><input type="text"
                                         class="form-control textform user-answer broadcast" name="BroadAddO1"
                                         value="" id="BroadAddO1"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text"
                                         class="form-control textform user-answer broadcast" name="BroadAddO2"
                                         value="" id="BroadAddO2"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text"
                                         class="form-control textform user-answer broadcast" name="BroadAddO3"
                                         value="" id="BroadAddO3"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text"
                                         class="form-control textform user-answer broadcast" name="BroadAddO4"
                                         value="" id="BroadAddO4"></div>
@@ -126,19 +114,16 @@ ob_start();
                             <label style="padding-top:10px;">
                                 <h3>Subnet Mask <span id="status-subnetMask" class="answer-status"></span></h3>
                             </label>
-                            <div class="ip-input-row">
+                            <div style="width:100%;">
                                 <div class="qtext1"><input type="text"
                                         class="form-control textform user-answer subnet" name="SubnetMaskO1"
                                         value="" id="SubnetMaskO1"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text"
                                         class="form-control textform user-answer subnet" name="SubnetMaskO2"
                                         value="" id="SubnetMaskO2"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text"
                                         class="form-control textform user-answer subnet" name="SubnetMaskO3"
                                         value="" id="SubnetMaskO3"></div>
-                                <div class="ip-dot">.</div>
                                 <div class="qtext2"><input type="text"
                                         class="form-control textform user-answer subnet" name="SubnetMaskO4"
                                         value="" id="SubnetMaskO4"></div>
