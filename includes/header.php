@@ -60,12 +60,18 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                 <span><?php echo $appName; ?></span>
             </a>
             <nav id="navbar" class="navbar">
+                <div class="search-bar-container me-3 d-none d-lg-block">
+                    <input type="text" id="saas-search" class="form-control" placeholder="Search tasks..." style="width: 250px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff;">
+                </div>
                 <ul>
-                    <li><a href="<?php echo $baseUrl; ?>" class="<?php echo ($currentPage == 'index.php') ? 'active' : ''; ?>">Home</a></li>
-                    <li><a href="<?php echo $baseUrl; ?>/quiz.php" class="<?php echo ($currentPage == 'quiz.php') ? 'active' : ''; ?>">Subnet Quiz</a></li>
-                    <div class="session-info-wrap">
-                        <span id="session-email" class="session-email d-none d-md-inline"></span>
-                        <button type="button" id="logout-btn" class="logout-btn">Logout</button>
+                    <li><a href="<?php echo $baseUrl; ?>" class="<?php echo ($currentPage == 'index.php') ? 'active' : ''; ?>">Dashboard</a></li>
+                    <li><a href="quiz.php" class="<?php echo ($currentPage == 'quiz.php') ? 'active' : ''; ?>">Quiz</a></li>
+                    
+                    <div class="session-info-wrap ms-3">
+                        <span id="session-email" class="session-email d-none me-3"></span>
+                        <button id="logout-btn" class="bulk-btn danger" style="padding: 6px 15px; font-size: 0.9rem;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
                     </div>
                 </ul>
             </nav>

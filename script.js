@@ -248,15 +248,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (selectAllTasksInput) {
-    selectAllTasksInput.addEventListener('change', () => {
-      const filteredTasks = getFilteredTasks();
-      if (selectAllTasksInput.checked) {
-        filteredTasks.forEach(task => selectedTaskIds.add(task.id));
-      } else {
-        filteredTasks.forEach(task => selectedTaskIds.delete(task.id));
-      }
-      renderTasks();
-      showFlash(selectAllTasksInput.checked ? 'Selected visible tasks' : 'Selection cleared', 'info');
+    selectAllTasksInput.addEventListener('change', (e) => {
+      const isChecked = e.target.checked;
+      const checkboxes = document.querySelectorAll('.task-checkbox');
+      checkboxes.forEach(cb => {
+        cb.checked = isChecked;
+        const taskId = parseInt(cb.dataset.id, 10);
+        if (isChecked) {
+          selectedTaskIds.add(taskId);
+        } else {
+          selectedTaskIds.delete(taskId);
+        }
+      });
+      toggleBulkActions();
+      showFlash(isChecked ? 'Selected all tasks' : 'Selection cleared', 'info');
     });
   }
 
@@ -2568,6 +2573,16 @@ document.addEventListener('DOMContentLoaded', () => {
            </div>`
         : '';
 
+      const notesSectionHtml = `
+        <div class="task-notes-section app-hidden" id="notes-section-${task.id}">
+          <div class="task-notes-list" id="notes-list-${task.id}"></div>
+          <div class="task-note-form">
+            <textarea class="task-note-input form-control" id="note-input-${task.id}" placeholder="Type your note..."></textarea>
+            <button class="bulk-btn success" onclick="window.addTaskNote('${task.id}')">Add Note</button>
+          </div>
+        </div>
+      `;
+
       li.innerHTML = `
         <div class="task-thumbnail-wrapper ${watchUrl ? 'task-open-link' : ''}">
           ${thumbnailHtml}
@@ -2593,10 +2608,11 @@ document.addEventListener('DOMContentLoaded', () => {
               <button class="task-note-toggle-btn ${task.noteCount > 0 ? 'has-notes' : ''}" title="Notes" onclick="window.openNotesModal('${task.id}')">
                 <i class="far fa-note-sticky"></i> Notes ${task.noteCount > 0 ? `<span class="note-badge">${task.noteCount}</span>` : ''}
               </button>
-              ${watchUrl ? `<a class="watch-btn" href="${watchUrl}" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> Watch</a>` : ''}
-              ${downloadSubUrl ? `<a class="sub-btn" href="${downloadSubUrl}" download title="Download Subtitles"><i class="fas fa-closed-captioning"></i> Sub</a>` : ''}
-              ${canDelete ? '<button class="delete-btn" title="Delete task"><i class="fas fa-trash"></i></button>' : ''}
+              ${watchUrl ? `<a href="${watchUrl}" target="_blank" class="watch-btn" title="Watch Video"><i class="fab fa-youtube"></i> Watch</a>` : ''}
+              ${downloadSubUrl ? `<a href="${downloadSubUrl}" target="_blank" class="sub-btn" title="Download Subtitles" download><i class="fas fa-closed-captioning"></i> Subs</a>` : ''}
+              ${canDelete ? `<button class="delete-btn" title="Delete Task"><i class="fas fa-trash-can"></i></button>` : ''}
             </div>
+            ${notesSectionHtml}
           </div>
         </div>
       `;

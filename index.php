@@ -13,13 +13,6 @@ ob_start();
 <div id="flash-stack" class="flash-stack"></div>
 
 <main id="app-container" class="app-container">
-    <div class="saas-header-center mb-4 d-flex justify-content-center">
-        <div class="saas-search-wrap w-100" style="max-width: 600px;">
-            <i class="fas fa-search"></i>
-            <input id="saas-search-input" type="search" placeholder="Search tasks or playlists" aria-label="Search">
-        </div>
-    </div>
-
     <section class="page-title-row mb-4">
         <h1 class="page-title">Dashboard</h1>
         <p id="current-date" class="date-display text-muted"></p>
@@ -137,29 +130,6 @@ ob_start();
         <button id="load-more-btn" class="bulk-btn">Load More Tasks</button>
     </div>
 </main>
-
-<div id="custom-modal" class="modal-overlay">
-    <div class="modal-content">
-        <h3 id="modal-title" class="modal-title">Confirm Action</h3>
-        <div id="modal-message" class="modal-message">Are you sure you want to proceed?</div>
-        <input type="text" id="modal-input" class="modal-input app-hidden">
-        <div class="modal-actions">
-            <button id="modal-cancel" class="modal-btn modal-btn-cancel">Cancel</button>
-            <button id="modal-confirm" class="modal-btn modal-btn-primary">Confirm</button>
-        </div>
-    </div>
-</div>
-
-<div id="sub-modal" class="modal-overlay sub-modal">
-    <div class="modal-content">
-        <h3 id="sub-modal-title" class="modal-title">Confirm Action</h3>
-        <div id="sub-modal-message" class="modal-message">Are you sure you want to proceed?</div>
-        <div class="modal-actions">
-            <button id="sub-modal-cancel" class="modal-btn modal-btn-cancel">Cancel</button>
-            <button id="sub-modal-confirm" class="modal-btn modal-btn-primary">Confirm</button>
-        </div>
-    </div>
-</div>
 
 <script src="script.js?v=<?php echo $assetVersion; ?>"></script>
 

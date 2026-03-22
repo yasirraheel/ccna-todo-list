@@ -36,6 +36,30 @@
         </div>
     </footer>
 
+    <!-- Global Modals -->
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-title" class="modal-title">Confirm Action</h3>
+            <div id="modal-message" class="modal-message">Are you sure you want to proceed?</div>
+            <input type="text" id="modal-input" class="modal-input app-hidden">
+            <div class="modal-actions">
+                <button id="modal-cancel" class="modal-btn modal-btn-cancel">Cancel</button>
+                <button id="modal-confirm" class="modal-btn modal-btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sub-modal" class="modal-overlay sub-modal">
+        <div class="modal-content">
+            <h3 id="sub-modal-title" class="modal-title">Confirm Action</h3>
+            <div id="sub-modal-message" class="modal-message">Are you sure you want to proceed?</div>
+            <div class="modal-actions">
+                <button id="sub-modal-cancel" class="modal-btn modal-btn-cancel">Cancel</button>
+                <button id="sub-modal-confirm" class="modal-btn modal-btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Global Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>

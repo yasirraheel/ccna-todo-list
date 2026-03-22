@@ -497,6 +497,90 @@ h3 {
     }
 }
 
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000; /* Ensure it's above everything */
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 30px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.modal-title {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    font-family: 'Azonix', sans-serif;
+}
+
+.modal-message {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.modal-input {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.modal-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.modal-btn-cancel {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.modal-btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-btn-primary {
+    background: #ee8331;
+    color: #fff;
+}
+
+.modal-btn-primary:hover {
+    background: #d9772c;
+}
+
+.sub-modal {
+    z-index: 10001; /* Above the main modal */
+}
+
 /* UTILS */
 .app-hidden {
     display: none !important;
@@ -714,6 +798,15 @@ select:focus {
 }
 
 .task-check-wrap:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.task-item.completed .task-check-wrap {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.task-item.completed .task-check-wrap:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 
