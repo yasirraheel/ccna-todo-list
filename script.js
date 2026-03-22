@@ -1360,7 +1360,7 @@ document.addEventListener('DOMContentLoaded', () => {
     container.innerHTML = '';
     
     if (tasks.length === 0) {
-      container.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; color: #64748b;">No tasks found</td></tr>';
+      container.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; color: rgba(255,255,255,0.5);">No tasks found</td></tr>';
       return;
     }
 
@@ -1372,38 +1372,40 @@ document.addEventListener('DOMContentLoaded', () => {
       
       tr.innerHTML = `
         <td data-label="Task Content">
-          <div style="font-weight: 600; color: #1e293b; margin-bottom: 4px;">${task.text}</div>
-          ${task.videoUrl ? `<div style="font-size: 0.75rem; color: #2563eb; word-break: break-all;"><i class="fab fa-youtube"></i> ${task.videoUrl}</div>` : ''}
+          <div style="font-weight: 600; color: #fff; margin-bottom: 4px;">${task.text}</div>
+          ${task.videoUrl ? `<div style="font-size: 0.75rem; color: #3b82f6; word-break: break-all;"><i class="fab fa-youtube"></i> ${task.videoUrl}</div>` : ''}
         </td>
         <td data-label="Owner">
-          <div style="font-size: 0.85rem;">${task.ownerEmail || 'Unknown'}</div>
+          <div style="font-size: 0.85rem; color: rgba(255,255,255,0.8);">${task.ownerEmail || 'Unknown'}</div>
         </td>
         <td data-label="Playlist & Visibility">
-          ${hasPlaylist ? `<span class="admin-badge badge-user" style="background: #e0f2fe; color: #0369a1;"><i class="fas fa-list"></i> ${task.playlistName}</span>` : ''}
-          <span class="admin-badge ${isPublic ? 'badge-active' : 'badge-suspended'}" style="margin-top: 4px; cursor: pointer;" onclick="window.adminToggleTaskVisibility('${task.id}', '${isPublic ? 'private' : 'public'}')">
+          ${hasPlaylist ? `<span class="admin-badge" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.3);"><i class="fas fa-list"></i> ${task.playlistName}</span>` : ''}
+          <span class="admin-badge" style="margin-top: 4px; cursor: pointer; background: ${isPublic ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255, 255, 255, 0.1)'}; color: ${isPublic ? '#10b981' : '#fff'}; border-color: ${isPublic ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255, 255, 255, 0.2)'};" onclick="window.adminToggleTaskVisibility('${task.id}', '${isPublic ? 'private' : 'public'}')">
             <i class="fas ${isPublic ? 'fa-globe' : 'fa-lock'}"></i> ${isPublic ? 'Public' : 'Private'}
           </span>
         </td>
         <td data-label="Status">
-          <span class="admin-badge ${isCompleted ? 'badge-active' : 'badge-suspended'}" style="cursor: pointer;" onclick="window.adminToggleTaskCompletion('${task.id}', ${!isCompleted})">
+          <span class="admin-badge" style="cursor: pointer; background: ${isCompleted ? 'rgba(16, 185, 129, 0.1)' : 'rgba(238, 131, 49, 0.1)'}; color: ${isCompleted ? '#10b981' : '#ee8331'}; border-color: ${isCompleted ? 'rgba(16, 185, 129, 0.3)' : 'rgba(238, 131, 49, 0.3)'};" onclick="window.adminToggleTaskCompletion('${task.id}', ${!isCompleted})">
             <i class="fas ${isCompleted ? 'fa-check-circle' : 'fa-circle'}"></i> ${isCompleted ? 'Completed' : 'Active'}
           </span>
         </td>
         <td data-label="Actions" class="admin-actions">
-          <button class="bulk-btn" title="Edit Task" onclick="window.adminEditTask('${task.id}', \`${task.text.replace(/`/g, '\\`')}\`)">
-            <i class="fas fa-edit"></i>
-          </button>
-          ${task.videoUrl ? `
-          <button class="bulk-btn success" title="Refresh YouTube Data" onclick="window.adminRefreshYoutubeTask('${task.id}')">
-            <i class="fas fa-sync-alt"></i>
-          </button>
-          <button class="bulk-btn warning" title="Video Tools" onclick="window.adminShowVideoTools('${task.id}', '${task.videoUrl}', '${task.captionPath || ''}')">
-            <i class="fas fa-video"></i>
-          </button>
-          ` : ''}
-          <button class="bulk-btn danger" title="Delete Task" onclick="window.adminDeleteTask('${task.id}')">
-            <i class="fas fa-trash"></i>
-          </button>
+          <div style="display: flex; gap: 8px;">
+            <button class="action-btn" title="Edit Task" onclick="window.adminEditTask('${task.id}', \`${task.text.replace(/`/g, '\\`')}\`)">
+              <i class="fas fa-edit"></i>
+            </button>
+            ${task.videoUrl ? `
+            <button class="action-btn" style="color: #10b981;" title="Refresh YouTube Data" onclick="window.adminRefreshYoutubeTask('${task.id}')">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+            <button class="action-btn" style="color: #f59e0b;" title="Video Tools" onclick="window.adminShowVideoTools('${task.id}', '${task.videoUrl}', '${task.captionPath || ''}')">
+              <i class="fas fa-video"></i>
+            </button>
+            ` : ''}
+            <button class="action-btn danger" title="Delete Task" onclick="window.adminDeleteTask('${task.id}')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
         </td>
       `;
       container.appendChild(tr);
@@ -1795,49 +1797,57 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderUsersTable(container, users) {
     if (!container) return;
     container.innerHTML = '';
+    
+    if (users.length === 0) {
+      container.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; color: rgba(255,255,255,0.5);">No users found</td></tr>';
+      return;
+    }
+
     users.forEach(user => {
       const tr = document.createElement('tr');
       const date = new Date(user.created_at).toLocaleDateString();
-      const roleBadge = user.role === 'admin' ? 'badge-admin' : 'badge-user';
-      const statusBadge = user.status === 'suspended' ? 'badge-suspended' : 'badge-active';
+      const roleBadgeStyle = user.role === 'admin' ? 'background: rgba(238, 131, 49, 0.1); color: #ee8331; border-color: rgba(238, 131, 49, 0.3);' : 'background: rgba(255, 255, 255, 0.05); color: #fff; border-color: rgba(255, 255, 255, 0.1);';
+      const statusBadgeStyle = user.status === 'suspended' ? 'background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);' : 'background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.3);';
       const isSuspended = user.status === 'suspended';
       const isVerified = parseInt(user.is_verified || 0) === 1;
-      const verifiedBadge = isVerified ? 'badge-active' : 'badge-suspended';
+      const verifiedBadgeStyle = isVerified ? 'background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.3);' : 'background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.3);';
       const isGoogle = (user.auth_provider || 'email') === 'google';
       
       tr.innerHTML = `
         <td data-label="User">
-          ${user.name}
-          ${isGoogle ? `<div style="margin-top: 4px;"><span class="admin-badge" style="background: #fff1f2; color: #be123c; font-size: 0.65rem; border: 1px solid #fecdd3;"><i class="fab fa-google"></i> Google</span></div>` : ''}
+          <div style="font-weight: 600; margin-bottom: 4px;">${user.name}</div>
+          ${isGoogle ? `<div><span class="admin-badge" style="background: rgba(255, 255, 255, 0.1); color: #fff; border-color: rgba(255, 255, 255, 0.2);"><i class="fab fa-google" style="color: #ea4335;"></i> Google</span></div>` : ''}
         </td>
         <td data-label="Email & Status">
-          ${user.email}
-          <div style="margin-top: 4px;">
-            <span class="admin-badge ${verifiedBadge}" style="font-size: 0.65rem; padding: 1px 6px;">
-              <i class="fas ${isVerified ? 'fa-check-circle' : 'fa-times-circle'}"></i> ${isVerified ? 'Verified' : 'Unverified'}
+          <div style="color: rgba(255,255,255,0.8); margin-bottom: 4px;">${user.email}</div>
+          <div>
+            <span class="admin-badge" style="${verifiedBadgeStyle}">
+              <i class="fas ${isVerified ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i> ${isVerified ? 'Verified' : 'Unverified'}
             </span>
           </div>
         </td>
         <td data-label="Role & Status">
-          <span class="admin-badge ${roleBadge}">${user.role}</span>
-          <span class="admin-badge ${statusBadge}">${user.status || 'active'}</span>
+          <span class="admin-badge" style="${roleBadgeStyle}">${user.role}</span>
+          <span class="admin-badge" style="${statusBadgeStyle}">${user.status || 'active'}</span>
         </td>
-        <td data-label="Joined">${date}</td>
+        <td data-label="Joined"><div style="color: rgba(255,255,255,0.6);">${date}</div></td>
         <td data-label="Actions" class="admin-actions">
-          <button class="bulk-btn" title="Toggle Role (User/Admin)" onclick="window.updateUserRole(${user.id}, '${user.role === 'admin' ? 'user' : 'admin'}')">
-            <i class="fas fa-user-shield"></i>
-          </button>
-          <button class="bulk-btn ${isSuspended ? 'success' : 'warning'}" title="${isSuspended ? 'Activate User' : 'Suspend User'}" onclick="window.updateUserStatus(${user.id}, '${isSuspended ? 'active' : 'suspended'}')">
-            <i class="fas ${isSuspended ? 'fa-user-check' : 'fa-user-slash'}"></i>
-          </button>
-          ${!isVerified ? `
-          <button class="bulk-btn success" title="Verify User Manually" onclick="window.verifyUserManually(${user.id})">
-            <i class="fas fa-check-double"></i>
-          </button>
-          ` : ''}
-          <button class="bulk-btn danger" title="Delete User" onclick="window.deleteUser(${user.id})">
-            <i class="fas fa-trash"></i>
-          </button>
+          <div style="display: flex; gap: 8px;">
+            <button class="action-btn" title="Toggle Role (User/Admin)" onclick="window.updateUserRole(${user.id}, '${user.role === 'admin' ? 'user' : 'admin'}')">
+              <i class="fas fa-user-shield"></i>
+            </button>
+            <button class="action-btn" style="color: ${isSuspended ? '#10b981' : '#f59e0b'};" title="${isSuspended ? 'Activate User' : 'Suspend User'}" onclick="window.updateUserStatus(${user.id}, '${isSuspended ? 'active' : 'suspended'}')">
+              <i class="fas ${isSuspended ? 'fa-user-check' : 'fa-user-slash'}"></i>
+            </button>
+            ${!isVerified ? `
+            <button class="action-btn" style="color: #10b981;" title="Verify User Manually" onclick="window.verifyUserManually(${user.id})">
+              <i class="fas fa-check-double"></i>
+            </button>
+            ` : ''}
+            <button class="action-btn danger" title="Delete User" onclick="window.deleteUser(${user.id})">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
         </td>
       `;
       container.appendChild(tr);
