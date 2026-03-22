@@ -1390,7 +1390,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </span>
         </td>
         <td data-label="Actions" class="admin-actions">
-          <div style="display: flex; gap: 8px;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button class="action-btn" title="Edit Task" onclick="window.adminEditTask('${task.id}', \`${task.text.replace(/`/g, '\\`')}\`)">
               <i class="fas fa-edit"></i>
             </button>
@@ -1418,11 +1418,34 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (p.pages <= 1) return;
     
+    // Add container styling for better visual alignment
+    adminTasksPagination.style.display = 'flex';
+    adminTasksPagination.style.flexWrap = 'wrap';
+    adminTasksPagination.style.gap = '8px';
+    adminTasksPagination.style.justifyContent = 'center';
+    adminTasksPagination.style.marginTop = '20px';
+    
     for (let i = 1; i <= p.pages; i++) {
       const btn = document.createElement('button');
       btn.textContent = i;
-      btn.className = `bulk-btn ${i === p.page ? 'active' : ''}`;
-      btn.style.minWidth = '32px';
+      // Using action-btn styling to match the dark theme nicely
+      btn.className = `action-btn ${i === p.page ? 'active' : ''}`;
+      
+      // Override active state specifically for pagination
+      if (i === p.page) {
+        btn.style.background = '#ee8331';
+        btn.style.color = '#fff';
+        btn.style.borderColor = '#ee8331';
+      }
+      
+      btn.style.minWidth = '36px';
+      btn.style.height = '36px';
+      btn.style.display = 'flex';
+      btn.style.alignItems = 'center';
+      btn.style.justifyContent = 'center';
+      btn.style.fontWeight = '600';
+      btn.style.borderRadius = '8px';
+      
       btn.onclick = () => loadAllTasks(i);
       adminTasksPagination.appendChild(btn);
     }
@@ -1832,7 +1855,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </td>
         <td data-label="Joined"><div style="color: rgba(255,255,255,0.6);">${date}</div></td>
         <td data-label="Actions" class="admin-actions">
-          <div style="display: flex; gap: 8px;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button class="action-btn" title="Toggle Role (User/Admin)" onclick="window.updateUserRole(${user.id}, '${user.role === 'admin' ? 'user' : 'admin'}')">
               <i class="fas fa-user-shield"></i>
             </button>
