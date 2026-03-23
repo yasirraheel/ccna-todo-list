@@ -83,7 +83,7 @@ let statTotalEl, statCompletedEl, statPendingEl, statPlaylistEl, statProgressFil
 
 window.openMobilePlaylistModal = function() {
   const modal = document.getElementById('mobile-playlist-modal');
-  renderMobilePlaylistOptions(getMobilePlaylistOptions());
+  syncMobilePlaylistUi(getMobilePlaylistOptions());
   if (modal) modal.classList.add('active');
 };
 
@@ -97,18 +97,51 @@ function getCleanPlaylistName(label) {
   return normalized || 'Unassigned';
 }
 
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function getMobilePlaylistOptions() {
-  if (!playlistFilterSelect) return [{ id: 'all', name: 'All Playlists' }];
-  return Array.from(playlistFilterSelect.options).map(option => ({
-    id: option.value,
-    name: option.textContent || option.innerText || 'All Playlists'
+  if (playlistFilterSelect && playlistFilterSelect.options.length > 0) {
+    return Array.from(playlistFilterSelect.options).map(option => ({
+      id: option.value,
+      name: option.textContent || option.innerText || 'All Playlists'
+    }));
+  }
+  const namesFromTasks = Array.from(new Set((tasks || []).map(task => String(task?.playlistName || '').trim())));
+  const mappedTasks = namesFromTasks.filter(Boolean).map(name => ({ id: name, name }));
+  return [{ id: 'all', name: 'All Playlists' }, ...mappedTasks];
+}
+
+function getSafeMobilePlaylistOptions(options) {
+  const source = Array.isArray(options) && options.length ? options : getMobilePlaylistOptions();
+  if (!source.length) {
+    return [{ id: 'all', name: 'All Playlists' }];
+  }
+  const withFallback = source.some(item => item?.id === 'all')
+    ? source
+    : [{ id: 'all', name: 'All Playlists' }, ...source];
+  return withFallback.map(item => ({
+    id: String(item?.id || 'all'),
+    name: String(item?.name || 'All Playlists')
   }));
+}
+
+function syncMobilePlaylistUi(options) {
+  const items = getSafeMobilePlaylistOptions(options);
+  updateMobileBottomPlaylistName(items);
+  renderMobilePlaylistOptions(items);
 }
 
 function updateMobileBottomPlaylistName(options) {
   const labelEl = document.getElementById('mobile-bottom-playlist-name');
   if (!labelEl) return;
-  const items = Array.isArray(options) && options.length ? options : getMobilePlaylistOptions();
+  const items = getSafeMobilePlaylistOptions(options);
   const selected = items.find(item => item.id === currentPlaylistFilter) || items[0];
   labelEl.textContent = getCleanPlaylistName(selected?.name || 'All Playlists');
 }
@@ -116,15 +149,17 @@ function updateMobileBottomPlaylistName(options) {
 function renderMobilePlaylistOptions(options) {
   const listEl = document.getElementById('mobile-playlist-list');
   if (!listEl) return;
-  const items = Array.isArray(options) && options.length ? options : getMobilePlaylistOptions();
+  const items = getSafeMobilePlaylistOptions(options);
   listEl.innerHTML = '';
   items.forEach(item => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'mobile-playlist-item' + (item.id === currentPlaylistFilter ? ' active' : '');
-    button.innerHTML = `<i class="fas fa-list-ul"></i><span>${getCleanPlaylistName(item.name)}</span>`;
+    button.innerHTML = `<i class="fas fa-list-ul"></i><span>${escapeHtml(getCleanPlaylistName(item.name))}</span>`;
     button.addEventListener('click', () => {
-      if (!playlistFilterSelect) {
+      if (!playlistFilterSelect || playlistFilterSelect.options.length === 0) {
+        currentPlaylistFilter = item.id || 'all';
+        syncMobilePlaylistUi(items);
         window.closeMobilePlaylistModal();
         return;
       }
@@ -134,6 +169,51 @@ function renderMobilePlaylistOptions(options) {
     });
     listEl.appendChild(button);
   });
+}
+
+function setMobileNavOpenState(isOpen) {
+  const body = document.body;
+  if (!body) return;
+  const showToggle = document.querySelector('.mobile-nav-show');
+  const hideToggle = document.querySelector('.mobile-nav-hide');
+  body.classList.toggle('mobile-nav-active', Boolean(isOpen));
+  if (showToggle) showToggle.classList.toggle('d-none', Boolean(isOpen));
+  if (hideToggle) hideToggle.classList.toggle('d-none', !Boolean(isOpen));
+}
+
+function forceMobileNavController() {
+  const toggles = document.querySelectorAll('.mobile-nav-toggle');
+  if (!toggles.length) return;
+  toggles.forEach(toggle => {
+    toggle.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      const nextOpen = !document.body.classList.contains('mobile-nav-active');
+      setMobileNavOpenState(nextOpen);
+    }, true);
+  });
+  document.querySelectorAll('#navbar a').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 991.98) {
+        setMobileNavOpenState(false);
+      }
+    });
+  });
+  document.addEventListener('click', (event) => {
+    if (window.innerWidth > 991.98) return;
+    if (!document.body.classList.contains('mobile-nav-active')) return;
+    const nav = document.getElementById('navbar');
+    if (event.target.closest('.mobile-nav-toggle')) return;
+    if (nav && nav.contains(event.target)) return;
+    setMobileNavOpenState(false);
+  });
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 991.98) {
+      setMobileNavOpenState(false);
+    }
+  });
+  setMobileNavOpenState(false);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -265,6 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applySeoConfig({ appName });
   
   generateCaptcha();
+  forceMobileNavController();
   
   // Mobile Modal functions are defined globally above
 
@@ -425,8 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await saveSelectedPlaylistPreference(currentPlaylistFilter);
       
       const options = getMobilePlaylistOptions();
-      updateMobileBottomPlaylistName(options);
-      renderMobilePlaylistOptions(options);
+      syncMobilePlaylistUi(options);
       
       localStorage.removeItem(VISIBLE_TASK_COUNT_KEY);
       localStorage.removeItem(SCROLL_POSITION_KEY);
@@ -2410,8 +2490,7 @@ document.addEventListener('DOMContentLoaded', () => {
       playlistFilterSelect.value = prev || 'all';
       currentPlaylistFilter = playlistFilterSelect.value || 'all';
       const options = getMobilePlaylistOptions();
-      updateMobileBottomPlaylistName(options);
-      renderMobilePlaylistOptions(options);
+      syncMobilePlaylistUi(options);
     } catch (_e) {
       // ignore
     }
@@ -2443,8 +2522,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     currentPlaylistFilter = (playlistFilterSelect && playlistFilterSelect.value) || chosen || 'all';
     const options = getMobilePlaylistOptions();
-    updateMobileBottomPlaylistName(options);
-    renderMobilePlaylistOptions(options);
+    syncMobilePlaylistUi(options);
   }
 
   async function saveSelectedPlaylistPreference(value) {
