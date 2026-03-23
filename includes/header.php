@@ -35,6 +35,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <meta property="twitter:image" content="https://ccnax.com/wp-content/themes/ccnax/assets/images/apple-touch-icon.png">
 
     <link rel="shortcut icon" href="https://ccnax.com/wp-content/themes/ccnax/assets/images/favicon.png">
+    <link rel="icon" href="https://ccnax.com/wp-content/themes/ccnax/assets/images/favicon.png">
     <link rel="apple-touch-icon" href="https://ccnax.com/wp-content/themes/ccnax/assets/images/apple-touch-icon.png">
     
     <!-- API Base Meta -->
@@ -52,7 +53,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <?php endif; ?>
     
     <!-- External Resources -->
-    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css' media='all' />
+    <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css' media='all' />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
