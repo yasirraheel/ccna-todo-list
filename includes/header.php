@@ -81,6 +81,10 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                 color: #ffffff !important;
                 z-index: 10002 !important;
                 display: none;
+                position: fixed !important;
+                top: 20px !important;
+                right: 20px !important;
+                font-size: 32px !important;
             }
             .mobile-nav-active .mobile-nav-hide {
                 display: block !important;
@@ -99,6 +103,14 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             border: 1px solid rgba(220, 53, 69, 0.2) !important;
             transition: all 0.3s ease !important;
             margin-top: 10px !important;
+            border-radius: 12px !important;
+            font-size: 16px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 10px !important;
+            width: 100% !important;
+            height: 50px !important;
         }
 
         .logout-btn i {
@@ -141,9 +153,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                     <li><a href="<?php echo $baseUrl; ?>" class="<?php echo ($currentPage == 'index.php') ? 'active' : ''; ?>"><i class="fas fa-home d-lg-none"></i> Dashboard</a></li>
                     <li><a href="quiz.php" class="<?php echo ($currentPage == 'quiz.php') ? 'active' : ''; ?>"><i class="fas fa-question-circle d-lg-none"></i> Quiz</a></li>
                     
-                    <div class="session-info-wrap ms-lg-3">
-                        <span id="session-email" class="session-email d-none me-3"></span>
-                        <button id="logout-btn" class="bulk-btn danger" style="padding: 6px 15px; font-size: 0.9rem;">
+                    <div class="session-info-wrap ms-lg-3 d-flex flex-column flex-lg-row align-items-center w-100 mt-4 mt-lg-0 px-3 px-lg-0">
+                        <span id="session-email" class="session-email d-none me-lg-3 mb-2 mb-lg-0 text-center w-100" style="color: rgba(255,255,255,0.6); font-size: 14px;"></span>
+                        <button id="logout-btn" class="logout-btn">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </button>
                     </div>
