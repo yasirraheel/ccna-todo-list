@@ -962,13 +962,15 @@ if (isAdminPage) {
 
       
       // Setup Admin Navigation
-      adminNavItems.forEach(item => {
-        item.addEventListener('click', () => {
-          const section = item.dataset.section;
-          window.location.hash = section;
-          switchAdminSection(section);
+      if (adminNavItems) {
+        adminNavItems.forEach(item => {
+          item.addEventListener('click', () => {
+            const section = item.dataset.section;
+            window.location.hash = section;
+            switchAdminSection(section);
+          });
         });
-      });
+      }
 
       // Handle initial hash
       const initialSection = window.location.hash.substring(1) || 'dashboard';
@@ -1074,8 +1076,12 @@ if (isAdminPage) {
   };
 
   function switchAdminSection(sectionId) {
-    adminNavItems.forEach(i => i.classList.toggle('active', i.dataset.section === sectionId));
-    adminSections.forEach(s => s.classList.toggle('active', s.id === `section-${sectionId}`));
+    if (adminNavItems) {
+      adminNavItems.forEach(i => i.classList.toggle('active', i.dataset.section === sectionId));
+    }
+    if (adminSections) {
+      adminSections.forEach(s => s.classList.toggle('active', s.id === `section-${sectionId}`));
+    }
     
     const title = sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
     const titleEl = document.getElementById('section-title');
