@@ -81,6 +81,16 @@ let saasSearchInput, currentSearchQuery = '';
 // Stats
 let statTotalEl, statCompletedEl, statPendingEl, statPlaylistEl, statProgressFill, statProgressLabel;
 
+window.openMobilePlaylistModal = function() {
+  const modal = document.getElementById('mobile-playlist-modal');
+  if (modal) modal.classList.add('active');
+};
+
+window.closeMobilePlaylistModal = function() {
+  const modal = document.getElementById('mobile-playlist-modal');
+  if (modal) modal.classList.remove('active');
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   form = document.getElementById('todo-form');
   taskInput = document.getElementById('task-input');
@@ -211,15 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   generateCaptcha();
   
-  window.openMobilePlaylistModal = function() {
-    const modal = document.getElementById('mobile-playlist-modal');
-    if (modal) modal.classList.add('active');
-  };
-
-  window.closeMobilePlaylistModal = function() {
-    const modal = document.getElementById('mobile-playlist-modal');
-    if (modal) modal.classList.remove('active');
-  };
+  // Mobile Modal functions are defined globally above
 
   // Handle URL filter parameter
   const urlParams = new URLSearchParams(window.location.search);
