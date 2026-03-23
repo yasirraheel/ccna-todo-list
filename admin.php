@@ -343,6 +343,8 @@ require_once 'includes/config.php';
     @media (max-width: 992px) {
       .admin-sidebar {
         transform: translateX(-100%);
+        background: #000000; /* Pure black for mobile sidebar */
+        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.8);
       }
       .admin-sidebar.open {
         transform: translateX(0);
@@ -353,6 +355,39 @@ require_once 'includes/config.php';
       .mobile-menu-btn {
         display: block;
       }
+      .admin-header {
+        padding: 15px 20px;
+      }
+      .admin-section {
+        padding: 15px;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+      .stat-value {
+        font-size: 2rem;
+      }
+    }
+    
+    /* Overlay for mobile sidebar */
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 95;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .sidebar-overlay.show {
+      display: block;
+      opacity: 1;
     }
   </style>
 </head>
@@ -365,10 +400,15 @@ require_once 'includes/config.php';
 
   <aside class="admin-sidebar" id="admin-sidebar">
     <div class="admin-sidebar-header">
-      <a href="/" class="admin-sidebar-logo">
-        <i class="fas fa-shield-halved"></i>
-        <span>Admin Panel</span>
-      </a>
+      <div class="d-flex justify-content-between align-items-center">
+        <a href="/" class="admin-sidebar-logo">
+          <i class="fas fa-shield-halved"></i>
+          <span>Admin Panel</span>
+        </a>
+        <button id="close-sidebar-btn" class="mobile-menu-btn" style="display: none; color: rgba(255,255,255,0.5);">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
     </div>
     <nav class="admin-nav">
       <div class="admin-nav-item active" data-section="dashboard">
@@ -585,6 +625,8 @@ require_once 'includes/config.php';
     </div>
   </main>
 
+  <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
   <div id="custom-modal" class="modal-overlay">
     <div class="modal-content">
       <h3 id="modal-title" class="modal-title">Confirm Action</h3>
@@ -614,22 +656,37 @@ require_once 'includes/config.php';
     
     // Mobile Sidebar Toggle
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const closeSidebarBtn = document.getElementById('close-sidebar-btn');
     const adminSidebar = document.getElementById('admin-sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
     
-    if (mobileMenuBtn && adminSidebar) {
-      mobileMenuBtn.addEventListener('click', () => {
-        adminSidebar.classList.toggle('open');
-      });
-      
-      // Close sidebar when clicking outside on mobile
-      document.addEventListener('click', (e) => {
-        if (window.innerWidth <= 992) {
-          if (!adminSidebar.contains(e.target) && !mobileMenuBtn.contains(e.target) && adminSidebar.classList.contains('open')) {
-            adminSidebar.classList.remove('open');
-          }
-        }
-      });
+    function toggleSidebar() {
+      if (!adminSidebar) return;
+      adminSidebar.classList.toggle('open');
+      if (sidebarOverlay) {
+        sidebarOverlay.classList.toggle('show');
+      }
     }
+    
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener('click', toggleSidebar);
+    }
+    
+    if (closeSidebarBtn) {
+      closeSidebarBtn.addEventListener('click', toggleSidebar);
+    }
+    
+    if (sidebarOverlay) {
+      sidebarOverlay.addEventListener('click', toggleSidebar);
+    }
+    
+    // Close sidebar when window is resized
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 992 && adminSidebar && adminSidebar.classList.contains('open')) {
+        adminSidebar.classList.remove('open');
+        if (sidebarOverlay) sidebarOverlay.classList.remove('show');
+      }
+    });
   </script>
   <script src="script.js?v=<?php echo $assetVersion; ?>"></script>
 </body>
