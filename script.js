@@ -39,6 +39,7 @@ var appName = 'My Tasks';
 var tasks = [];
 var visibleTaskCount = 18;
 var isLoadingMore = false;
+var editorInstances = {};
 
 // DOM Elements
 var form, taskInput, taskDate, taskPriority, taskCategory, taskVisibility, taskList, filterBtns, dateDisplay;
@@ -1642,17 +1643,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(`note-text-${noteId}`)?.classList.add('app-hidden');
     document.getElementById(`note-edit-${noteId}`)?.classList.remove('app-hidden');
 
-    // Initialize CKEditor for inline editing
+    // Initialize CKEditor 5 for inline editing
     const inputId = `note-input-${noteId}`;
-    if (typeof CKEDITOR !== 'undefined' && !CKEDITOR.instances[inputId]) {
-      CKEDITOR.replace(inputId, {
-        height: 100,
-        toolbar: [
-          ['Bold', 'Italic', 'Underline'],
-          ['NumberedList', 'BulletedList'],
-          ['Link', 'Unlink']
-        ]
-      });
+    const targetEl = document.getElementById(inputId);
+    if (typeof ClassicEditor !== 'undefined' && targetEl && !editorInstances[inputId]) {
+      ClassicEditor.create(targetEl, {
+        toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList']
+      })
+      .then(editor => {
+        editorInstances[inputId] = editor;
+      })
+      .catch(err => console.error('CKEditor 5 init error:', err));
     }
   };
 
@@ -1660,10 +1661,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(`note-text-${noteId}`)?.classList.remove('app-hidden');
     document.getElementById(`note-edit-${noteId}`)?.classList.add('app-hidden');
 
-    // Cleanup CKEditor
+    // Cleanup CKEditor 5
     const inputId = `note-input-${noteId}`;
-    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[inputId]) {
-      CKEDITOR.instances[inputId].destroy();
+    if (editorInstances[inputId]) {
+      editorInstances[inputId].destroy()
+        .then(() => {
+          delete editorInstances[inputId];
+        })
+        .catch(err => console.error('CKEditor 5 destroy error:', err));
     }
   };
 
@@ -1672,8 +1677,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const vis = document.getElementById(`note-vis-${noteId}`);
     
     let text = '';
-    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[inputId]) {
-      text = CKEDITOR.instances[inputId].getData().trim();
+    if (editorInstances[inputId]) {
+      text = editorInstances[inputId].getData().trim();
     } else {
       const input = document.getElementById(inputId);
       text = input?.value.trim();
@@ -1696,9 +1701,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Cleanup CKEditor
-      if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[inputId]) {
-        CKEDITOR.instances[inputId].destroy();
+      // Cleanup CKEditor 5
+      if (editorInstances[inputId]) {
+        await editorInstances[inputId].destroy();
+        delete editorInstances[inputId];
       }
 
       const updated = await r.json();
@@ -1780,11 +1786,19 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     // Show the modal
-    showCustomConfirm('Task Notes', modalHtml, { 
+    const modalPromise = showCustomConfirm('Task Notes', modalHtml, { 
       confirmLabel: 'Close', 
       confirmVariant: 'primary',
       cancelHidden: true,
       modalClass: 'modal-lg'
+    });
+
+    modalPromise.then(async () => {
+      // Cleanup CKEditor 5 after modal is closed
+      if (editorInstances['modal-note-input']) {
+        await editorInstances['modal-note-input'].destroy();
+        delete editorInstances['modal-note-input'];
+      }
     });
 
     const listEl = document.getElementById('modal-notes-list');
@@ -1795,29 +1809,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load notes
     await loadTaskNotes(taskId, listEl);
 
-    // Initialize CKEditor for the modal input
-    if (typeof CKEDITOR !== 'undefined' && inputEl) {
-      // Remove previous instance if it exists
-      if (CKEDITOR.instances['modal-note-input']) {
-        CKEDITOR.instances['modal-note-input'].destroy(true);
-      }
-      CKEDITOR.replace('modal-note-input', {
-        height: 150,
-        toolbar: [
-          ['Bold', 'Italic', 'Underline', 'Strike'],
-          ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
-          ['Link', 'Unlink'],
-          ['Maximize']
-        ]
-      });
+    // Initialize CKEditor 5 for the modal input
+    if (typeof ClassicEditor !== 'undefined' && inputEl && !editorInstances['modal-note-input']) {
+      ClassicEditor.create(inputEl, {
+        toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList']
+      })
+      .then(editor => {
+        editorInstances['modal-note-input'] = editor;
+      })
+      .catch(err => console.error('CKEditor 5 init error:', err));
     }
 
     // Handle save
     if (saveBtn && inputEl && visEl) {
       saveBtn.addEventListener('click', async () => {
         let text = '';
-        if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['modal-note-input']) {
-          text = CKEDITOR.instances['modal-note-input'].getData().trim();
+        if (editorInstances['modal-note-input']) {
+          text = editorInstances['modal-note-input'].getData().trim();
         } else {
           text = inputEl.value.trim();
         }
@@ -1850,8 +1858,8 @@ document.addEventListener('DOMContentLoaded', () => {
           renderTaskNotesList(taskId, listEl);
           
           // Clear editor
-          if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['modal-note-input']) {
-            CKEDITOR.instances['modal-note-input'].setData('');
+          if (editorInstances['modal-note-input']) {
+            editorInstances['modal-note-input'].setData('');
           } else {
             inputEl.value = '';
           }
