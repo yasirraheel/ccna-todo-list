@@ -247,12 +247,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (selectAllTasksInput) {
-    selectAllTasksInput.addEventListener('change', (e) => {
+  // Use delegation for Select All to ensure it always works
+  document.addEventListener('change', (e) => {
+    if (e.target && e.target.id === 'select-all-tasks') {
       const isChecked = e.target.checked;
-      // Target only the checkboxes in the task list
-      const checkboxes = taskList.querySelectorAll('.task-checkbox');
       
+      const checkboxes = taskList.querySelectorAll('.task-checkbox');
       checkboxes.forEach(cb => {
         cb.checked = isChecked;
         const taskId = parseInt(cb.getAttribute('data-id'), 10);
@@ -267,14 +267,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
       
-      // Update UI states for buttons
-      const filteredTasks = getFilteredTasks();
-      const visibleTasks = filteredTasks.slice(0, visibleTaskCount);
+      const visibleTasks = getFilteredTasks().slice(0, visibleTaskCount);
       updateBulkActionState(visibleTasks);
-      
       showFlash(isChecked ? 'Selected all visible tasks' : 'Selection cleared', 'info');
-    });
-  }
+    }
+  });
 
   if (deleteSelectedBtn) {
     deleteSelectedBtn.addEventListener('click', () => {
@@ -1758,7 +1755,7 @@ document.addEventListener('DOMContentLoaded', () => {
           { name: 'tools', items: [ 'Maximize' ] }
         ],
         filebrowserUploadUrl: '/api/notes/upload-image',
-        filebrowserUploadMethod: 'xhr',
+        filebrowserUploadMethod: 'form',
         image_previewText: ' ', // Clear dummy text
         removeButtons: ''
       });
@@ -1926,7 +1923,7 @@ document.addEventListener('DOMContentLoaded', () => {
           { name: 'tools', items: [ 'Maximize' ] }
         ],
         filebrowserUploadUrl: '/api/notes/upload-image',
-        filebrowserUploadMethod: 'xhr',
+        filebrowserUploadMethod: 'form',
         image_previewText: ' ', // Clear dummy text
         removeButtons: ''
       });
@@ -2827,10 +2824,10 @@ document.addEventListener('DOMContentLoaded', () => {
         : '';
 
       li.innerHTML = `
-        <div class="task-select-wrap">
-          <input type="checkbox" class="task-checkbox" data-id="${task.id}" ${selectedTaskIds.has(task.id) ? 'checked' : ''}>
-        </div>
         <div class="task-thumbnail-wrapper ${watchUrl ? 'task-open-link' : ''}">
+          <div class="task-select-wrap">
+            <input type="checkbox" class="task-checkbox" data-id="${task.id}" ${selectedTaskIds.has(task.id) ? 'checked' : ''}>
+          </div>
           ${thumbnailHtml}
           <div class="task-priority-badge">${task.priority}</div>
         </div>
@@ -2912,6 +2909,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectCheckbox.addEventListener('change', (e) => {
           e.stopPropagation();
           const isChecked = e.target.checked;
+          
           if (isChecked) {
             selectedTaskIds.add(task.id);
             li.classList.add('selected-for-delete');
@@ -2919,7 +2917,9 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedTaskIds.delete(task.id);
             li.classList.remove('selected-for-delete');
           }
-          updateBulkActionState(getFilteredTasks());
+          const filteredTasks = getFilteredTasks();
+          const visibleTasks = filteredTasks.slice(0, visibleTaskCount);
+          updateBulkActionState(visibleTasks);
         });
       }
 

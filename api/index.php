@@ -966,6 +966,12 @@ if (!$authUser) {
 if (count($segments) === 2 && $segments[0] === 'notes' && $segments[1] === 'upload-image' && $method === 'POST') {
     $file = $_FILES['upload'] ?? null;
     if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+        if (isset($_GET['CKEditorFuncNum'])) {
+            $funcNum = $_GET['CKEditorFuncNum'];
+            header('Content-Type: text/html; charset=utf-8');
+            echo "<script type='text/javascript'>window.parent.CKEDITOR.tools.callFunction($funcNum, '', 'No file uploaded or upload error.');</script>";
+            exit;
+        }
         jsonResponse(200, [
             'uploaded' => 0,
             'error' => ['message' => 'No file uploaded or upload error.']
@@ -979,6 +985,12 @@ if (count($segments) === 2 && $segments[0] === 'notes' && $segments[1] === 'uplo
     $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     
     if (!in_array($ext, $allowed)) {
+        if (isset($_GET['CKEditorFuncNum'])) {
+            $funcNum = $_GET['CKEditorFuncNum'];
+            header('Content-Type: text/html; charset=utf-8');
+            echo "<script type='text/javascript'>window.parent.CKEDITOR.tools.callFunction($funcNum, '', 'Invalid file type.');</script>";
+            exit;
+        }
         jsonResponse(200, [
             'uploaded' => 0,
             'error' => ['message' => 'Invalid file type. Allowed: ' . implode(', ', $allowed)]
@@ -996,12 +1008,25 @@ if (count($segments) === 2 && $segments[0] === 'notes' && $segments[1] === 'uplo
         $baseUrl = $protocol . "://" . $host . dirname($scriptName);
         $url = rtrim($baseUrl, '/') . '/uploads/notes/' . $fileName;
 
+        if (isset($_GET['CKEditorFuncNum'])) {
+            $funcNum = $_GET['CKEditorFuncNum'];
+            header('Content-Type: text/html; charset=utf-8');
+            echo "<script type='text/javascript'>window.parent.CKEDITOR.tools.callFunction($funcNum, '$url', 'Image uploaded successfully!');</script>";
+            exit;
+        }
+
         jsonResponse(200, [
             'uploaded' => 1,
             'fileName' => $fileName,
             'url' => $url
         ]);
     } else {
+        if (isset($_GET['CKEditorFuncNum'])) {
+            $funcNum = $_GET['CKEditorFuncNum'];
+            header('Content-Type: text/html; charset=utf-8');
+            echo "<script type='text/javascript'>window.parent.CKEDITOR.tools.callFunction($funcNum, '', 'Failed to move uploaded file.');</script>";
+            exit;
+        }
         jsonResponse(200, [
             'uploaded' => 0,
             'error' => ['message' => 'Failed to move uploaded file.']
