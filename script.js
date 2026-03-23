@@ -2526,10 +2526,10 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             ${actionsHtml}
           </div>
-          <div class="task-note-text" id="note-text-${note.id}">${String(note.text || '')}</div>
+          <div class="task-note-text ck-content" id="note-text-${note.id}">${String(note.text || '')}</div>
           <div class="task-note-edit-box app-hidden" id="note-edit-${note.id}">
             <textarea class="task-note-input edit-input" id="note-input-${note.id}">${String(note.text || '')}</textarea>
-            <div class="task-note-row">
+            <div class="task-note-row" style="margin-top: 10px;">
               <select class="task-note-visibility edit-vis" id="note-vis-${note.id}">
                 <option value="private" ${note.visibility === 'private' ? 'selected' : ''}>Private</option>
                 <option value="public" ${note.visibility === 'public' ? 'selected' : ''}>Public</option>
@@ -2620,9 +2620,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const notesSectionHtml = `
         <div class="task-notes-section app-hidden" id="notes-section-${task.id}">
           <div class="task-notes-list" id="notes-list-${task.id}"></div>
-          <div class="task-note-form">
+          <div class="task-note-form" style="display:flex; flex-direction:column; gap:10px;">
             <textarea class="task-note-input form-control" id="note-input-${task.id}" placeholder="Type your note..."></textarea>
-            <button class="bulk-btn success" onclick="window.addTaskNote('${task.id}')">Add Note</button>
+            <button class="bulk-btn success" style="align-self: flex-start;" onclick="window.addTaskNote('${task.id}')">Add Note</button>
           </div>
         </div>
       `;
