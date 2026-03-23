@@ -1647,13 +1647,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputId = `note-input-${noteId}`;
     const targetEl = document.getElementById(inputId);
     if (typeof ClassicEditor !== 'undefined' && targetEl && !editorInstances[inputId]) {
+      console.log(`Initializing CKEditor 5 for note ${noteId}...`);
       ClassicEditor.create(targetEl, {
         toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList']
       })
       .then(editor => {
+        console.log(`CKEditor 5 initialized for note ${noteId}`);
         editorInstances[inputId] = editor;
       })
-      .catch(err => console.error('CKEditor 5 init error:', err));
+      .catch(err => {
+        console.error(`CKEditor 5 init error for note ${noteId}:`, err);
+      });
+    } else {
+      console.log(`Skipped CKEditor 5 inline init for note ${noteId}:`, {
+        hasClassicEditor: typeof ClassicEditor !== 'undefined',
+        hasTarget: !!targetEl,
+        alreadyInit: !!editorInstances[inputId]
+      });
     }
   };
 
@@ -1810,14 +1820,25 @@ document.addEventListener('DOMContentLoaded', () => {
     await loadTaskNotes(taskId, listEl);
 
     // Initialize CKEditor 5 for the modal input
-    if (typeof ClassicEditor !== 'undefined' && inputEl && !editorInstances['modal-note-input']) {
-      ClassicEditor.create(inputEl, {
+    const targetEl = document.getElementById('modal-note-input');
+    if (typeof ClassicEditor !== 'undefined' && targetEl && !editorInstances['modal-note-input']) {
+      console.log('Initializing CKEditor 5 for modal...');
+      ClassicEditor.create(targetEl, {
         toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList']
       })
       .then(editor => {
+        console.log('CKEditor 5 initialized for modal');
         editorInstances['modal-note-input'] = editor;
       })
-      .catch(err => console.error('CKEditor 5 init error:', err));
+      .catch(err => {
+        console.error('CKEditor 5 init error for modal:', err);
+      });
+    } else {
+      console.log('Skipped CKEditor 5 modal init:', {
+        hasClassicEditor: typeof ClassicEditor !== 'undefined',
+        hasTarget: !!targetEl,
+        alreadyInit: !!editorInstances['modal-note-input']
+      });
     }
 
     // Handle save
