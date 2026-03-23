@@ -1747,7 +1747,7 @@ document.addEventListener('DOMContentLoaded', () => {
           { name: 'tools', items: [ 'Maximize' ] }
         ],
         filebrowserUploadUrl: '/api/notes/upload-image',
-        filebrowserUploadMethod: 'form',
+        filebrowserUploadMethod: 'xhr',
         image_previewText: ' ', // Clear dummy text
         removeButtons: ''
       });
@@ -1915,7 +1915,7 @@ document.addEventListener('DOMContentLoaded', () => {
           { name: 'tools', items: [ 'Maximize' ] }
         ],
         filebrowserUploadUrl: '/api/notes/upload-image',
-        filebrowserUploadMethod: 'form',
+        filebrowserUploadMethod: 'xhr',
         image_previewText: ' ', // Clear dummy text
         removeButtons: ''
       });

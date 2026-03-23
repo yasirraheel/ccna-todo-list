@@ -782,6 +782,41 @@ h3 {
     background: #d9772c;
 }
 
+.task-note-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.note-action-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+}
+
+.note-action-btn.edit:hover {
+    background: rgba(238, 131, 49, 0.1);
+    border-color: #ee8331;
+    color: #ee8331;
+    transform: translateY(-2px);
+}
+
+.note-action-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #ef4444;
+    transform: translateY(-2px);
+}
+
 .task-note-hint {
     font-size: 0.8rem;
     color: #f59e0b;
