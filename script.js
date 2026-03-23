@@ -1,53 +1,53 @@
-const browserHost = window.location.hostname || 'localhost';
-const isLocalNetworkHost =
+var browserHost = window.location.hostname || 'localhost';
+var isLocalNetworkHost =
   browserHost === 'localhost' ||
   browserHost === '127.0.0.1' ||
   browserHost.startsWith('192.168.') ||
   browserHost.startsWith('10.') ||
   browserHost.startsWith('172.');
 
-let API_BASE = '/api/tasks';
-let PUBLIC_TASKS_API = '/api/tasks/public';
-let IMPORT_API = '/api/import/youtube-playlist';
-let BULK_DELETE_API = '/api/tasks/bulk-delete';
-let AUTH_LOGIN_API = '/api/auth/login';
-let AUTH_REGISTER_API = '/api/auth/register';
-let AUTH_VERIFY_OTP_API = '/api/auth/verify-otp';
-let AUTH_ME_API = '/api/auth/me';
-let PLAYLISTS_API = '/api/playlists';
-let PREFERENCES_API = '/api/preferences';
-let GOOGLE_LOGIN_API = '/api/auth/google';
-let PLAYLIST_VISIBILITY_API = '/api/playlists/visibility';
-let PLAYLIST_RENAME_API = '/api/playlists/rename';
-let PLAYLIST_DELETE_API = '/api/playlists/delete';
-let ADMIN_API = '/api/admin';
-let ADMIN_USERS_API = '/api/admin/users';
-let ADMIN_SETTINGS_API = '/api/admin/settings';
+var API_BASE = '/api/tasks';
+var PUBLIC_TASKS_API = '/api/tasks/public';
+var IMPORT_API = '/api/import/youtube-playlist';
+var BULK_DELETE_API = '/api/tasks/bulk-delete';
+var AUTH_LOGIN_API = '/api/auth/login';
+var AUTH_REGISTER_API = '/api/auth/register';
+var AUTH_VERIFY_OTP_API = '/api/auth/verify-otp';
+var AUTH_ME_API = '/api/auth/me';
+var PLAYLISTS_API = '/api/playlists';
+var PREFERENCES_API = '/api/preferences';
+var GOOGLE_LOGIN_API = '/api/auth/google';
+var PLAYLIST_VISIBILITY_API = '/api/playlists/visibility';
+var PLAYLIST_RENAME_API = '/api/playlists/rename';
+var PLAYLIST_DELETE_API = '/api/playlists/delete';
+var ADMIN_API = '/api/admin';
+var ADMIN_USERS_API = '/api/admin/users';
+var ADMIN_SETTINGS_API = '/api/admin/settings';
 
-const IMPORT_LIMIT = 300;
-const AUTH_TOKEN_KEY = 'todo_auth_token';
-const SELECTED_PLAYLIST_KEY = 'todo_selected_playlist';
-const SELECTED_PUBLIC_PLAYLIST_KEY = 'todo_selected_public_playlist';
-const TASK_SCOPE_KEY = 'todo_task_scope';
-const TASK_STATUS_FILTER_KEY = 'todo_task_status_filter';
-const SCROLL_POSITION_KEY = 'todo_scroll_position';
-const VISIBLE_TASK_COUNT_KEY = 'todo_visible_task_count';
-const TASKS_ROWS_PER_PAGE = 6;
+var IMPORT_LIMIT = 300;
+var AUTH_TOKEN_KEY = 'todo_auth_token';
+var SELECTED_PLAYLIST_KEY = 'todo_selected_playlist';
+var SELECTED_PUBLIC_PLAYLIST_KEY = 'todo_selected_public_playlist';
+var TASK_SCOPE_KEY = 'todo_task_scope';
+var TASK_STATUS_FILTER_KEY = 'todo_task_status_filter';
+var SCROLL_POSITION_KEY = 'todo_scroll_position';
+var VISIBLE_TASK_COUNT_KEY = 'todo_visible_task_count';
+var TASKS_ROWS_PER_PAGE = 6;
 
-let authToken = localStorage.getItem(AUTH_TOKEN_KEY) || '';
-let appName = 'My Tasks';
-let tasks = [];
-let visibleTaskCount = 18;
-let isLoadingMore = false;
+var authToken = localStorage.getItem(AUTH_TOKEN_KEY) || '';
+var appName = 'My Tasks';
+var tasks = [];
+var visibleTaskCount = 18;
+var isLoadingMore = false;
 
 // DOM Elements
-let form, taskInput, taskDate, taskPriority, taskCategory, taskVisibility, taskList, filterBtns, dateDisplay;
-let playlistUrlInput, playlistPriorityInput, playlistTypeInput, playlistVisibilityInput, playlistDateInput, playlistNameInput;
-let importPlaylistBtn, playlistStatus, importBtnIdleLabel, playlistFilterSelect, scopeFilterSelect;
-let playlistVisibilityBtn, playlistRenameBtn, playlistDeleteBtn, selectAllTasksInput, deleteSelectedBtn, deleteAllBtn, loadMoreBtn;
-let authPanel, appContainer, authStatus, authForm, otpForm, otpEmailDisplay, otpInput, otpSubmitBtn;
-let authNameInput, authNameField, authEmailInput, authPasswordInput, authTitleEl, authSubtitleEl;
-let authModeLoginBtn, authModeRegisterBtn, authSubmitBtn, authSwitchLabel, authSwitchBtn, logoutBtn, sessionEmail;
+var form, taskInput, taskDate, taskPriority, taskCategory, taskVisibility, taskList, filterBtns, dateDisplay;
+var playlistUrlInput, playlistPriorityInput, playlistTypeInput, playlistVisibilityInput, playlistDateInput, playlistNameInput;
+var importPlaylistBtn, playlistStatus, importBtnIdleLabel, playlistFilterSelect, scopeFilterSelect;
+var playlistVisibilityBtn, playlistRenameBtn, playlistDeleteBtn, selectAllTasksInput, deleteSelectedBtn, deleteAllBtn, loadMoreBtn;
+var authPanel, appContainer, authStatus, authForm, otpForm, otpEmailDisplay, otpInput, otpSubmitBtn;
+var authNameInput, authNameField, authEmailInput, authPasswordInput, authTitleEl, authSubtitleEl;
+var authModeLoginBtn, authModeRegisterBtn, authSubmitBtn, authSwitchLabel, authSwitchBtn, logoutBtn, sessionEmail;
 let appTitle, footerTitle, footerDescription, footerYear, scrollTopBtn, pageLoader;
 
 const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login') || document.body.dataset.page === 'login';
@@ -1641,17 +1641,44 @@ document.addEventListener('DOMContentLoaded', () => {
   window.startEditNote = (taskId, noteId) => {
     document.getElementById(`note-text-${noteId}`)?.classList.add('app-hidden');
     document.getElementById(`note-edit-${noteId}`)?.classList.remove('app-hidden');
+
+    // Initialize CKEditor for inline editing
+    const inputId = `note-input-${noteId}`;
+    if (typeof CKEDITOR !== 'undefined' && !CKEDITOR.instances[inputId]) {
+      CKEDITOR.replace(inputId, {
+        height: 100,
+        toolbar: [
+          ['Bold', 'Italic', 'Underline'],
+          ['NumberedList', 'BulletedList'],
+          ['Link', 'Unlink']
+        ]
+      });
+    }
   };
 
   window.cancelEditNote = (noteId) => {
     document.getElementById(`note-text-${noteId}`)?.classList.remove('app-hidden');
     document.getElementById(`note-edit-${noteId}`)?.classList.add('app-hidden');
+
+    // Cleanup CKEditor
+    const inputId = `note-input-${noteId}`;
+    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[inputId]) {
+      CKEDITOR.instances[inputId].destroy();
+    }
   };
 
   window.saveEditNote = async (taskId, noteId) => {
-    const input = document.getElementById(`note-input-${noteId}`);
+    const inputId = `note-input-${noteId}`;
     const vis = document.getElementById(`note-vis-${noteId}`);
-    const text = input?.value.trim();
+    
+    let text = '';
+    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[inputId]) {
+      text = CKEDITOR.instances[inputId].getData().trim();
+    } else {
+      const input = document.getElementById(inputId);
+      text = input?.value.trim();
+    }
+
     if (!text) {
       showFlash('Note text cannot be empty', 'error');
       return;
@@ -1668,6 +1695,12 @@ document.addEventListener('DOMContentLoaded', () => {
         showFlash(await readResponseMessage(r, 'Could not update note'), 'error');
         return;
       }
+
+      // Cleanup CKEditor
+      if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[inputId]) {
+        CKEDITOR.instances[inputId].destroy();
+      }
+
       const updated = await r.json();
       const notes = taskNotesCache.get(taskId) || [];
       const idx = notes.findIndex(n => n.id === noteId);
@@ -1675,7 +1708,7 @@ document.addEventListener('DOMContentLoaded', () => {
         notes[idx] = updated;
         taskNotesCache.set(taskId, notes);
       }
-      const listEl = document.getElementById('modal-notes-list');
+      const listEl = document.getElementById('modal-notes-list') || document.getElementById(`notes-list-${taskId}`);
       if (listEl) renderTaskNotesList(taskId, listEl);
       showFlash('Note updated', 'success');
     } catch (_e) {
@@ -1762,10 +1795,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load notes
     await loadTaskNotes(taskId, listEl);
 
+    // Initialize CKEditor for the modal input
+    if (typeof CKEDITOR !== 'undefined' && inputEl) {
+      // Remove previous instance if it exists
+      if (CKEDITOR.instances['modal-note-input']) {
+        CKEDITOR.instances['modal-note-input'].destroy(true);
+      }
+      CKEDITOR.replace('modal-note-input', {
+        height: 150,
+        toolbar: [
+          ['Bold', 'Italic', 'Underline', 'Strike'],
+          ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
+          ['Link', 'Unlink'],
+          ['Maximize']
+        ]
+      });
+    }
+
     // Handle save
     if (saveBtn && inputEl && visEl) {
       saveBtn.addEventListener('click', async () => {
-        const text = inputEl.value.trim();
+        let text = '';
+        if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['modal-note-input']) {
+          text = CKEDITOR.instances['modal-note-input'].getData().trim();
+        } else {
+          text = inputEl.value.trim();
+        }
+
         if (!text) {
           showFlash('Write a note first', 'error');
           return;
@@ -1792,7 +1848,14 @@ document.addEventListener('DOMContentLoaded', () => {
           task.noteCount = (task.noteCount || 0) + 1;
           
           renderTaskNotesList(taskId, listEl);
-          inputEl.value = '';
+          
+          // Clear editor
+          if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['modal-note-input']) {
+            CKEDITOR.instances['modal-note-input'].setData('');
+          } else {
+            inputEl.value = '';
+          }
+
           showFlash('Note saved', 'success');
           
           // Re-render tasks in background to update badge

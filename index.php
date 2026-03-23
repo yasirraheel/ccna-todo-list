@@ -127,8 +127,6 @@ ob_start();
     </div>
 </main>
 
-<script src="script.js?v=<?php echo $assetVersion; ?>"></script>
-
 <?php 
 $content = ob_get_clean();
 include 'includes/layout.php'; 
