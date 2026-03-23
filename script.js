@@ -673,13 +673,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add Admin link if admin
     if (user?.role === 'admin') {
-      const nav = document.querySelector('.saas-nav');
-      if (nav && !nav.querySelector('a[href="/admin"]')) {
-        const adminLink = document.createElement('a');
-        adminLink.href = '/admin';
-        adminLink.className = 'saas-nav-item';
-        adminLink.innerHTML = '<i class="fas fa-shield-halved" style="margin-right: 6px;"></i>Admin';
-        nav.appendChild(adminLink);
+      const navUl = document.querySelector('#navbar ul');
+      if (navUl && !navUl.querySelector('a[href="/admin.php"]')) {
+        const adminLi = document.createElement('li');
+        adminLi.innerHTML = `<a href="/admin.php" class="nav-admin-link"><i class="fas fa-shield-halved" style="margin-right: 6px;"></i>Admin</a>`;
+        // Insert before the session-info-wrap or at the end
+        const sessionWrap = navUl.querySelector('.session-info-wrap');
+        if (sessionWrap) {
+          navUl.insertBefore(adminLi, sessionWrap);
+        } else {
+          navUl.appendChild(adminLi);
+        }
       }
     }
   }

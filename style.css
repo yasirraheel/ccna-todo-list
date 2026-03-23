@@ -897,6 +897,15 @@ h3 {
     color: #fff;
 }
 
+.nav-admin-link {
+    color: #ee8331 !important;
+    font-weight: 700 !important;
+}
+
+.nav-admin-link:hover {
+    color: #fff !important;
+}
+
 /* UTILS */
 .app-hidden {
     display: none !important;
