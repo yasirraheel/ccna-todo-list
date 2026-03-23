@@ -845,6 +845,58 @@ h3 {
     background: #333 !important;
 }
 
+/* More Superbuild UI Dark Mode fixes */
+.ck.ck-dropdown__panel {
+    background: #2a2a2a !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.ck.ck-button:not(.ck-disabled):hover,
+.ck.ck-button:not(.ck-disabled):active {
+    background: #333 !important;
+}
+
+.ck.ck-input {
+    background: #111 !important;
+    color: #fff !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.ck.ck-color-grid__tile:hover {
+    border-color: #fff !important;
+}
+
+/* Ensure font and color text is readable in dropdowns */
+.ck.ck-button .ck-button__label {
+    color: #ffffff !important;
+}
+
+.task-note-text.ck-content.collapsed {
+    max-height: 120px;
+    overflow: hidden;
+    position: relative;
+    mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+}
+
+.note-expand-btn {
+    background: transparent;
+    border: none;
+    color: #ee8331;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.2s;
+}
+
+.note-expand-btn:hover {
+    color: #fff;
+}
+
 /* UTILS */
 .app-hidden {
     display: none !important;

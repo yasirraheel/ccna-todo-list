@@ -1646,9 +1646,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize CKEditor 5 for inline editing
     const inputId = `note-input-${noteId}`;
     const targetEl = document.getElementById(inputId);
-    if (typeof ClassicEditor !== 'undefined' && targetEl && !editorInstances[inputId]) {
-      ClassicEditor.create(targetEl, {
-        toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList']
+    const editorObj = typeof CKSource !== 'undefined' ? CKSource.ClassicEditor : (typeof ClassicEditor !== 'undefined' ? ClassicEditor : null);
+    
+    if (editorObj && targetEl && !editorInstances[inputId]) {
+      editorObj.create(targetEl, {
+        toolbar: [
+          'heading', '|', 'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+          'bold', 'italic', 'underline', 'strikethrough', '|',
+          'link', 'bulletedList', 'numberedList', '|',
+          'alignment', 'outdent', 'indent', '|',
+          'undo', 'redo'
+        ],
+        fontSize: {
+          options: [9, 11, 13, 'default', 17, 19, 21]
+        }
       })
       .then(editor => {
         editorInstances[inputId] = editor;
@@ -1815,9 +1826,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize CKEditor 5 for the modal input
     const targetEl = document.getElementById('modal-note-input');
-    if (typeof ClassicEditor !== 'undefined' && targetEl && !editorInstances['modal-note-input']) {
-      ClassicEditor.create(targetEl, {
-        toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList']
+    const editorObj = typeof CKSource !== 'undefined' ? CKSource.ClassicEditor : (typeof ClassicEditor !== 'undefined' ? ClassicEditor : null);
+
+    if (editorObj && targetEl && !editorInstances['modal-note-input']) {
+      editorObj.create(targetEl, {
+        toolbar: [
+          'heading', '|', 'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+          'bold', 'italic', 'underline', 'strikethrough', '|',
+          'link', 'bulletedList', 'numberedList', '|',
+          'alignment', 'outdent', 'indent', '|',
+          'undo', 'redo'
+        ],
+        fontSize: {
+          options: [9, 11, 13, 'default', 17, 19, 21]
+        }
       })
       .then(editor => {
         editorInstances['modal-note-input'] = editor;
@@ -2576,6 +2598,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  window.toggleNoteExpand = (noteId) => {
+    const el = document.getElementById(`note-text-${noteId}`);
+    const btn = document.getElementById(`note-expand-btn-${noteId}`);
+    if (!el || !btn) return;
+    const isCollapsed = el.classList.contains('collapsed');
+    if (isCollapsed) {
+      el.classList.remove('collapsed');
+      btn.innerHTML = '<i class="fas fa-chevron-up"></i> Show Less';
+    } else {
+      el.classList.add('collapsed');
+      btn.innerHTML = '<i class="fas fa-chevron-down"></i> Read More';
+    }
+  };
+
   function renderTaskNotesList(taskId, listEl) {
     if (!listEl) return;
     const notes = taskNotesCache.get(taskId) || [];
@@ -2596,6 +2632,11 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       ` : '';
 
+      const noteText = String(note.text || '');
+      // Determine if note is long enough to need a "Read More" button
+      // We'll use a rough character count or just always provide it if it's over a certain length
+      const isLong = noteText.length > 300 || (noteText.match(/<p>/g) || []).length > 3 || noteText.includes('<ul>') || noteText.includes('<ol>');
+
       return `
         <div class="task-note-item ${tone}" id="note-${note.id}">
           <div class="task-note-head">
@@ -2606,9 +2647,10 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             ${actionsHtml}
           </div>
-          <div class="task-note-text ck-content" id="note-text-${note.id}">${String(note.text || '')}</div>
+          <div class="task-note-text ck-content ${isLong ? 'collapsed' : ''}" id="note-text-${note.id}">${noteText}</div>
+          ${isLong ? `<button class="note-expand-btn" id="note-expand-btn-${note.id}" onclick="window.toggleNoteExpand(${note.id})"><i class="fas fa-chevron-down"></i> Read More</button>` : ''}
           <div class="task-note-edit-box app-hidden" id="note-edit-${note.id}">
-            <textarea class="task-note-input edit-input" id="note-input-${note.id}">${String(note.text || '')}</textarea>
+            <textarea class="task-note-input edit-input" id="note-input-${note.id}">${noteText}</textarea>
             <div class="task-note-row" style="margin-top: 10px;">
               <select class="task-note-visibility edit-vis" id="note-vis-${note.id}">
                 <option value="private" ${note.visibility === 'private' ? 'selected' : ''}>Private</option>
