@@ -123,7 +123,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@srexi/purecounterjs/dist/purecounter_vanilla.js"></script>
     <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
     <script src="assets/js/main.js?v=<?php echo $assetVersion; ?>"></script>
-    <script src="script.js?v=<?php echo $assetVersion; ?>"></script>
+    <script src="assets/js/core.js?v=<?php echo $assetVersion; ?>"></script>
+    <script src="assets/js/app.js?v=<?php echo $assetVersion; ?>"></script>
 
     <script>
         $(document).ready(function() {
