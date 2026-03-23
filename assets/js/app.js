@@ -214,6 +214,17 @@ document.addEventListener('DOMContentLoaded', () => {
     init().catch(() => {});
   }
 
+  // Add initialization logic here
+  if (isAdminPage) {
+    if (typeof adminInit === 'function') {
+        adminInit().catch(() => {});
+    }
+  } else {
+    if (typeof init === 'function') {
+        init().catch(() => {});
+    }
+  }
+
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();

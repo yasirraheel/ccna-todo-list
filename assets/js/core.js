@@ -82,11 +82,19 @@ let saasSearchInput, currentSearchQuery = '';
 let statTotalEl, statCompletedEl, statPendingEl, statPlaylistEl, statProgressFill, statProgressLabel;
 
 
-if (isAdminPage) {
-    adminInit().catch(() => {});
-  } else {
-    init().catch(() => {});
+async function adminInit() {
+  if (!authToken) {
+    window.location.href = '/login';
+    return;
   }
+  
+  await checkAuth();
+  
+  if (!currentUserId) {
+    window.location.href = '/login';
+    return;
+  }
+}
 
   if (form) {
     form.addEventListener('submit', (e) => {
@@ -1838,6 +1846,41 @@ if (isAdminPage) {
       });
     }
   };
+
+  window.init = async function init() {
+    if (!authToken && !isLoginPage) {
+      window.location.href = '/login';
+      return;
+    }
+    
+    if (authToken) {
+      await checkAuth();
+      if (!currentUserId && !isLoginPage) {
+        window.location.href = '/login';
+        return;
+      }
+    }
+    
+    if (!isLoginPage) {
+      await loadPlaylists();
+      await loadSelectedPlaylistPreference();
+      await loadTasks();
+      renderTasks();
+      updatePlaylistActionState();
+    } else {
+      if (currentUserId) {
+        window.location.href = '/';
+        return;
+      }
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const action = urlParams.get('action');
+      if (action === 'register') {
+        authMode = 'register';
+        syncAuthModeUi();
+      }
+    }
+  }
 
   // Helper for regex matching
   function preg_match(regex, str, matches) {
