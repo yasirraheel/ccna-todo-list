@@ -790,13 +790,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function redirectToLogin() {
     if (!isLoginPage) {
-      window.location.href = '/login.php';
+      window.location.href = 'login.php';
     }
   }
 
   function redirectToApp() {
     if (isLoginPage) {
-      window.location.href = '/index.php';
+      window.location.href = 'index.php';
     }
   }
 
@@ -1100,7 +1100,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showAppPanel(data.user || {});
       if (isLoginPage) {
         if (data.user?.role === 'admin') {
-          window.location.href = '/admin';
+          window.location.href = 'admin.php';
         } else {
           redirectToApp();
         }

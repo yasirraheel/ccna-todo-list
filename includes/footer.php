@@ -134,28 +134,9 @@
             // Global Session Handling
             const AUTH_TOKEN_KEY = 'todo_auth_token';
             const token = localStorage.getItem(AUTH_TOKEN_KEY);
-            if (token) {
-                fetch('/api/auth/me', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.email) {
-                        $('#session-email').text(data.email).removeClass('d-none');
-                    } else if (!isLoginPage && !isQuizPage) {
-                        localStorage.removeItem(AUTH_TOKEN_KEY);
-                        window.location.href = 'login.php';
-                    }
-                })
-                .catch(() => {
-                    if (!isLoginPage && !isQuizPage) {
-                        localStorage.removeItem(AUTH_TOKEN_KEY);
-                        window.location.href = 'login.php';
-                    }
-                });
-            } else if (!isLoginPage && !isQuizPage) {
+            if (!token && !isLoginPage && !isQuizPage) {
                 // Only redirect if not on login or quiz page
-                window.location.href = '/login.php';
+                window.location.href = 'login.php';
             }
 
             $('#logout-btn').click(function() {
