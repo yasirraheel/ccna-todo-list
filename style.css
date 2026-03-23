@@ -541,6 +541,15 @@ h3 {
         display: none !important; /* Hide top filter buttons on mobile */
     }
 
+    #playlist-filter {
+        display: none !important; /* Hide desktop playlist dropdown on mobile */
+    }
+
+    .playlist-filter-wrap {
+        justify-content: space-between;
+        width: 100%;
+    }
+
     .dropdown-content {
         right: 0;
         left: auto;
