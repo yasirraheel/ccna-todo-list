@@ -879,6 +879,13 @@ h3 {
     -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
 }
 
+.task-note-text img {
+    max-width: 100% !important;
+    height: auto !important;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
 .note-expand-btn {
     background: transparent;
     border: none;

@@ -864,6 +864,20 @@ if (count($segments) === 2 && $segments[0] === 'uploads' && $method === 'GET') {
     exit;
 }
 
+if (count($segments) === 3 && $segments[0] === 'uploads' && $segments[1] === 'notes' && $method === 'GET') {
+    $fileName = basename((string) $segments[2]);
+    $filePath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'notes' . DIRECTORY_SEPARATOR . $fileName;
+    if (!file_exists($filePath)) jsonResponse(404, ['message' => 'File not found']);
+    
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $filePath);
+    finfo_close($finfo);
+    
+    header("Content-Type: $mime");
+    readfile($filePath);
+    exit;
+}
+
 $authUser = getOptionalAuthenticatedUser($pdo);
 $userId = $authUser ? (int) $authUser['id'] : 0;
 
@@ -947,6 +961,45 @@ if (count($segments) === 2 && $segments[0] === 'quiz' && $segments[1] === 'check
 
 if (!$authUser) {
     jsonResponse(401, ['message' => 'Unauthorized']);
+}
+
+if (count($segments) === 2 && $segments[0] === 'notes' && $segments[1] === 'upload-image' && $method === 'POST') {
+    if (!isset($_FILES['upload']) || $_FILES['upload']['error'] !== UPLOAD_ERR_OK) {
+        jsonResponse(200, [
+            'uploaded' => 0,
+            'error' => ['message' => 'No file uploaded or upload error.']
+        ]);
+    }
+
+    $uploadsDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'notes';
+    if (!is_dir($uploadsDir)) @mkdir($uploadsDir, 0777, true);
+
+    $file = $_FILES['upload'];
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    
+    if (!in_array($ext, $allowed)) {
+        jsonResponse(200, [
+            'uploaded' => 0,
+            'error' => ['message' => 'Invalid file type. Allowed: ' . implode(', ', $allowed)]
+        ]);
+    }
+
+    $fileName = 'note_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+    $targetPath = $uploadsDir . DIRECTORY_SEPARATOR . $fileName;
+
+    if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+        jsonResponse(200, [
+            'uploaded' => 1,
+            'fileName' => $fileName,
+            'url' => '/api/uploads/notes/' . $fileName
+        ]);
+    } else {
+        jsonResponse(200, [
+            'uploaded' => 0,
+            'error' => ['message' => 'Failed to move uploaded file.']
+        ]);
+    }
 }
 if (count($segments) === 1 && $segments[0] === 'preferences' && $method === 'GET') {
     $stmt = $pdo->prepare('SELECT `pref_key`, `pref_value` FROM `user_prefs` WHERE `user_id` = :user_id');
