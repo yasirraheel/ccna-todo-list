@@ -58,8 +58,8 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" rel="stylesheet">
-    <link href="assets/css/app-main.css?v=<?php echo $assetVersion; ?>" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=<?php echo $assetVersion; ?>">
+    <link href="assets/css/app-main.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
     
     <!-- jQuery must be in head because inline scripts in quiz.php depend on it -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
