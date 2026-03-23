@@ -72,7 +72,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             }
             .mobile-nav-active .navbar {
                 background: #111111 !important;
-                padding-top: 100px !important;
+                padding-top: 0 !important;
             }
             .mobile-nav-active .navbar::before {
                 background: rgba(0,0,0,0.8) !important;

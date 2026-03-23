@@ -437,17 +437,19 @@ h3 {
 
     #navbar {
         position: fixed;
-        top: 0;
+        top: 60px;
+        bottom: calc(86px + env(safe-area-inset-bottom));
         right: -100%;
-        width: min(86vw, 340px);
-        height: 100vh;
+        width: min(92vw, 320px);
+        height: auto;
         background: linear-gradient(180deg, #141414 0%, #0a0a0a 100%) !important;
         z-index: 10000;
         transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        padding: 84px 16px 16px 16px;
+        padding: 12px 12px 12px 12px;
         display: block !important;
         box-shadow: -15px 0 40px rgba(0, 0, 0, 0.9);
         border-left: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
         overflow: hidden;
     }
 
@@ -464,10 +466,11 @@ h3 {
         flex-direction: column !important;
         padding: 0;
         margin: 0;
-        gap: 10px;
+        gap: 8px;
         height: 100%;
         overflow-y: auto;
         scrollbar-width: thin;
+        overflow-x: hidden;
     }
 
     #navbar ul li {
@@ -484,8 +487,10 @@ h3 {
     #navbar ul li a {
         display: flex !important;
         align-items: center;
-        padding: 15px 20px !important;
-        font-size: 16px !important;
+        min-height: 46px;
+        padding: 11px 14px !important;
+        font-size: 15px !important;
+        line-height: 1.2;
         color: #fff !important;
         background: rgba(255, 255, 255, 0.05);
         border-radius: 12px;
@@ -495,9 +500,10 @@ h3 {
     }
 
     #navbar ul li a i {
-        margin-right: 15px;
-        font-size: 20px;
-        width: 24px;
+        margin-right: 12px;
+        font-size: 17px;
+        width: 20px;
+        min-width: 20px;
         text-align: center;
         color: #ee8331;
     }
@@ -509,11 +515,11 @@ h3 {
     }
 
     .session-info-wrap {
-        margin: 30px 0 0 0 !important;
+        margin: 12px 0 0 0 !important;
         flex-direction: column !important;
         align-items: stretch !important;
-        gap: 14px;
-        padding-top: 18px;
+        gap: 10px;
+        padding-top: 12px;
         border-top: 1px solid rgba(255, 255, 255, 0.08);
         width: 100%;
         margin-top: auto !important;
@@ -522,17 +528,19 @@ h3 {
 
     .session-email {
         margin: 0 !important;
-        text-align: center;
-        font-size: 13px;
+        text-align: left;
+        padding: 0 4px;
+        font-size: 12px;
         color: rgba(255, 255, 255, 0.5) !important;
         display: block !important;
+        line-height: 1.3;
     }
 
     .logout-btn {
         width: 100%;
-        height: 48px;
+        height: 44px;
         border-radius: 12px !important;
-        font-size: 15px !important;
+        font-size: 14px !important;
         font-weight: 600 !important;
         letter-spacing: 0.2px;
         display: flex !important;
@@ -570,6 +578,17 @@ h3 {
 
     .header .logo span {
         font-size: 24px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #navbar {
+        width: calc(100vw - 16px);
+        right: calc(-100vw - 24px);
+    }
+
+    body.mobile-nav-active #navbar, #navbar.navbar-mobile {
+        right: 0;
     }
 }
 

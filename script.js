@@ -83,6 +83,7 @@ let statTotalEl, statCompletedEl, statPendingEl, statPlaylistEl, statProgressFil
 
 window.openMobilePlaylistModal = function() {
   const modal = document.getElementById('mobile-playlist-modal');
+  setMobileNavOpenState(false);
   syncMobilePlaylistUi(getMobilePlaylistOptions());
   if (modal) modal.classList.add('active');
 };
