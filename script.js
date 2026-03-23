@@ -780,11 +780,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setDefaultPublicScope() {
-    currentScope = 'public';
-    localStorage.setItem(TASK_SCOPE_KEY, 'public');
+    currentScope = 'my';
+    localStorage.setItem(TASK_SCOPE_KEY, 'my');
     currentPlaylistFilter = 'all';
     selectedTaskIds.clear();
-    if (scopeFilterSelect) scopeFilterSelect.value = 'public';
+    if (scopeFilterSelect) scopeFilterSelect.value = 'my';
     if (playlistFilterSelect) playlistFilterSelect.value = 'all';
   }
 
@@ -1177,7 +1177,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showAppPanel(data.user || {});
       
       if (data.user?.role === 'admin') {
-        window.location.href = '/admin';
+        window.location.href = 'admin.php';
         return;
       }
       
@@ -1267,7 +1267,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showAppPanel(data.user || {});
       
       if (data.user?.role === 'admin') {
-        window.location.href = '/admin';
+        window.location.href = 'admin.php';
         return;
       }
       
@@ -1323,7 +1323,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showAppPanel(data.user || {});
       
       if (data.user?.role === 'admin') {
-        window.location.href = '/admin';
+        window.location.href = 'admin.php';
         return;
       }
       
