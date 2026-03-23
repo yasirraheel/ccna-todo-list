@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
           selectedTaskIds.delete(taskId);
         }
       });
-      toggleBulkActions();
+      updateBulkActionState(getFilteredTasks());
       showFlash(isChecked ? 'Selected all tasks' : 'Selection cleared', 'info');
     });
   }
@@ -2816,6 +2816,9 @@ document.addEventListener('DOMContentLoaded', () => {
         : '';
 
       li.innerHTML = `
+        <div class="task-select-wrap">
+          <input type="checkbox" class="task-checkbox" data-id="${task.id}" ${selectedTaskIds.has(task.id) ? 'checked' : ''}>
+        </div>
         <div class="task-thumbnail-wrapper ${watchUrl ? 'task-open-link' : ''}">
           ${thumbnailHtml}
           <div class="task-priority-badge">${task.priority}</div>
@@ -2890,6 +2893,23 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         if (thumbnailWrapEl) thumbnailWrapEl.addEventListener('click', openVideo);
         if (titleEl) titleEl.addEventListener('click', openVideo);
+      }
+
+      // Bulk select checkbox logic
+      const selectCheckbox = li.querySelector('.task-checkbox');
+      if (selectCheckbox) {
+        selectCheckbox.addEventListener('change', (e) => {
+          e.stopPropagation();
+          const isChecked = e.target.checked;
+          if (isChecked) {
+            selectedTaskIds.add(task.id);
+            li.classList.add('selected-for-delete');
+          } else {
+            selectedTaskIds.delete(task.id);
+            li.classList.remove('selected-for-delete');
+          }
+          updateBulkActionState(getFilteredTasks());
+        });
       }
 
       taskList.appendChild(li);
