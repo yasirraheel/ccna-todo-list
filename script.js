@@ -250,18 +250,29 @@ document.addEventListener('DOMContentLoaded', () => {
   if (selectAllTasksInput) {
     selectAllTasksInput.addEventListener('change', (e) => {
       const isChecked = e.target.checked;
-      const checkboxes = document.querySelectorAll('.task-checkbox');
+      // Target only the checkboxes in the task list
+      const checkboxes = taskList.querySelectorAll('.task-checkbox');
+      
       checkboxes.forEach(cb => {
         cb.checked = isChecked;
-        const taskId = parseInt(cb.dataset.id, 10);
+        const taskId = parseInt(cb.getAttribute('data-id'), 10);
+        const taskItem = cb.closest('.task-item');
+        
         if (isChecked) {
           selectedTaskIds.add(taskId);
+          if (taskItem) taskItem.classList.add('selected-for-delete');
         } else {
           selectedTaskIds.delete(taskId);
+          if (taskItem) taskItem.classList.remove('selected-for-delete');
         }
       });
-      updateBulkActionState(getFilteredTasks());
-      showFlash(isChecked ? 'Selected all tasks' : 'Selection cleared', 'info');
+      
+      // Update UI states for buttons
+      const filteredTasks = getFilteredTasks();
+      const visibleTasks = filteredTasks.slice(0, visibleTaskCount);
+      updateBulkActionState(visibleTasks);
+      
+      showFlash(isChecked ? 'Selected all visible tasks' : 'Selection cleared', 'info');
     });
   }
 
