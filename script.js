@@ -39,7 +39,6 @@ var appName = 'My Tasks';
 var tasks = [];
 var visibleTaskCount = 18;
 var isLoadingMore = false;
-var editorInstances = {};
 
 // DOM Elements
 var form, taskInput, taskDate, taskPriority, taskCategory, taskVisibility, taskList, filterBtns, dateDisplay;
@@ -1643,32 +1642,22 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(`note-text-${noteId}`)?.classList.add('app-hidden');
     document.getElementById(`note-edit-${noteId}`)?.classList.remove('app-hidden');
 
-    // Initialize CKEditor 5 for inline editing
+    // Initialize CKEditor 4 for inline editing
     const inputId = `note-input-${noteId}`;
-    const targetEl = document.getElementById(inputId);
-    const editorObj = typeof CKSource !== 'undefined' ? CKSource.ClassicEditor : (typeof ClassicEditor !== 'undefined' ? ClassicEditor : null);
-    
-    if (editorObj && targetEl && !editorInstances[inputId]) {
-      editorObj.create(targetEl, {
+    if (typeof CKEDITOR !== 'undefined' && !CKEDITOR.instances[inputId]) {
+      CKEDITOR.replace(inputId, {
+        height: 150,
+        extraPlugins: 'colorbutton,font,justify',
         toolbar: [
-          'heading', '|', 'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', '|',
-          'bold', 'italic', 'underline', 'strikethrough', '|',
-          'link', 'bulletedList', 'numberedList', '|',
-          'alignment', 'outdent', 'indent', '|',
-          'undo', 'redo'
+          { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat' ] },
+          { name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock' ] },
+          { name: 'links', items: [ 'Link', 'Unlink' ] },
+          { name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },
+          { name: 'colors', items: [ 'TextColor', 'BGColor' ] },
+          { name: 'tools', items: [ 'Maximize' ] }
         ],
-        fontSize: {
-          options: [9, 11, 13, 'default', 17, 19, 21]
-        }
-      })
-      .then(editor => {
-        editorInstances[inputId] = editor;
-      })
-      .catch(err => {
-        console.error(`CKEditor 5 init error for note ${noteId}:`, err);
+        removeButtons: ''
       });
-    } else {
-      // Logic for fallback if editor exists
     }
   };
 
@@ -1676,14 +1665,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(`note-text-${noteId}`)?.classList.remove('app-hidden');
     document.getElementById(`note-edit-${noteId}`)?.classList.add('app-hidden');
 
-    // Cleanup CKEditor 5
+    // Cleanup CKEditor 4
     const inputId = `note-input-${noteId}`;
-    if (editorInstances[inputId]) {
-      editorInstances[inputId].destroy()
-        .then(() => {
-          delete editorInstances[inputId];
-        })
-        .catch(err => console.error('CKEditor 5 destroy error:', err));
+    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[inputId]) {
+      CKEDITOR.instances[inputId].destroy();
     }
   };
 
@@ -1692,8 +1677,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const vis = document.getElementById(`note-vis-${noteId}`);
     
     let text = '';
-    if (editorInstances[inputId]) {
-      text = editorInstances[inputId].getData().trim();
+    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[inputId]) {
+      text = CKEDITOR.instances[inputId].getData().trim();
     } else {
       const input = document.getElementById(inputId);
       text = input?.value.trim();
@@ -1716,10 +1701,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Cleanup CKEditor 5
-      if (editorInstances[inputId]) {
-        await editorInstances[inputId].destroy();
-        delete editorInstances[inputId];
+      // Cleanup CKEditor 4
+      if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[inputId]) {
+        CKEDITOR.instances[inputId].destroy();
       }
 
       const updated = await r.json();
@@ -1809,10 +1793,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     modalPromise.then(async () => {
-      // Cleanup CKEditor 5 after modal is closed
-      if (editorInstances['modal-note-input']) {
-        await editorInstances['modal-note-input'].destroy();
-        delete editorInstances['modal-note-input'];
+      // Cleanup CKEditor 4 after modal is closed
+      if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['modal-note-input']) {
+        CKEDITOR.instances['modal-note-input'].destroy();
       }
     });
 
@@ -1824,39 +1807,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load notes
     await loadTaskNotes(taskId, listEl);
 
-    // Initialize CKEditor 5 for the modal input
-    const targetEl = document.getElementById('modal-note-input');
-    const editorObj = typeof CKSource !== 'undefined' ? CKSource.ClassicEditor : (typeof ClassicEditor !== 'undefined' ? ClassicEditor : null);
-
-    if (editorObj && targetEl && !editorInstances['modal-note-input']) {
-      editorObj.create(targetEl, {
+    // Initialize CKEditor 4 for the modal input
+    if (typeof CKEDITOR !== 'undefined' && !CKEDITOR.instances['modal-note-input']) {
+      CKEDITOR.replace('modal-note-input', {
+        height: 150,
+        extraPlugins: 'colorbutton,font,justify',
         toolbar: [
-          'heading', '|', 'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', '|',
-          'bold', 'italic', 'underline', 'strikethrough', '|',
-          'link', 'bulletedList', 'numberedList', '|',
-          'alignment', 'outdent', 'indent', '|',
-          'undo', 'redo'
+          { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat' ] },
+          { name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock' ] },
+          { name: 'links', items: [ 'Link', 'Unlink' ] },
+          { name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },
+          { name: 'colors', items: [ 'TextColor', 'BGColor' ] },
+          { name: 'tools', items: [ 'Maximize' ] }
         ],
-        fontSize: {
-          options: [9, 11, 13, 'default', 17, 19, 21]
-        }
-      })
-      .then(editor => {
-        editorInstances['modal-note-input'] = editor;
-      })
-      .catch(err => {
-        console.error('CKEditor 5 init error for modal:', err);
+        removeButtons: ''
       });
-    } else {
-      // Fallback
     }
 
     // Handle save
     if (saveBtn && inputEl && visEl) {
       saveBtn.addEventListener('click', async () => {
         let text = '';
-        if (editorInstances['modal-note-input']) {
-          text = editorInstances['modal-note-input'].getData().trim();
+        if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['modal-note-input']) {
+          text = CKEDITOR.instances['modal-note-input'].getData().trim();
         } else {
           text = inputEl.value.trim();
         }
@@ -1889,8 +1862,8 @@ document.addEventListener('DOMContentLoaded', () => {
           renderTaskNotesList(taskId, listEl);
           
           // Clear editor
-          if (editorInstances['modal-note-input']) {
-            editorInstances['modal-note-input'].setData('');
+          if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['modal-note-input']) {
+            CKEDITOR.instances['modal-note-input'].setData('');
           } else {
             inputEl.value = '';
           }
@@ -2739,16 +2712,6 @@ document.addEventListener('DOMContentLoaded', () => {
            </div>`
         : '';
 
-      const notesSectionHtml = `
-        <div class="task-notes-section app-hidden" id="notes-section-${task.id}">
-          <div class="task-notes-list" id="notes-list-${task.id}"></div>
-          <div class="task-note-form" style="display:flex; flex-direction:column; gap:10px;">
-            <textarea class="task-note-input form-control" id="note-input-${task.id}" placeholder="Type your note..."></textarea>
-            <button class="bulk-btn success" style="align-self: flex-start;" onclick="window.addTaskNote('${task.id}')">Add Note</button>
-          </div>
-        </div>
-      `;
-
       li.innerHTML = `
         <div class="task-thumbnail-wrapper ${watchUrl ? 'task-open-link' : ''}">
           ${thumbnailHtml}
@@ -2778,7 +2741,6 @@ document.addEventListener('DOMContentLoaded', () => {
               ${downloadSubUrl ? `<a href="${downloadSubUrl}" target="_blank" class="sub-btn" title="Download Subtitles" download><i class="fas fa-closed-captioning"></i> Subs</a>` : ''}
               ${canDelete ? `<button class="delete-btn" title="Delete Task"><i class="fas fa-trash-can"></i></button>` : ''}
             </div>
-            ${notesSectionHtml}
           </div>
         </div>
       `;
