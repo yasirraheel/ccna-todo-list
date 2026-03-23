@@ -724,7 +724,7 @@ ob_start();
     })();
 </script>
 
-<script src="assets/js/quiz.js?v=<?php echo $assetVersion; ?>"></script>
+<script src="script.js?v=<?php echo $assetVersion; ?>"></script>
 
 <?php 
 $content = ob_get_clean();
