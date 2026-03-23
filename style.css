@@ -537,6 +537,20 @@ h3 {
         padding-bottom: 140px; /* Space for bottom bar */
     }
 
+    .task-form {
+        padding: 15px;
+    }
+    
+    .task-form .d-flex.justify-content-between.align-items-center.mt-4 {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .task-form .bulk-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
     .filter-row .filter-group {
         display: none !important; /* Hide top filter buttons on mobile */
     }
