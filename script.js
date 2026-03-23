@@ -210,8 +210,43 @@ document.addEventListener('DOMContentLoaded', () => {
   applySeoConfig({ appName });
   
   generateCaptcha();
+  
+  // Handle URL filter parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const filterParam = urlParams.get('filter');
+  if (filterParam && ['all', 'active', 'completed', 'has-notes'].includes(filterParam)) {
+    currentFilter = filterParam;
+    localStorage.setItem(TASK_STATUS_FILTER_KEY, currentFilter);
+    // Remove it from URL cleanly
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
   syncFilterButtons();
   syncAuthModeUi();
+
+  // Mobile Bottom Nav logic
+  const bottomFilterBtns = document.querySelectorAll('.bottom-filter-btn');
+  bottomFilterBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const newFilter = btn.dataset.filter;
+      // If on quiz page, redirect to index with filter
+      if (window.location.pathname.includes('quiz.php')) {
+         window.location.href = '/?filter=' + newFilter;
+         return;
+      }
+      
+      currentFilter = newFilter;
+      localStorage.setItem(TASK_STATUS_FILTER_KEY, currentFilter);
+      localStorage.removeItem(VISIBLE_TASK_COUNT_KEY);
+      localStorage.removeItem(SCROLL_POSITION_KEY);
+      syncFilterButtons();
+      syncInitialPageSize();
+      showPageLoader('Updating view...');
+      renderTasks();
+      hidePageLoader();
+    });
+  });
 
   saasSearchInput = document.getElementById('saas-search-input');
   if (saasSearchInput) {
@@ -324,15 +359,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function syncFilterButtons() {
-    filterBtns.forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.filter === currentFilter);
-    });
-  }
+  filterBtns.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === currentFilter);
+  });
+  
+  const bottomFilterBtns = document.querySelectorAll('.bottom-filter-btn');
+  bottomFilterBtns.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === currentFilter);
+  });
+}
 
   if (playlistFilterSelect) {
     playlistFilterSelect.addEventListener('change', async () => {
       currentPlaylistFilter = playlistFilterSelect.value || 'all';
       await saveSelectedPlaylistPreference(currentPlaylistFilter);
+      
+      updateMobileBottomPlaylistName(Array.from(playlistFilterSelect.options).map(o => ({id: o.value, name: o.text})));
+      
       localStorage.removeItem(VISIBLE_TASK_COUNT_KEY);
       localStorage.removeItem(SCROLL_POSITION_KEY);
       syncInitialPageSize();

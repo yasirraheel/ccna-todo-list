@@ -75,10 +75,10 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                     <input type="text" id="saas-search" class="form-control" placeholder="Search tasks..." style="width: 250px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff;">
                 </div>
                 <ul>
-                    <li><a href="<?php echo $baseUrl; ?>" class="<?php echo ($currentPage == 'index.php') ? 'active' : ''; ?>">Dashboard</a></li>
-                    <li><a href="quiz.php" class="<?php echo ($currentPage == 'quiz.php') ? 'active' : ''; ?>">Quiz</a></li>
+                    <li><a href="<?php echo $baseUrl; ?>" class="<?php echo ($currentPage == 'index.php') ? 'active' : ''; ?>"><i class="fas fa-home d-lg-none"></i> Dashboard</a></li>
+                    <li><a href="quiz.php" class="<?php echo ($currentPage == 'quiz.php') ? 'active' : ''; ?>"><i class="fas fa-question-circle d-lg-none"></i> Quiz</a></li>
                     
-                    <div class="session-info-wrap ms-3">
+                    <div class="session-info-wrap ms-lg-3">
                         <span id="session-email" class="session-email d-none me-3"></span>
                         <button id="logout-btn" class="bulk-btn danger" style="padding: 6px 15px; font-size: 0.9rem;">
                             <i class="fas fa-sign-out-alt"></i> Logout
@@ -86,7 +86,6 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                     </div>
                 </ul>
             </nav>
-            <i class="mobile-nav-toggle mobile-nav-show bi bi-list"></i>
-            <i class="mobile-nav-toggle mobile-nav-hide d-none bi bi-x"></i>
+            <i class="mobile-nav-toggle bi bi-list"></i>
         </div>
     </header>

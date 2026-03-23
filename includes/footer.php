@@ -45,6 +45,53 @@
         </div>
     </footer>
 
+    <!-- Mobile Bottom Navigation Bar -->
+    <div class="mobile-bottom-bar d-md-none">
+        <div class="mobile-playlist-selector" onclick="openMobilePlaylistModal()">
+            <div class="mobile-playlist-info">
+                <i class="fas fa-list-ul"></i>
+                <span id="mobile-bottom-playlist-name">All Playlists</span>
+            </div>
+            <i class="fas fa-chevron-up"></i>
+        </div>
+        <div class="mobile-bottom-nav">
+            <a href="javascript:void(0)" class="mobile-nav-item bottom-filter-btn" data-filter="all">
+                <i class="fas fa-layer-group"></i>
+                <span>All</span>
+            </a>
+            <a href="javascript:void(0)" class="mobile-nav-item bottom-filter-btn" data-filter="active">
+                <i class="fas fa-clock"></i>
+                <span>Active</span>
+            </a>
+            <a href="/" class="mobile-nav-item mobile-home-btn">
+                <div class="home-btn-inner">
+                    <i class="fas fa-home"></i>
+                </div>
+            </a>
+            <a href="javascript:void(0)" class="mobile-nav-item bottom-filter-btn" data-filter="completed">
+                <i class="fas fa-check-circle"></i>
+                <span>Complete</span>
+            </a>
+            <a href="javascript:void(0)" class="mobile-nav-item bottom-filter-btn" data-filter="has-notes">
+                <i class="fas fa-sticky-note"></i>
+                <span>Notes</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Mobile Playlist Modal (Bottom Sheet) -->
+    <div id="mobile-playlist-modal" class="modal-overlay bottom-sheet-overlay">
+        <div class="modal-content bottom-sheet">
+            <div class="bottom-sheet-header">
+                <h3>Select Playlist</h3>
+                <button class="close-sheet" onclick="closeMobilePlaylistModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="bottom-sheet-body" id="mobile-playlist-list">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- Global Modals -->
     <div id="custom-modal" class="modal-overlay">
         <div class="modal-content">
