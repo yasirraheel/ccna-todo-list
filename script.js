@@ -2451,6 +2451,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedTaskIds.clear();
       }
       updateDashboard();
+      hidePageLoader();
     } catch (_error) {
       tasks = [];
       showFlash('Could not connect to task service', 'error');
@@ -2463,17 +2464,22 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const response = await apiFetch(currentScope === 'public' ? PUBLIC_TASKS_API : PLAYLISTS_API);
       if (!response.ok) return;
-      const items = await response.json();
+      
+      const data = await response.json();
+      const items = Array.isArray(data) ? data : (data.playlists || data.tasks || []);
+      
       const prev = currentPlaylistFilter;
       playlistFilterSelect.innerHTML = '';
       const optAll = document.createElement('option');
       optAll.value = 'all';
       optAll.textContent = 'All Playlists';
       playlistFilterSelect.appendChild(optAll);
+      
       if (currentScope === 'public') {
         const map = new Map();
         (items || []).forEach(task => {
-          const name = String(task?.playlistName || '');
+          if (!task) return;
+          const name = String(task.playlistName || '').trim();
           map.set(name, (map.get(name) || 0) + 1);
         });
         Array.from(map.entries()).forEach(([name, count]) => {
@@ -2485,20 +2491,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       } else {
         (items || []).forEach(it => {
-          const name = String(it?.name || '');
+          if (!it) return;
+          const name = String(it.name || '').trim();
           const label = name || 'Unassigned';
           const option = document.createElement('option');
           option.value = name;
-          option.textContent = `${label} (${it?.count ?? 0})`;
+          option.textContent = `${label} (${it.count ?? 0})`;
           playlistFilterSelect.appendChild(option);
         });
       }
-      playlistFilterSelect.value = prev || 'all';
+      
+      const exists = Array.from(playlistFilterSelect.options).some(o => o.value === prev);
+      playlistFilterSelect.value = exists ? prev : 'all';
       currentPlaylistFilter = playlistFilterSelect.value || 'all';
+      
       const options = getMobilePlaylistOptions();
       syncMobilePlaylistUi(options);
     } catch (_e) {
-      // ignore
+      console.error('Load Playlists Error:', _e);
     }
   }
 

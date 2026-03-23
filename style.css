@@ -1881,6 +1881,53 @@ select option {
     box-shadow: 0 4px 12px rgba(238, 131, 49, 0.3);
 }
 
+.playlist-filter-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.playlist-select {
+    background: #111;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    outline: none;
+    min-width: 180px;
+    height: 40px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23ee8331' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 12px) center;
+    padding-right: 36px;
+    transition: all 0.2s ease;
+}
+
+.playlist-select:hover {
+    border-color: #ee8331;
+}
+
+.playlist-select:focus {
+    border-color: #ee8331;
+    box-shadow: 0 0 0 2px rgba(238, 131, 49, 0.2);
+}
+
+.playlist-select:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.playlist-select option {
+    background: #111;
+    color: #fff;
+    padding: 10px;
+}
+
 .bulk-actions-row {
     display: flex;
     justify-content: space-between;
