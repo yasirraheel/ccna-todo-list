@@ -142,9 +142,17 @@
                 .then(data => {
                     if (data.email) {
                         $('#session-email').text(data.email).removeClass('d-none');
+                    } else if (!isLoginPage && !isQuizPage) {
+                        localStorage.removeItem(AUTH_TOKEN_KEY);
+                        window.location.href = 'login.php';
                     }
                 })
-                .catch(() => {});
+                .catch(() => {
+                    if (!isLoginPage && !isQuizPage) {
+                        localStorage.removeItem(AUTH_TOKEN_KEY);
+                        window.location.href = 'login.php';
+                    }
+                });
             } else if (!isLoginPage && !isQuizPage) {
                 // Only redirect if not on login or quiz page
                 window.location.href = '/login.php';

@@ -790,13 +790,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function redirectToLogin() {
     if (!isLoginPage) {
-      window.location.href = '/login';
+      window.location.href = '/login.php';
     }
   }
 
   function redirectToApp() {
     if (isLoginPage) {
-      window.location.href = '/';
+      window.location.href = '/index.php';
     }
   }
 
