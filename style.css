@@ -541,14 +541,26 @@ h3 {
         padding: 15px;
     }
     
-    .task-form .d-flex.justify-content-between.align-items-center.mt-4 {
-        flex-direction: column;
-        gap: 15px;
+    .action-buttons-wrap {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 15px !important;
     }
     
+    .action-buttons-wrap .bulk-btn {
+        margin-right: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .task-form .d-flex.gap-3 {
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 10px !important;
+    }
+
     .task-form .bulk-btn {
-        width: 100%;
-        justify-content: center;
+        width: 100% !important;
+        justify-content: center !important;
     }
 
     .filter-row .filter-group {
@@ -1227,6 +1239,11 @@ body, html {
     background: rgba(0, 0, 0, 0.85) !important;
 }
 
+.bottom-sheet-overlay.active {
+    display: flex !important;
+    background: rgba(0, 0, 0, 0.85) !important;
+}
+
 .bottom-sheet {
     position: fixed;
     bottom: 0;
@@ -1246,6 +1263,7 @@ body, html {
 
 .modal-overlay.active .bottom-sheet {
     transform: translateY(0);
+    background: #1a1a1a !important;
 }
 
 .bottom-sheet-header {
@@ -1299,11 +1317,13 @@ body, html {
 }
 
 .mobile-playlist-item:hover, .mobile-playlist-item.active {
-    background: rgba(238, 131, 49, 0.1);
+    background: rgba(238, 131, 49, 0.15) !important;
+    border-left: 3px solid #ee8331 !important;
+    padding-left: 21px !important; /* Adjust padding to account for border */
 }
 
 .mobile-playlist-item.active i {
-    color: #ee8331;
+    color: #ee8331 !important;
 }
 
 #app-container {

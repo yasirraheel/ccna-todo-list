@@ -21,7 +21,7 @@ $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : 
 $host = $_SERVER['HTTP_HOST'];
 $dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 $baseUrl = $protocol . "://" . $host . ($dir === '/' ? "" : $dir);
-$assetVersion = "1.1.44"; // Incremented version to bust cache
+$assetVersion = "1.1.45"; // Incremented version to bust cache
 
 // Default SEO values
 if (!isset($pageTitle)) $pageTitle = $appName;

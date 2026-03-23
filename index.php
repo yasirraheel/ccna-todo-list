@@ -68,11 +68,11 @@ ob_start();
                 </div>
             </div>
             
-            <div class="d-flex justify-content-between align-items-center mt-4">
-                <button type="button" id="import-playlist-btn" class="bulk-btn success">
+            <div class="d-flex justify-content-between align-items-center mt-4 action-buttons-wrap">
+                <button type="button" id="import-playlist-btn" class="bulk-btn success w-100 mb-2 mb-md-0 me-md-2" style="justify-content: center;">
                     <i class="fas fa-file-import"></i> Import Playlist
                 </button>
-                <button type="submit" id="add-task-btn" class="bulk-btn primary" style="padding: 12px 30px; font-size: 1.1rem;">
+                <button type="submit" id="add-task-btn" class="bulk-btn primary w-100" style="padding: 12px 30px; font-size: 1.1rem; justify-content: center;">
                     <i class="fas fa-plus"></i> Add Task
                 </button>
             </div>
