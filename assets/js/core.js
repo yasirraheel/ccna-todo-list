@@ -813,7 +813,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showFlash('Logged out', 'info');
   }
 
-  async function adminInit() {
+  window.adminInit = async function adminInit() {
     console.log('Initializing admin application...');
     try {
       await resolveApiBase();
@@ -837,7 +837,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       showPageLoader('Loading admin data...');
       try {
-        await loadAdminDashboard();
+        if (typeof loadAdminDashboard === 'function') {
+          await loadAdminDashboard();
+        }
       } catch (err) {
         console.error('Failed to load admin dashboard data:', err);
         showFlash('Failed to load admin dashboard', 'error');
@@ -845,49 +847,50 @@ document.addEventListener('DOMContentLoaded', () => {
         hidePageLoader(); // Always hide loader, even if it fails
       }
 
-
-      
       // Setup Admin Navigation
-      adminNavItems.forEach(item => {
-        item.addEventListener('click', () => {
-          const section = item.dataset.section;
-          window.location.hash = section;
-          switchAdminSection(section);
+      if (typeof adminNavItems !== 'undefined' && adminNavItems) {
+        adminNavItems.forEach(item => {
+          item.addEventListener('click', () => {
+            const section = item.dataset.section;
+            window.location.hash = section;
+            if (typeof switchAdminSection === 'function') switchAdminSection(section);
+          });
         });
-      });
+      }
 
       // Handle initial hash
       const initialSection = window.location.hash.substring(1) || 'dashboard';
       if (['dashboard', 'users', 'tasks', 'settings'].includes(initialSection)) {
-        switchAdminSection(initialSection);
+        if (typeof switchAdminSection === 'function') switchAdminSection(initialSection);
       }
 
-
-      if (adminTaskSearch) {
+      if (typeof adminTaskSearch !== 'undefined' && adminTaskSearch) {
         let searchTimeout;
         adminTaskSearch.addEventListener('input', () => {
           clearTimeout(searchTimeout);
-          searchTimeout = setTimeout(() => loadAllTasks(1), 500);
+          if (typeof loadAllTasks === 'function') searchTimeout = setTimeout(() => loadAllTasks(1), 500);
         });
       }
 
-      if (adminTaskUserSearch) {
+      if (typeof adminTaskUserSearch !== 'undefined' && adminTaskUserSearch) {
         let userSearchTimeout;
         adminTaskUserSearch.addEventListener('input', () => {
           clearTimeout(userSearchTimeout);
-          userSearchTimeout = setTimeout(() => loadAllTasks(1), 500);
+          if (typeof loadAllTasks === 'function') userSearchTimeout = setTimeout(() => loadAllTasks(1), 500);
         });
       }
 
-      if (adminTaskFilter) {
-        adminTaskFilter.addEventListener('change', () => loadAllTasks(1));
+      if (typeof adminTaskFilter !== 'undefined' && adminTaskFilter) {
+        adminTaskFilter.addEventListener('change', () => {
+          if (typeof loadAllTasks === 'function') loadAllTasks(1);
+        });
       }
 
-      if (adminLogoutBtn) {
+      if (typeof adminLogoutBtn !== 'undefined' && adminLogoutBtn) {
         adminLogoutBtn.addEventListener('click', logoutUser);
       }
 
-      if (adminSettingsForm) {
+      if (typeof adminSettingsForm !== 'undefined' && adminSettingsForm) {
         const submitBtn = adminSettingsForm.querySelector('button[type="submit"]');
         adminSettingsForm.addEventListener('submit', async (e) => {
           e.preventDefault();
@@ -907,7 +910,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (r.ok) {
               const data = await r.json();
               showFlash(data.message || 'Settings saved successfully', 'success');
-              logActivity('Admin Saved Settings');
+              if (typeof logActivity === 'function') logActivity('Admin Saved Settings');
               // Reload to apply changes after a short delay
               setTimeout(() => window.location.reload(), 1200);
             } else {
@@ -947,6 +950,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hidePageLoader();
     }
   }
+  // Removed redundant logic
 
   window.copyToClipboard = (elementId) => {
     const el = document.getElementById(elementId);
