@@ -788,6 +788,63 @@ h3 {
     text-align: right;
 }
 
+/* CKEditor 5 Dark Mode Overrides */
+:root {
+    --ck-color-base-foreground: #1a1a1a;
+    --ck-color-base-background: #222;
+    --ck-color-base-border: rgba(255, 255, 255, 0.2);
+    --ck-color-toolbar-background: #2a2a2a;
+    --ck-color-toolbar-border: rgba(255, 255, 255, 0.1);
+    --ck-color-input-background: #111;
+    --ck-color-input-border: rgba(255, 255, 255, 0.1);
+    --ck-color-text: #ffffff;
+    --ck-color-button-default-hover-background: #333;
+    --ck-color-button-default-active-background: #444;
+    --ck-color-button-on-background: #ee8331;
+    --ck-color-button-on-hover-background: #d9772c;
+}
+
+.ck-editor__editable {
+    background-color: #111 !important;
+    color: #ffffff !important;
+    min-height: 200px !important;
+}
+
+.ck.ck-editor__main>.ck-editor__editable {
+    background: #111 !important;
+    color: #ffffff !important;
+}
+
+.ck.ck-editor__main>.ck-editor__editable:focus {
+    border-color: #ee8331 !important;
+}
+
+.ck.ck-toolbar {
+    background: #2a2a2a !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.ck.ck-toolbar .ck-button {
+    color: #ffffff !important;
+}
+
+.ck.ck-toolbar .ck-button:hover {
+    background: #333 !important;
+}
+
+.ck.ck-toolbar .ck-button.ck-on {
+    background: #ee8331 !important;
+    color: #ffffff !important;
+}
+
+.ck.ck-list {
+    background: #2a2a2a !important;
+}
+
+.ck.ck-list__item .ck-button:hover:not(.ck-disabled) {
+    background: #333 !important;
+}
+
 /* UTILS */
 .app-hidden {
     display: none !important;
