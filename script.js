@@ -402,7 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  saasSearchInput = document.getElementById('saas-search-input');
+  saasSearchInput = document.getElementById('saas-search');
   if (saasSearchInput) {
     saasSearchInput.addEventListener('input', (e) => {
       currentSearchQuery = (e.target.value || '').trim().toLowerCase();
@@ -843,13 +843,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!taskList) return 1;
     const computedStyle = window.getComputedStyle(taskList);
     const gridTemplateColumns = computedStyle.getPropertyValue('grid-template-columns');
-    const cols = gridTemplateColumns.split(' ').length;
+    if (!gridTemplateColumns || gridTemplateColumns === 'none' || gridTemplateColumns === 'normal') {
+      return 1;
+    }
+    const cols = gridTemplateColumns.trim().split(/\s+/).length;
     return cols > 0 ? cols : 1;
   }
 
   function syncInitialPageSize() {
     const columns = getGridColumnCount();
-    const initial = columns * TASKS_ROWS_PER_PAGE;
+    const rows = 6; // Default rows per page
+    const initial = Math.max(6, columns * rows);
     const saved = localStorage.getItem(VISIBLE_TASK_COUNT_KEY);
     if (saved) {
       const savedCount = parseInt(saved, 10);
@@ -2439,7 +2443,8 @@ document.addEventListener('DOMContentLoaded', () => {
         hidePageLoader();
         return;
       }
-      tasks = await response.json();
+      const data = await response.json();
+      tasks = Array.isArray(data) ? data : (data.tasks || []);
       taskNotesCache.clear();
       syncInitialPageSize();
       if (currentScope === 'public') {
@@ -2780,7 +2785,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function getFilteredTasks() {
-    let filteredTasks = tasks;
+    let filteredTasks = Array.isArray(tasks) ? tasks : [];
     
     // Apply playlist filter
     if (currentPlaylistFilter && currentPlaylistFilter !== 'all') {
@@ -2971,11 +2976,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderTasks() {
     if (!taskList) return;
-    taskList.innerHTML = '';
     
     const filteredTasks = getFilteredTasks();
-
     const visibleTasks = filteredTasks.slice(0, visibleTaskCount);
+    
+    console.log('Rendering tasks:', {
+      total: (tasks || []).length,
+      filtered: filteredTasks.length,
+      visible: visibleTasks.length,
+      currentFilter,
+      currentPlaylistFilter,
+      visibleTaskCount
+    });
+
+    taskList.innerHTML = '';
+    
     updateBulkActionState(visibleTasks);
     updatePlaylistActionState();
     updateDashboard();

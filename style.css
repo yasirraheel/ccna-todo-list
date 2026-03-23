@@ -594,13 +594,20 @@ h3 {
 
 @media (max-width: 767.98px) {
     #app-container {
-        padding-top: 64px;
-        padding-bottom: 140px; /* Space for bottom bar */
+        padding-top: 60px !important;
+        padding-left: 12px;
+        padding-right: 12px;
+        margin-top: 0 !important;
     }
-
+    
+    .stats-grid {
+        margin-top: 0 !important;
+        gap: 12px;
+    }
+    
     .dashboard {
         margin-top: 0 !important;
-        padding-top: 6px;
+        padding-top: 0 !important;
     }
 
     .task-form {
