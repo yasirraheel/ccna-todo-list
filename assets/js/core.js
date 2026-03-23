@@ -95,6 +95,8 @@ async function adminInit() {
     return;
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
   if (authModeLoginBtn) {
     authModeLoginBtn.addEventListener('click', () => setAuthMode('login'));
   }
@@ -132,6 +134,7 @@ async function adminInit() {
       logoutUser();
     });
   }
+});
 
   function buildApiBase(originOrPath) {
     const value = String(originOrPath || '').trim().replace(/\/+$/, '');
