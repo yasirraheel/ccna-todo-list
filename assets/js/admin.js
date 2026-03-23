@@ -1,8 +1,12 @@
-if (isAdminPage) {
-    if (typeof adminInit === 'function') {
-        adminInit().catch(() => {});
+document.addEventListener('DOMContentLoaded', () => {
+    if (isAdminPage) {
+        if (typeof adminInit === 'function') {
+            adminInit().catch(() => {
+                hidePageLoader();
+            });
+        }
     }
-}
+});
   if (authModeLoginBtn) {
     authModeLoginBtn.addEventListener('click', () => setAuthMode('login'));
   }
@@ -718,13 +722,17 @@ if (isAdminPage) {
     showFlash('Logged out', 'info');
   }
 
-  async function adminInit() {
+  window.adminInit = async function adminInit() {
     console.log('Initializing admin application...');
     try {
-      await resolveApiBase();
-      const authed = await authenticateWithStoredToken();
+      if (typeof resolveApiBase === 'function') await resolveApiBase();
+      
+      const authed = typeof authenticateWithStoredToken === 'function' 
+        ? await authenticateWithStoredToken() 
+        : false;
+        
       if (!authed) {
-        hidePageLoader();
+        if (typeof hidePageLoader === 'function') hidePageLoader();
         return;
       }
       
@@ -742,12 +750,16 @@ if (isAdminPage) {
 
       showPageLoader('Loading admin data...');
       try {
-        await loadAdminDashboard();
+        if (typeof loadAdminDashboard === 'function') {
+            await loadAdminDashboard();
+        }
       } catch (err) {
         console.error('Failed to load admin dashboard data:', err);
         showFlash('Failed to load admin dashboard', 'error');
       } finally {
-        hidePageLoader(); // Always hide loader, even if it fails
+        if (typeof hidePageLoader === 'function') {
+            hidePageLoader(); // Always hide loader, even if it fails
+        }
       }
 
 
@@ -851,7 +863,9 @@ if (isAdminPage) {
       console.error('Admin Init Error:', err);
       showFlash('Failed to load admin panel', 'error');
     } finally {
-      hidePageLoader();
+      if (typeof hidePageLoader === 'function') {
+        hidePageLoader();
+      }
     }
   }
 
