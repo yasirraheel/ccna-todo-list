@@ -63,6 +63,68 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     
     <!-- jQuery must be in head because inline scripts in quiz.php depend on it -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- CRITICAL OVERRIDES TO BYPASS ALL CACHING/THEMES -->
+    <style>
+        @media (max-width: 1279px) {
+            .navbar {
+                background: #111111 !important;
+            }
+            .mobile-nav-active .navbar {
+                background: #111111 !important;
+                padding-top: 100px !important;
+            }
+            .mobile-nav-active .navbar::before {
+                background: rgba(0,0,0,0.8) !important;
+            }
+            .mobile-nav-hide {
+                color: #ffffff !important;
+                z-index: 10002 !important;
+                display: none;
+            }
+            .mobile-nav-active .mobile-nav-hide {
+                display: block !important;
+            }
+            .mobile-nav-active .mobile-nav-show {
+                display: none !important;
+            }
+            #navbar ul li a i {
+                color: #ee8331 !important;
+            }
+        }
+
+        .logout-btn {
+            background: rgba(220, 53, 69, 0.1) !important;
+            color: #ff4d4f !important;
+            border: 1px solid rgba(220, 53, 69, 0.2) !important;
+            transition: all 0.3s ease !important;
+            margin-top: 10px !important;
+        }
+
+        .logout-btn i {
+            color: #ff4d4f !important;
+        }
+
+        .logout-btn:hover {
+            background: #dc3545 !important;
+            color: #ffffff !important;
+        }
+
+        .logout-btn:hover i {
+            color: #ffffff !important;
+        }
+
+        /* Mobile Playlist Fixes */
+        .bottom-sheet {
+            background: #1a1a1a !important;
+        }
+        .bottom-sheet-overlay {
+            background: rgba(0, 0, 0, 0.85) !important;
+        }
+        .modal-overlay.active .bottom-sheet {
+            background: #1a1a1a !important;
+        }
+    </style>
 </head>
 
 <body>
