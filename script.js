@@ -238,6 +238,10 @@ document.addEventListener('DOMContentLoaded', () => {
   importBtnIdleLabel = importPlaylistBtn ? importPlaylistBtn.textContent.trim() : 'Import Playlist';
   playlistFilterSelect = document.getElementById('playlist-filter');
   scopeFilterSelect = document.getElementById('scope-filter');
+  if (!scopeFilterSelect && !isLoginPage && !isAdminPage) {
+    currentScope = 'my';
+    localStorage.setItem(TASK_SCOPE_KEY, 'my');
+  }
   playlistVisibilityBtn = document.getElementById('playlist-visibility-btn');
   playlistRenameBtn = document.getElementById('playlist-rename-btn');
   playlistDeleteBtn = document.getElementById('playlist-delete-btn');
