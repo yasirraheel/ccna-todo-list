@@ -106,6 +106,28 @@ document.addEventListener('DOMContentLoaded', () => {
   playlistRenameBtn = document.getElementById('playlist-rename-btn');
   playlistDeleteBtn = document.getElementById('playlist-delete-btn');
   selectAllTasksInput = document.getElementById('select-all-tasks');
+  if (selectAllTasksInput) {
+    selectAllTasksInput.addEventListener('change', () => {
+      const isChecked = selectAllTasksInput.checked;
+      console.log('--- DEBUG: SELECT ALL CLICKED (DIRECT) ---', isChecked);
+      const checkboxes = taskList.querySelectorAll('.task-checkbox');
+      checkboxes.forEach(cb => {
+        cb.checked = isChecked;
+        const taskId = parseInt(cb.getAttribute('data-id'), 10);
+        const taskItem = cb.closest('.task-item');
+        if (isChecked) {
+          selectedTaskIds.add(taskId);
+          if (taskItem) taskItem.classList.add('selected-for-delete');
+        } else {
+          selectedTaskIds.delete(taskId);
+          if (taskItem) taskItem.classList.remove('selected-for-delete');
+        }
+      });
+      const visibleTasks = getFilteredTasks().slice(0, visibleTaskCount);
+      updateBulkActionState(visibleTasks);
+      showFlash(isChecked ? 'Selected all visible tasks' : 'Selection cleared', 'info');
+    });
+  }
   deleteSelectedBtn = document.getElementById('delete-selected-btn');
   deleteAllBtn = document.getElementById('delete-all-btn');
   loadMoreBtn = document.getElementById('load-more-btn');
@@ -246,32 +268,6 @@ document.addEventListener('DOMContentLoaded', () => {
       importPlaylist().catch(() => {});
     });
   }
-
-  // Use delegation for Select All to ensure it always works
-  document.addEventListener('change', (e) => {
-    if (e.target && e.target.id === 'select-all-tasks') {
-      const isChecked = e.target.checked;
-      
-      const checkboxes = taskList.querySelectorAll('.task-checkbox');
-      checkboxes.forEach(cb => {
-        cb.checked = isChecked;
-        const taskId = parseInt(cb.getAttribute('data-id'), 10);
-        const taskItem = cb.closest('.task-item');
-        
-        if (isChecked) {
-          selectedTaskIds.add(taskId);
-          if (taskItem) taskItem.classList.add('selected-for-delete');
-        } else {
-          selectedTaskIds.delete(taskId);
-          if (taskItem) taskItem.classList.remove('selected-for-delete');
-        }
-      });
-      
-      const visibleTasks = getFilteredTasks().slice(0, visibleTaskCount);
-      updateBulkActionState(visibleTasks);
-      showFlash(isChecked ? 'Selected all visible tasks' : 'Selection cleared', 'info');
-    }
-  });
 
   if (deleteSelectedBtn) {
     deleteSelectedBtn.addEventListener('click', () => {
@@ -2816,15 +2812,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ? `<img src="${task.thumbnailUrl}" class="task-thumbnail" alt="${task.text}" loading="lazy">`
         : `<div class="task-thumbnail-placeholder"><i class="fab fa-youtube"></i></div>`;
 
-      const descriptionHtml = task.description 
-        ? `<div class="task-description-container">
-             <div class="task-description collapsed" id="desc-${task.id}">${task.description}</div>
-             <button class="desc-toggle-btn" onclick="toggleDescription('${task.id}')" id="btn-desc-${task.id}">Read More</button>
-           </div>`
-        : '';
-
       li.innerHTML = `
-        <div class="task-thumbnail-wrapper ${watchUrl ? 'task-open-link' : ''}">
+        <div class="task-thumbnail-wrapper">
           <div class="task-select-wrap">
             <input type="checkbox" class="task-checkbox" data-id="${task.id}" ${selectedTaskIds.has(task.id) ? 'checked' : ''}>
           </div>
@@ -2833,7 +2822,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="task-body">
           <div class="task-content ${watchUrl ? 'task-open-link' : ''}" title="${task.text}">${task.text}</div>
-          ${descriptionHtml}
           <div class="task-footer">
             <div class="task-meta">
               ${formattedDate ? `<span><i class="far fa-calendar"></i> ${formattedDate}</span>` : ''}
@@ -2892,20 +2880,23 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (watchUrl) {
-        const thumbnailWrapEl = li.querySelector('.task-thumbnail-wrapper');
         const titleEl = li.querySelector('.task-content');
         const openVideo = (e) => {
           e.stopPropagation();
           trackTaskView(task.id).catch(() => {});
           window.open(watchUrl, '_blank');
         };
-        if (thumbnailWrapEl) thumbnailWrapEl.addEventListener('click', openVideo);
         if (titleEl) titleEl.addEventListener('click', openVideo);
       }
 
       // Bulk select checkbox logic
       const selectCheckbox = li.querySelector('.task-checkbox');
       if (selectCheckbox) {
+        // Stop click from bubbling to prevent card-level redirection
+        selectCheckbox.addEventListener('click', (e) => {
+          e.stopPropagation();
+        });
+        
         selectCheckbox.addEventListener('change', (e) => {
           e.stopPropagation();
           const isChecked = e.target.checked;
