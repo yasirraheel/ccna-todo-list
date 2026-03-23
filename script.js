@@ -1748,6 +1748,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ],
         filebrowserUploadUrl: '/api/notes/upload-image',
         filebrowserUploadMethod: 'form',
+        image_previewText: ' ', // Clear dummy text
         removeButtons: ''
       });
     }
@@ -1915,6 +1916,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ],
         filebrowserUploadUrl: '/api/notes/upload-image',
         filebrowserUploadMethod: 'form',
+        image_previewText: ' ', // Clear dummy text
         removeButtons: ''
       });
     }
