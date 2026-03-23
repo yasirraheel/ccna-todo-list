@@ -40,6 +40,17 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <!-- API Base Meta -->
     <meta name="todo-api-base" content="<?php echo $baseUrl; ?>">
     
+    <?php if (!empty($gaId)): ?>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo $gaId; ?>"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '<?php echo $gaId; ?>');
+    </script>
+    <?php endif; ?>
+    
     <!-- External Resources -->
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css' media='all' />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">

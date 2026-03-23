@@ -8,6 +8,7 @@ $appDesc = $siteSettings['APP_DESCRIPTION'] ?? "Comprehensive tool for CCNA stud
 $footerText = $siteSettings['FOOTER_TEXT'] ?? "If you have other issues or non-course questions, send us an";
 $siteEmail = $siteSettings['SITE_EMAIL'] ?? "support@davidbombal.com";
 $siteMobile = $siteSettings['SITE_MOBILE'] ?? "";
+$gaId = $siteSettings['GA_ID'] ?? "";
 
 // Social links
 $socialYoutube = $siteSettings['SOCIAL_YOUTUBE'] ?? "https://www.youtube.com/davidbombal";

@@ -539,6 +539,7 @@ require_once 'includes/config.php';
             <h3 class="section-title">Site Information</h3>
             <div class="auth-field"><label class="auth-label">Contact Email</label><input type="email" name="SITE_EMAIL" placeholder="support@example.com"></div>
             <div class="auth-field"><label class="auth-label">Contact Mobile</label><input type="text" name="SITE_MOBILE" placeholder="+1234567890"></div>
+            <div class="auth-field"><label class="auth-label">Google Analytics ID</label><input type="text" name="GA_ID" placeholder="G-XXXXXXXXXX"></div>
             <div class="auth-field"><label class="auth-label">YouTube URL</label><input type="text" name="SOCIAL_YOUTUBE" placeholder="https://youtube.com/..."></div>
             <div class="auth-field"><label class="auth-label">X (Twitter) URL</label><input type="text" name="SOCIAL_TWITTER" placeholder="https://x.com/..."></div>
             <div class="auth-field"><label class="auth-label">LinkedIn URL</label><input type="text" name="SOCIAL_LINKEDIN" placeholder="https://linkedin.com/in/..."></div>
