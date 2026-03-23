@@ -387,6 +387,10 @@ require_once 'includes/config.php';
         <i class="fas fa-cog"></i>
         <span>Site Settings</span>
       </div>
+      <div class="admin-nav-item" data-section="logs">
+        <i class="fas fa-history"></i>
+        <span>Activity Logs</span>
+      </div>
     </nav>
     <div class="admin-sidebar-footer">
       <div class="admin-nav-item" id="admin-logout-btn">
@@ -553,6 +557,32 @@ require_once 'includes/config.php';
         </div>
       </form>
     </section>
+
+    <!-- Activity Logs Section -->
+    <div id="section-logs" class="admin-section">
+      <div class="admin-table-container">
+        <div class="admin-table-card">
+          <div style="padding: 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="section-title">User Activity Logs</h3>
+            <button onclick="window.loadActivityLogs(1)" class="bulk-btn">
+              <i class="fas fa-sync"></i> Refresh
+            </button>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Time & IP</th>
+                <th>User</th>
+                <th>Page & Activity</th>
+                <th>Device/Browser</th>
+              </tr>
+            </thead>
+            <tbody id="activity-logs-table"></tbody>
+          </table>
+          <div id="admin-logs-pagination" style="padding: 20px; display: flex; justify-content: center; gap: 10px;"></div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <div id="custom-modal" class="modal-overlay">

@@ -704,6 +704,17 @@ document.addEventListener('DOMContentLoaded', () => {
     return fetch(url, { ...options, headers });
   }
 
+  async function logActivity(activity = 'Page Visit', pageUrl = window.location.href) {
+    try {
+      await apiFetch(`${API_BASE.replace('/tasks', '')}/logs`, {
+        method: 'POST',
+        body: JSON.stringify({ activity, page_url: pageUrl })
+      });
+    } catch (_e) {
+      // Fail silently for logs
+    }
+  }
+
   function updateFavicon(url) {
     if (!url) return;
     // Standard favicons
@@ -1234,6 +1245,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (r.ok) {
               const data = await r.json();
               showFlash(data.message || 'Settings saved successfully', 'success');
+              logActivity('Admin Saved Settings');
               // Reload to apply changes after a short delay
               setTimeout(() => window.location.reload(), 1200);
             } else {
@@ -1295,7 +1307,80 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (sectionId === 'users') loadAllUsers();
     if (sectionId === 'tasks') loadAllTasks(1);
+    if (sectionId === 'logs') loadActivityLogs(1);
     if (sectionId === 'dashboard') loadAdminDashboard();
+  }
+
+  window.loadActivityLogs = async (page = 1) => {
+    try {
+      const r = await apiFetch(`${API_BASE.replace('/tasks', '')}/admin/logs?page=${page}`);
+      if (!r.ok) return;
+      const data = await r.json();
+      renderActivityLogsTable(document.getElementById('activity-logs-table'), data.logs || []);
+      renderLogsPagination(data.pagination);
+    } catch (_e) {}
+  };
+
+  function renderActivityLogsTable(container, logs) {
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (logs.length === 0) {
+      container.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 40px; color: rgba(255,255,255,0.5);">No logs found</td></tr>';
+      return;
+    }
+
+    logs.forEach(log => {
+      const tr = document.createElement('tr');
+      const timeStr = new Date(log.created_at).toLocaleString();
+      
+      tr.innerHTML = `
+        <td data-label="Time & IP">
+          <div style="font-weight: 600; color: #fff;">${timeStr}</div>
+          <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5);">${log.ip_address}</div>
+        </td>
+        <td data-label="User">
+          <div style="font-size: 0.85rem; color: rgba(255,255,255,0.8);">${log.user_email || 'Guest'}</div>
+        </td>
+        <td data-label="Page & Activity">
+          <div style="font-weight: 500; color: #ee8331;">${log.activity}</div>
+          <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); word-break: break-all;">${log.page_url}</div>
+        </td>
+        <td data-label="Device/Browser">
+          <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.user_agent || ''}">
+            ${log.user_agent || 'Unknown'}
+          </div>
+        </td>
+      `;
+      container.appendChild(tr);
+    });
+  }
+
+  function renderLogsPagination(pagination) {
+    const container = document.getElementById('admin-logs-pagination');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (!pagination || pagination.pages <= 1) return;
+    
+    for (let i = 1; i <= pagination.pages; i++) {
+      if (i > 5 && i < pagination.pages) {
+        if (i === 6) {
+          const dot = document.createElement('span');
+          dot.textContent = '...';
+          dot.style.color = 'rgba(255,255,255,0.3)';
+          container.appendChild(dot);
+        }
+        continue;
+      }
+      
+      const btn = document.createElement('button');
+      btn.className = `bulk-btn ${i === pagination.page ? 'primary' : ''}`;
+      btn.style.padding = '4px 10px';
+      btn.textContent = i;
+      btn.onclick = () => window.loadActivityLogs(i);
+      container.appendChild(btn);
+    }
   }
 
   async function loadAdminDashboard() {
@@ -1989,6 +2074,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (r.ok) {
       const data = await r.json();
       showFlash(data.message || `User status changed to ${status}`, 'success');
+      logActivity(`Admin Updated User Status: ${id} to ${status}`);
       const activeSection = document.querySelector('.admin-nav-item.active').dataset.section;
       if (activeSection === 'users') loadAllUsers();
       else loadAdminDashboard();
@@ -2009,6 +2095,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (r.ok) {
       const data = await r.json();
       showFlash(data.message || `User role updated to ${role}`, 'success');
+      logActivity(`Admin Updated User Role: ${id} to ${role}`);
       if (isAdminPage) {
         const activeSection = document.querySelector('.admin-nav-item.active').dataset.section;
         if (activeSection === 'users') loadAllUsers();
@@ -2027,6 +2114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (r.ok) {
       const data = await r.json();
       showFlash(data.message || 'User deleted', 'success');
+      logActivity(`Admin Deleted User: ${id}`);
       if (isAdminPage) {
         const activeSection = document.querySelector('.admin-nav-item.active').dataset.section;
         if (activeSection === 'users') loadAllUsers();
@@ -2038,6 +2126,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   async function init() {
     console.log('Initializing application...');
+    logActivity('Page Initialized');
     try {
       await resolveApiBase();
       console.log('API Base resolved:', API_BASE);
@@ -2266,6 +2355,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const createdTask = await response.json();
       tasks.unshift(createdTask);
+      logActivity(`Created Task: ${createdTask.text.substring(0, 30)}...`);
       renderTasks();
       showFlash('Task added', 'success');
     } catch (_error) {
@@ -2328,6 +2418,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         tasks = tasks.filter(task => task.id !== id);
         selectedTaskIds.delete(id);
+        logActivity(`Deleted Task: ${id}`);
         renderTasks();
         showFlash('Task deleted', 'success');
       } catch (_error) {

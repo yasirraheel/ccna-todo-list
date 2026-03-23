@@ -60,6 +60,17 @@ function normalizeText(string $value): string {
     return mb_strtolower(trim($value), 'UTF-8');
 }
 
+function getClientIp(): string {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $ip = trim($parts[0]);
+    } elseif (isset($_SERVER['HTTP_CLIENT_IP'])) {
+        $ip = $_SERVER['HTTP_CLIENT_IP'];
+    }
+    return $ip;
+}
+
 function parsePlaylistId(string $value): string {
     $trimmed = trim($value);
     if ($trimmed === '') return '';
@@ -320,6 +331,9 @@ function ensureTables(PDO $pdo): void {
         
         $pq = $pdo->query("SHOW TABLES LIKE 'practice_questions'")->fetch();
         if (!$pq) $needsInit = true;
+
+        $al = $pdo->query("SHOW TABLES LIKE 'user_activity_logs'")->fetch();
+        if (!$al) $needsInit = true;
     } catch (Throwable $e) {
         $needsInit = true;
     }
@@ -393,6 +407,18 @@ function ensureTables(PDO $pdo): void {
       `created_at` BIGINT NOT NULL,
       PRIMARY KEY (`id`),
       UNIQUE KEY `uk_user_prefs_user_key` (`user_id`, `pref_key`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS `user_activity_logs` (
+      `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      `user_id` BIGINT UNSIGNED NULL,
+      `ip_address` VARCHAR(45) NOT NULL,
+      `page_url` TEXT NOT NULL,
+      `activity` TEXT NOT NULL,
+      `user_agent` TEXT NULL,
+      `created_at` BIGINT NOT NULL,
+      PRIMARY KEY (`id`),
+      INDEX `idx_logs_user_id` (`user_id`),
+      INDEX `idx_logs_created_at` (`created_at`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
     $pdo->exec('CREATE TABLE IF NOT EXISTS `tasks` (
       `id` VARCHAR(64) NOT NULL,
@@ -840,6 +866,25 @@ if (count($segments) === 2 && $segments[0] === 'uploads' && $method === 'GET') {
 
 $authUser = getOptionalAuthenticatedUser($pdo);
 $userId = $authUser ? (int) $authUser['id'] : 0;
+
+if (count($segments) === 1 && $segments[0] === 'logs' && $method === 'POST') {
+    $pageUrl = trim((string) ($body['page_url'] ?? ''));
+    $activity = trim((string) ($body['activity'] ?? 'Page Visit'));
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+    $ip = getClientIp();
+    $now = (int) round(microtime(true) * 1000);
+    
+    $stmt = $pdo->prepare('INSERT INTO `user_activity_logs` (`user_id`, `ip_address`, `page_url`, `activity`, `user_agent`, `created_at`) VALUES (:user_id, :ip, :url, :activity, :ua, :created_at)');
+    $stmt->execute([
+        ':user_id' => $authUser ? (int) $authUser['id'] : null,
+        ':ip' => $ip,
+        ':url' => $pageUrl,
+        ':activity' => $activity,
+        ':ua' => $userAgent,
+        ':created_at' => $now
+    ]);
+    jsonResponse(201, ['message' => 'Log recorded']);
+}
 
 // Note: We moved the quiz endpoints above the strict auth check so they can be accessed publicly
 if (count($segments) === 1 && $segments[0] === 'quiz' && $method === 'GET') {
@@ -1491,6 +1536,36 @@ if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'sett
         ]);
     }
     jsonResponse(200, ['message' => 'Settings updated successfully']);
+}
+
+if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'logs' && $method === 'GET') {
+    if (!isAdmin($authUser)) jsonResponse(403, ['message' => 'Admin access required']);
+    
+    $page = max(1, (int) ($_GET['page'] ?? 1));
+    $limit = 50;
+    $offset = ($page - 1) * $limit;
+    
+    $total = (int) $pdo->query('SELECT COUNT(*) FROM `user_activity_logs`')->fetchColumn();
+    
+    $stmt = $pdo->prepare('SELECT l.*, u.email as user_email 
+        FROM `user_activity_logs` l 
+        LEFT JOIN `users` u ON l.user_id = u.id 
+        ORDER BY l.created_at DESC 
+        LIMIT :limit OFFSET :offset');
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    $logs = $stmt->fetchAll();
+    
+    jsonResponse(200, [
+        'logs' => $logs,
+        'pagination' => [
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'pages' => ceil($total / $limit)
+        ]
+    ]);
 }
 
 if (count($segments) === 2 && $segments[0] === 'admin' && $segments[1] === 'users' && $method === 'GET') {
