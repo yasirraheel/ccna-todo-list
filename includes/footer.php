@@ -8,15 +8,21 @@
                     <div class="row">
                         <div class="d-flex justify-content-center footersocial">
                             <div class="d-flex" style="text-align:center;">
-                                <a href="https://www.youtube.com/davidbombal" target="_blank" class="social-icon fab fa-youtube"></a>
-                                <a href="https://x.com/davidbombal" target="_blank" class="social-icon"><img src="https://ccnax.com/wp-content/uploads/2025/04/x.png" width="27"></a>
-                                <a href="https://www.linkedin.com/in/davidbombal" target="_blank"
-                                    class="social-icon fab fa-linkedin-in"></a>
-                                <a href="https://www.facebook.com/davidbombal.co" target="_blank"
-                                    class="social-icon fab fa-facebook-f"></a>
-                                <a href="https://www.instagram.com/davidbombal/" target="_blank"
-                                    class="social-icon fab fa-instagram"></a>
-                                <a href="https://www.tiktok.com/@davidbombal" target="_blank" class="social-icon fas fa-music"></a>
+                                <?php if ($socialYoutube): ?>
+                                    <a href="<?php echo $socialYoutube; ?>" target="_blank" class="social-icon fab fa-youtube"></a>
+                                <?php endif; ?>
+                                <?php if ($socialTwitter): ?>
+                                    <a href="<?php echo $socialTwitter; ?>" target="_blank" class="social-icon fab fa-twitter"></a>
+                                <?php endif; ?>
+                                <?php if ($socialLinkedin): ?>
+                                    <a href="<?php echo $socialLinkedin; ?>" target="_blank" class="social-icon fab fa-linkedin-in"></a>
+                                <?php endif; ?>
+                                <?php if ($socialFacebook): ?>
+                                    <a href="<?php echo $socialFacebook; ?>" target="_blank" class="social-icon fab fa-facebook-f"></a>
+                                <?php endif; ?>
+                                <?php if ($socialInstagram): ?>
+                                    <a href="<?php echo $socialInstagram; ?>" target="_blank" class="social-icon fab fa-instagram"></a>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -28,10 +34,13 @@
                     style="margin-left:5px;margin-right:5px;">|</span> <a
                     href="https://ccnax.com/privacy-policy/">Privacy Policy</a></p>
             <div class="copyright" style="text-align:center;">
-                If you have other issues or non-course questions, send us an
+                <?php echo $footerText; ?>
             </div>
             <div class="credits" style="text-align:center;">
-                email at support@davidbombal.com. ↑
+                email at <?php echo $siteEmail; ?>. ↑
+                <?php if ($siteMobile): ?>
+                    <br>Mobile: <?php echo $siteMobile; ?>
+                <?php endif; ?>
             </div>
         </div>
     </footer>
