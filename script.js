@@ -2835,7 +2835,7 @@ document.addEventListener('DOMContentLoaded', () => {
         : `<div class="task-thumbnail-placeholder"><i class="fab fa-youtube"></i></div>`;
 
       li.innerHTML = `
-        <div class="task-thumbnail-wrapper">
+        <div class="task-thumbnail-wrapper ${watchUrl ? 'task-open-link' : ''}">
           <div class="task-select-wrap">
             <input type="checkbox" class="task-checkbox" data-id="${task.id}" ${selectedTaskIds.has(task.id) ? 'checked' : ''}>
           </div>
@@ -2903,12 +2903,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (watchUrl) {
         const titleEl = li.querySelector('.task-content');
+        const thumbEl = li.querySelector('.task-thumbnail-wrapper');
         const openVideo = (e) => {
           e.stopPropagation();
           trackTaskView(task.id).catch(() => {});
           window.open(watchUrl, '_blank');
         };
         if (titleEl) titleEl.addEventListener('click', openVideo);
+        if (thumbEl) thumbEl.addEventListener('click', openVideo);
       }
 
       // Bulk select checkbox logic

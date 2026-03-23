@@ -1223,11 +1223,20 @@ select option {
     background: #111;
 }
 
+.task-open-link {
+    cursor: pointer !important;
+}
+
+.task-thumbnail-wrapper.task-open-link:hover .task-thumbnail {
+    transform: scale(1.05);
+}
+
 .task-thumbnail {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+    transition: transform 0.3s ease;
 }
 
 .task-thumbnail-placeholder {
@@ -1275,6 +1284,12 @@ select option {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.task-content:hover {
+    color: #ee8331;
 }
 
 .task-description-container {
