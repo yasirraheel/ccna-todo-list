@@ -214,6 +214,39 @@ document.addEventListener('DOMContentLoaded', () => {
     init().catch(() => {});
   }
 
+  if (playlistDeleteBtn) {
+    playlistDeleteBtn.addEventListener('click', async () => {
+      if (!currentPlaylistFilter || currentPlaylistFilter === 'all') return;
+      
+      const confirmed = await showCustomConfirm(
+        'Delete Playlist',
+        `Are you sure you want to delete "${currentPlaylistFilter}"? All tasks in this playlist will be moved to "Unassigned".`,
+        { confirmText: 'Delete', confirmVariant: 'danger' }
+      );
+      
+      if (!confirmed) return;
+      
+      const r = await apiFetch(PLAYLIST_DELETE_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: currentPlaylistFilter })
+      });
+      if (!r.ok) {
+        showFlash(await readResponseMessage(r, 'Playlist delete failed'), 'error');
+        return;
+      }
+      const data = await r.json();
+      await loadPlaylists();
+      currentPlaylistFilter = 'all';
+      if (playlistFilterSelect) playlistFilterSelect.value = 'all';
+      await saveSelectedPlaylistPreference(currentPlaylistFilter);
+      await loadTasks();
+      renderTasks();
+      updatePlaylistActionState();
+      showFlash(data.message || 'Playlist cleared to Unassigned', 'success');
+    });
+  }
+
   // Add initialization logic here
   if (isAdminPage) {
     if (typeof adminInit === 'function') {
@@ -229,6 +262,181 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       addTask().catch(() => {});
+    });
+  }
+
+  if (filterBtns) {
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentFilter = btn.dataset.filter;
+        localStorage.setItem(TASK_STATUS_FILTER_KEY, currentFilter);
+        localStorage.removeItem(VISIBLE_TASK_COUNT_KEY);
+        localStorage.removeItem(SCROLL_POSITION_KEY);
+        syncFilterButtons();
+        syncInitialPageSize();
+        showPageLoader('Updating view...');
+        renderTasks();
+        hidePageLoader();
+        const filterLabel = currentFilter === 'has-notes' ? 'tasks with notes' : `${currentFilter} tasks`;
+        showFlash(`Showing ${filterLabel}`, 'info');
+      });
+    });
+  }
+
+  if (importPlaylistBtn) {
+    importPlaylistBtn.addEventListener('click', () => {
+      importPlaylist().catch(() => {});
+    });
+  }
+
+  if (deleteSelectedBtn) {
+    deleteSelectedBtn.addEventListener('click', () => {
+      deleteSelectedTasks().catch(() => {});
+    });
+  }
+
+  if (deleteAllBtn) {
+    deleteAllBtn.addEventListener('click', () => {
+      deleteAllTasks().catch(() => {});
+    });
+  }
+
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', async () => {
+      if (isLoadingMore) return;
+      isLoadingMore = true;
+      loadMoreBtn.classList.add('is-loading');
+      loadMoreBtn.disabled = true;
+      await new Promise(resolve => setTimeout(resolve, 220));
+      
+      const columns = getGridColumnCount();
+      const rowsToAdd = 4; // Add 4 more full rows
+      visibleTaskCount += (columns * rowsToAdd);
+      saveVisibleTaskCount();
+      
+      isLoadingMore = false;
+      loadMoreBtn.classList.remove('is-loading');
+      loadMoreBtn.disabled = false;
+      renderTasks();
+    });
+  }
+
+  function syncFilterButtons() {
+    if (filterBtns) {
+      filterBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === currentFilter);
+      });
+    }
+    
+    const bottomFilterBtns = document.querySelectorAll('.bottom-filter-btn');
+    if (bottomFilterBtns) {
+      bottomFilterBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === currentFilter);
+      });
+    }
+  }
+
+  if (playlistFilterSelect) {
+    playlistFilterSelect.addEventListener('change', async () => {
+      currentPlaylistFilter = playlistFilterSelect.value || 'all';
+      await saveSelectedPlaylistPreference(currentPlaylistFilter);
+      
+      updateMobileBottomPlaylistName(Array.from(playlistFilterSelect.options).map(o => ({id: o.value, name: o.text})));
+      
+      localStorage.removeItem(VISIBLE_TASK_COUNT_KEY);
+      localStorage.removeItem(SCROLL_POSITION_KEY);
+      syncInitialPageSize();
+      showPageLoader('Switching playlist...');
+      await loadTasks();
+      renderTasks();
+      updatePlaylistActionState();
+      hidePageLoader();
+      const label = currentPlaylistFilter === 'all' ? 'All Playlists' : currentPlaylistFilter;
+      showFlash(`Playlist selected: ${label}`, 'info');
+    });
+  }
+
+  if (scopeFilterSelect) {
+    scopeFilterSelect.value = currentScope === 'public' ? 'public' : 'my';
+    scopeFilterSelect.addEventListener('change', async () => {
+      currentScope = scopeFilterSelect.value === 'public' ? 'public' : 'my';
+      localStorage.setItem(TASK_SCOPE_KEY, currentScope);
+      localStorage.removeItem(VISIBLE_TASK_COUNT_KEY);
+      localStorage.removeItem(SCROLL_POSITION_KEY);
+      selectedTaskIds.clear();
+      currentPlaylistFilter = 'all';
+      syncInitialPageSize();
+      if (playlistFilterSelect) playlistFilterSelect.value = 'all';
+      showPageLoader('Switching scope...');
+      await loadPlaylists();
+      await loadSelectedPlaylistPreference();
+      await loadTasks();
+      renderTasks();
+      updatePlaylistActionState();
+      hidePageLoader();
+      showFlash(currentScope === 'public' ? 'Showing public tasks' : 'Showing your tasks', 'info');
+    });
+  }
+
+  if (playlistRenameBtn) {
+    playlistRenameBtn.addEventListener('click', async () => {
+      if (!currentPlaylistFilter || currentPlaylistFilter === 'all') return;
+      const next = await showCustomPrompt(
+        'Rename Playlist',
+        'Enter a new playlist name',
+        currentPlaylistFilter,
+        { confirmText: 'Save' }
+      );
+      const toName = String(next || '').trim();
+      if (!toName) return;
+      const body = { fromName: currentPlaylistFilter, toName };
+      const r = await apiFetch(PLAYLIST_RENAME_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!r.ok) {
+        showFlash(await readResponseMessage(r, 'Playlist rename failed'), 'error');
+        return;
+      }
+      const data = await r.json();
+      await loadPlaylists();
+      currentPlaylistFilter = toName;
+      if (playlistFilterSelect) playlistFilterSelect.value = currentPlaylistFilter;
+      await saveSelectedPlaylistPreference(currentPlaylistFilter);
+      await loadTasks();
+      renderTasks();
+      updatePlaylistActionState();
+      showFlash(data.message || `Playlist renamed to ${toName}`, 'success');
+    });
+  }
+
+  if (playlistVisibilityBtn) {
+    playlistVisibilityBtn.addEventListener('click', async () => {
+      if (!currentPlaylistFilter || currentPlaylistFilter === 'all' || currentScope === 'public') return;
+      const playlistTasks = tasks.filter(t => String(t.playlistName || '') === currentPlaylistFilter);
+      const currentVisibility = playlistTasks.some(t => String(t.visibility || '') === 'public') ? 'public' : 'private';
+      const nextVisibility = currentVisibility === 'public' ? 'private' : 'public';
+      const confirmed = await showCustomConfirm(
+        'Change Playlist Visibility',
+        `Set "${currentPlaylistFilter}" to ${nextVisibility}?`,
+        { confirmText: `Set ${nextVisibility}`, confirmVariant: 'primary' }
+      );
+      if (!confirmed) return;
+      const r = await apiFetch(PLAYLIST_VISIBILITY_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: currentPlaylistFilter, visibility: nextVisibility })
+      });
+      if (!r.ok) {
+        showFlash(await readResponseMessage(r, 'Visibility update failed'), 'error');
+        return;
+      }
+      const data = await r.json();
+      await loadTasks();
+      renderTasks();
+      updatePlaylistActionState();
+      showFlash(data.message || `Playlist visibility set to ${nextVisibility}`, 'success');
     });
   }
 
