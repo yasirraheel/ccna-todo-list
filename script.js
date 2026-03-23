@@ -1089,7 +1089,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isLoginPage) {
         showAuthPanel();
       } else {
-        redirectToLogin();
+        setDefaultPublicScope();
+        showAppPanel({});
       }
       return false;
     }
@@ -1100,7 +1101,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isLoginPage) {
           showAuthPanel('Please login to continue');
         } else {
-          redirectToLogin();
+          setDefaultPublicScope();
+          showAppPanel({});
         }
         return false;
       }
@@ -1117,6 +1119,9 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_error) {
       if (isLoginPage) {
         showAuthPanel('Could not connect to auth service');
+      } else {
+        setDefaultPublicScope();
+        showAppPanel({});
       }
       return false;
     }
@@ -2351,6 +2356,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const authed = await authenticateWithStoredToken();
       console.log('Authentication status:', authed);
       if (!authed) {
+        if (!isLoginPage) {
+          await loadPlaylists();
+          await loadSelectedPlaylistPreference();
+          syncInitialPageSize();
+          showPageLoader('Loading public workspace...');
+          await loadTasks();
+          renderTasks();
+          restoreScrollPosition();
+        }
         hidePageLoader();
         return;
       }

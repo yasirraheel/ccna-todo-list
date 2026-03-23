@@ -134,10 +134,6 @@
             // Global Session Handling
             const AUTH_TOKEN_KEY = 'todo_auth_token';
             const token = localStorage.getItem(AUTH_TOKEN_KEY);
-            if (!token && !isLoginPage && !isQuizPage) {
-                // Only redirect if not on login or quiz page
-                window.location.href = 'login.php';
-            }
 
             $('#logout-btn').click(function() {
                 localStorage.removeItem(AUTH_TOKEN_KEY);
