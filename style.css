@@ -431,23 +431,32 @@ h3 {
         z-index: 10001;
     }
 
+    .mobile-nav-toggle.d-none {
+        display: none !important;
+    }
+
     #navbar {
         position: fixed;
         top: 0;
         right: -100%;
-        width: 300px;
+        width: min(86vw, 340px);
         height: 100vh;
-        background: #111 !important; /* Made darker, matching app */
+        background: linear-gradient(180deg, #141414 0%, #0a0a0a 100%) !important;
         z-index: 10000;
         transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        padding: 80px 20px 20px 20px;
+        padding: 84px 16px 16px 16px;
         display: block !important;
         box-shadow: -15px 0 40px rgba(0, 0, 0, 0.9);
-        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+        overflow: hidden;
     }
 
     body.mobile-nav-active #navbar, #navbar.navbar-mobile {
         right: 0;
+    }
+
+    body.mobile-nav-active {
+        overflow: hidden;
     }
 
     #navbar ul {
@@ -455,13 +464,20 @@ h3 {
         flex-direction: column !important;
         padding: 0;
         margin: 0;
-        gap: 12px;
+        gap: 10px;
+        height: 100%;
+        overflow-y: auto;
+        scrollbar-width: thin;
     }
 
     #navbar ul li {
         padding: 0;
         margin: 0;
         width: 100%;
+    }
+
+    #navbar ul .nav-session-item {
+        margin-top: auto;
     }
 
     #navbar ul li a {
@@ -493,11 +509,14 @@ h3 {
 
     .session-info-wrap {
         margin: 30px 0 0 0 !important;
-        flex-direction: column;
+        flex-direction: column !important;
         align-items: stretch !important;
-        gap: 20px;
-        padding-top: 30px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        gap: 14px;
+        padding-top: 18px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        width: 100%;
+        margin-top: auto !important;
+        display: flex !important;
     }
 
     .session-email {
@@ -510,18 +529,21 @@ h3 {
 
     .logout-btn {
         width: 100%;
-        height: 50px;
+        height: 48px;
         border-radius: 12px !important;
-        font-size: 16px !important;
+        font-size: 15px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.2px;
         display: flex !important;
         align-items: center;
         justify-content: center;
         gap: 10px;
-        background: rgba(220, 53, 69, 0.1) !important;
-        color: #ff4d4f !important;
-        border: 1px solid rgba(220, 53, 69, 0.2) !important;
+        background: linear-gradient(180deg, rgba(220, 53, 69, 0.24), rgba(220, 53, 69, 0.14)) !important;
+        color: #ff7678 !important;
+        border: 1px solid rgba(220, 53, 69, 0.38) !important;
         transition: all 0.3s ease;
-        margin-top: 10px;
+        margin-top: 4px;
+        box-shadow: 0 8px 20px rgba(220, 53, 69, 0.2);
     }
 
     .logout-btn i {
@@ -529,8 +551,9 @@ h3 {
     }
 
     .logout-btn:hover {
-        background: #dc3545 !important;
+        background: linear-gradient(180deg, #f24d61, #dc3545) !important;
         color: #ffffff !important;
+        transform: translateY(-1px);
     }
 
     .logout-btn:hover i {
@@ -551,8 +574,13 @@ h3 {
 
 @media (max-width: 767.98px) {
     #app-container {
-        padding-top: 80px;
+        padding-top: 64px;
         padding-bottom: 140px; /* Space for bottom bar */
+    }
+
+    .dashboard {
+        margin-top: 0 !important;
+        padding-top: 6px;
     }
 
     .task-form {
@@ -1252,6 +1280,7 @@ body, html {
 /* Bottom Sheet Modal */
 .bottom-sheet-overlay {
     align-items: flex-end !important;
+    justify-content: center !important;
     padding: 0 !important;
     z-index: 10005 !important;
     background: rgba(0, 0, 0, 0.85) !important;
@@ -1277,6 +1306,8 @@ body, html {
     border: none !important;
     border-top: 1px solid rgba(255,255,255,0.1) !important;
     z-index: 10006 !important;
+    display: block !important;
+    opacity: 1 !important;
 }
 
 .modal-overlay.active .bottom-sheet {
@@ -1316,6 +1347,13 @@ body, html {
     max-height: 60vh;
     overflow-y: auto;
     padding: 10px 0 30px 0;
+}
+
+.bottom-sheet-body:empty::before {
+    content: "No playlists found";
+    display: block;
+    padding: 18px 24px;
+    color: rgba(255, 255, 255, 0.65);
 }
 
 .mobile-playlist-item {

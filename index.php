@@ -13,7 +13,7 @@ ob_start();
 <div id="flash-stack" class="flash-stack"></div>
 
 <main id="app-container" class="app-container">
-    <section class="dashboard mt-4">
+    <section class="dashboard">
         <div class="stats-grid mb-4">
             <div class="stat-card">
                 <div class="stat-label"><i class="fas fa-layer-group"></i> Total</div>
@@ -37,7 +37,6 @@ ob_start();
                 </div>
             </div>
         </div>
-    </section>
 
         <form id="todo-form" class="mb-5">
             <h3 class="section-title">Add New Task</h3>

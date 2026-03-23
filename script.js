@@ -83,6 +83,7 @@ let statTotalEl, statCompletedEl, statPendingEl, statPlaylistEl, statProgressFil
 
 window.openMobilePlaylistModal = function() {
   const modal = document.getElementById('mobile-playlist-modal');
+  renderMobilePlaylistOptions(getMobilePlaylistOptions());
   if (modal) modal.classList.add('active');
 };
 
@@ -90,6 +91,50 @@ window.closeMobilePlaylistModal = function() {
   const modal = document.getElementById('mobile-playlist-modal');
   if (modal) modal.classList.remove('active');
 };
+
+function getCleanPlaylistName(label) {
+  const normalized = String(label || '').replace(/\s*\(\d+\)\s*$/, '').trim();
+  return normalized || 'Unassigned';
+}
+
+function getMobilePlaylistOptions() {
+  if (!playlistFilterSelect) return [{ id: 'all', name: 'All Playlists' }];
+  return Array.from(playlistFilterSelect.options).map(option => ({
+    id: option.value,
+    name: option.textContent || option.innerText || 'All Playlists'
+  }));
+}
+
+function updateMobileBottomPlaylistName(options) {
+  const labelEl = document.getElementById('mobile-bottom-playlist-name');
+  if (!labelEl) return;
+  const items = Array.isArray(options) && options.length ? options : getMobilePlaylistOptions();
+  const selected = items.find(item => item.id === currentPlaylistFilter) || items[0];
+  labelEl.textContent = getCleanPlaylistName(selected?.name || 'All Playlists');
+}
+
+function renderMobilePlaylistOptions(options) {
+  const listEl = document.getElementById('mobile-playlist-list');
+  if (!listEl) return;
+  const items = Array.isArray(options) && options.length ? options : getMobilePlaylistOptions();
+  listEl.innerHTML = '';
+  items.forEach(item => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'mobile-playlist-item' + (item.id === currentPlaylistFilter ? ' active' : '');
+    button.innerHTML = `<i class="fas fa-list-ul"></i><span>${getCleanPlaylistName(item.name)}</span>`;
+    button.addEventListener('click', () => {
+      if (!playlistFilterSelect) {
+        window.closeMobilePlaylistModal();
+        return;
+      }
+      playlistFilterSelect.value = item.id;
+      playlistFilterSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      window.closeMobilePlaylistModal();
+    });
+    listEl.appendChild(button);
+  });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   form = document.getElementById('todo-form');
@@ -223,6 +268,21 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Mobile Modal functions are defined globally above
 
+  const mobilePlaylistModal = document.getElementById('mobile-playlist-modal');
+  if (mobilePlaylistModal) {
+    mobilePlaylistModal.addEventListener('click', (event) => {
+      if (event.target === mobilePlaylistModal) {
+        window.closeMobilePlaylistModal();
+      }
+    });
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      window.closeMobilePlaylistModal();
+    }
+  });
+
   // Handle URL filter parameter
   const urlParams = new URLSearchParams(window.location.search);
   const filterParam = urlParams.get('filter');
@@ -280,28 +340,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   });
-
-  const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
-  const navbar = document.querySelector('#navbar');
-  if (mobileNavToggle && navbar) {
-    mobileNavToggle.addEventListener('click', () => {
-      navbar.classList.toggle('navbar-mobile');
-      const isMobile = navbar.classList.contains('navbar-mobile');
-      mobileNavToggle.classList.toggle('bi-list', !isMobile);
-      mobileNavToggle.classList.toggle('bi-x', isMobile);
-    });
-
-    // Close mobile nav when clicking on a link
-    navbar.querySelectorAll('ul li a').forEach(link => {
-      link.addEventListener('click', () => {
-        if (navbar.classList.contains('navbar-mobile')) {
-          navbar.classList.remove('navbar-mobile');
-          mobileNavToggle.classList.add('bi-list');
-          mobileNavToggle.classList.remove('bi-x');
-        }
-      });
-    });
-  }
 
   if (isAdminPage) {
     adminInit().catch(() => {});
@@ -386,7 +424,9 @@ document.addEventListener('DOMContentLoaded', () => {
       currentPlaylistFilter = playlistFilterSelect.value || 'all';
       await saveSelectedPlaylistPreference(currentPlaylistFilter);
       
-      updateMobileBottomPlaylistName(Array.from(playlistFilterSelect.options).map(o => ({id: o.value, name: o.text})));
+      const options = getMobilePlaylistOptions();
+      updateMobileBottomPlaylistName(options);
+      renderMobilePlaylistOptions(options);
       
       localStorage.removeItem(VISIBLE_TASK_COUNT_KEY);
       localStorage.removeItem(SCROLL_POSITION_KEY);
@@ -2369,6 +2409,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       playlistFilterSelect.value = prev || 'all';
       currentPlaylistFilter = playlistFilterSelect.value || 'all';
+      const options = getMobilePlaylistOptions();
+      updateMobileBottomPlaylistName(options);
+      renderMobilePlaylistOptions(options);
     } catch (_e) {
       // ignore
     }
@@ -2399,6 +2442,9 @@ document.addEventListener('DOMContentLoaded', () => {
       playlistFilterSelect.value = exists ? chosen : 'all';
     }
     currentPlaylistFilter = (playlistFilterSelect && playlistFilterSelect.value) || chosen || 'all';
+    const options = getMobilePlaylistOptions();
+    updateMobileBottomPlaylistName(options);
+    renderMobilePlaylistOptions(options);
   }
 
   async function saveSelectedPlaylistPreference(value) {

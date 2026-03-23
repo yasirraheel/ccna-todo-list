@@ -153,12 +153,14 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                     <li><a href="<?php echo $baseUrl; ?>" class="<?php echo ($currentPage == 'index.php') ? 'active' : ''; ?>"><i class="fas fa-home d-lg-none"></i> Dashboard</a></li>
                     <li><a href="quiz.php" class="<?php echo ($currentPage == 'quiz.php') ? 'active' : ''; ?>"><i class="fas fa-question-circle d-lg-none"></i> Quiz</a></li>
                     
-                    <div class="session-info-wrap ms-lg-3 d-flex flex-column flex-lg-row align-items-center w-100 mt-4 mt-lg-0 px-3 px-lg-0">
-                        <span id="session-email" class="session-email d-none me-lg-3 mb-2 mb-lg-0 text-center w-100" style="color: rgba(255,255,255,0.6); font-size: 14px;"></span>
-                        <button id="logout-btn" class="logout-btn">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
-                    </div>
+                    <li class="nav-session-item w-100">
+                        <div class="session-info-wrap ms-lg-3 d-flex flex-column flex-lg-row align-items-center w-100 mt-4 mt-lg-0 px-3 px-lg-0">
+                            <span id="session-email" class="session-email d-none me-lg-3 mb-2 mb-lg-0 text-center w-100" style="color: rgba(255,255,255,0.6); font-size: 14px;"></span>
+                            <button id="logout-btn" class="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    </li>
                 </ul>
             </nav>
             <i class="mobile-nav-toggle mobile-nav-show bi bi-list"></i>
