@@ -80,16 +80,14 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             .mobile-nav-hide {
                 color: #ffffff !important;
                 z-index: 10002 !important;
-                display: none !important;
+                display: none;
                 position: fixed !important;
                 top: 20px !important;
                 right: 20px !important;
                 font-size: 32px !important;
             }
             .mobile-nav-active .mobile-nav-hide {
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
+                display: block !important;
             }
             .mobile-nav-active .mobile-nav-show {
                 display: none !important;
