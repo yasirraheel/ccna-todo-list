@@ -108,10 +108,6 @@ ob_start();
                     <button class="filter-btn" data-filter="has-notes">Notes</button>
                 </div>
                 <div class="playlist-filter-wrap d-flex align-items-center gap-3">
-                    <label class="select-all-wrap mb-0">
-                        <input type="checkbox" id="select-all-tasks" class="custom-checkbox">
-                        <span class="ms-2">Select All</span>
-                    </label>
                     <select id="playlist-filter" class="playlist-select">
                         <option value="all">All Playlists</option>
                     </select>
@@ -120,8 +116,8 @@ ob_start();
         </div>
     </section>
 
-    <ul id="task-list" class="task-list mt-4"></ul>
-    <div class="load-more-wrap mt-4 text-center">
+    <ul id="task-list" class="task-list mt-2"></ul>
+    <div class="load-more-wrap mt-3 text-center">
         <button id="load-more-btn" class="bulk-btn">Load More Tasks</button>
     </div>
 </main>

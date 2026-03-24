@@ -694,7 +694,7 @@ h3 {
     }
 
     .view-controls {
-        padding: 15px !important;
+        padding: 12px !important;
         gap: 10px !important;
     }
 
@@ -702,6 +702,10 @@ h3 {
         flex-direction: column;
         align-items: stretch !important;
         gap: 10px !important;
+    }
+
+    .task-list {
+        margin-top: 8px !important;
     }
 
     .bulk-actions-row {

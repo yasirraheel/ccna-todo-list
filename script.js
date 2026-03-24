@@ -2742,28 +2742,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateBulkActionState(filteredTasks) {
-    if (!selectAllTasksInput || !deleteSelectedBtn || !deleteAllBtn) return;
+    if (!deleteSelectedBtn || !deleteAllBtn) return;
     if (currentUserRole === 'admin') {
-      selectAllTasksInput.checked = false;
-      selectAllTasksInput.indeterminate = false;
-      selectAllTasksInput.disabled = true;
       deleteSelectedBtn.disabled = true;
       deleteAllBtn.disabled = true;
       return;
     }
     if (currentScope === 'public') {
-      selectAllTasksInput.checked = false;
-      selectAllTasksInput.indeterminate = false;
-      selectAllTasksInput.disabled = true;
       deleteSelectedBtn.disabled = true;
       deleteAllBtn.disabled = true;
       return;
     }
-    selectAllTasksInput.disabled = false;
     const filteredIds = filteredTasks.map(task => task.id);
     const selectedVisibleCount = filteredIds.filter(id => selectedTaskIds.has(id)).length;
-    selectAllTasksInput.checked = filteredIds.length > 0 && selectedVisibleCount === filteredIds.length;
-    selectAllTasksInput.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < filteredIds.length;
+    if (selectAllTasksInput) {
+      selectAllTasksInput.disabled = false;
+      selectAllTasksInput.checked = filteredIds.length > 0 && selectedVisibleCount === filteredIds.length;
+      selectAllTasksInput.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < filteredIds.length;
+    }
     deleteSelectedBtn.disabled = selectedTaskIds.size === 0;
     deleteAllBtn.disabled = tasks.length === 0;
   }
