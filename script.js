@@ -60,6 +60,7 @@ const selectedTaskIds = new Set();
 let currentPlaylistFilter = 'all';
 let currentScope = localStorage.getItem(TASK_SCOPE_KEY) || 'my';
 let currentUserId = null;
+let currentUserRole = 'user';
 const taskNotesCache = new Map();
 const taskNotesLoading = new Set();
 
@@ -787,6 +788,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (appContainer) appContainer.classList.remove('app-hidden');
     if (sessionEmail) sessionEmail.textContent = user?.email || '';
     currentUserId = Number(user?.id || 0) || null;
+    currentUserRole = String(user?.role || 'user');
     if (authStatus) {
       authStatus.textContent = '';
       authStatus.classList.remove('show');
@@ -2336,6 +2338,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadTasks() {
     try {
+      if (currentUserRole === 'admin' && currentScope !== 'public') {
+        let allTasks = [];
+        let page = 1;
+        let totalPages = 1;
+        while (page <= totalPages && page <= 60) {
+          const response = await apiFetch(`${ADMIN_API}/tasks?page=${page}&filter=all`);
+          if (!response.ok) {
+            showFlash(await readResponseMessage(response, 'Could not load tasks'), 'error');
+            hidePageLoader();
+            return;
+          }
+          const data = await response.json();
+          const chunk = Array.isArray(data) ? data : (data.tasks || []);
+          allTasks = allTasks.concat(chunk);
+          totalPages = Math.max(1, Number(data?.pagination?.pages || 1));
+          page += 1;
+        }
+        tasks = allTasks;
+        taskNotesCache.clear();
+        syncInitialPageSize();
+        selectedTaskIds.clear();
+        updateDashboard();
+        return;
+      }
       const q = currentPlaylistFilter && currentPlaylistFilter !== 'all' ? `?playlist=${encodeURIComponent(currentPlaylistFilter)}` : '';
       const base = currentScope === 'public' ? PUBLIC_TASKS_API : API_BASE;
       const response = await apiFetch(`${base}${q}`);
@@ -2717,6 +2743,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateBulkActionState(filteredTasks) {
     if (!selectAllTasksInput || !deleteSelectedBtn || !deleteAllBtn) return;
+    if (currentUserRole === 'admin') {
+      selectAllTasksInput.checked = false;
+      selectAllTasksInput.indeterminate = false;
+      selectAllTasksInput.disabled = true;
+      deleteSelectedBtn.disabled = true;
+      deleteAllBtn.disabled = true;
+      return;
+    }
     if (currentScope === 'public') {
       selectAllTasksInput.checked = false;
       selectAllTasksInput.indeterminate = false;
@@ -2912,8 +2946,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const formattedDate = task.date ? new Date(task.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : '';
       const watchUrl = getSafeWatchUrl(task.videoUrl);
       const ownerLabel = formatOwnerLabel(task.ownerEmail);
-      const canDelete = currentScope !== 'public' || Number(task.ownerId || 0) === Number(currentUserId || 0);
-      const canToggle = currentScope !== 'public' || task.visibility === 'public' || Number(task.ownerId || 0) === Number(currentUserId || 0);
+      const isOwner = Number(task.ownerId || 0) === Number(currentUserId || 0);
+      const canDelete = isOwner;
+      const canToggle = isOwner || task.visibility === 'public';
       const downloadSubUrl = task.captionPath ? `/api/captions/${task.captionPath}` : '';
       
       // YT layout components
