@@ -813,6 +813,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const headers = { ...(options.headers || {}) };
     if (authToken) {
       headers.Authorization = `Bearer ${authToken}`;
+      headers['X-Auth-Token'] = authToken;
     }
     
     // Don't set Content-Type if it's FormData, let browser handle it

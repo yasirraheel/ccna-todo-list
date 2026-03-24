@@ -136,12 +136,13 @@
             const token = localStorage.getItem(AUTH_TOKEN_KEY);
             if (token) {
                 fetch('/api/auth/me', {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 'Authorization': `Bearer ${token}`, 'X-Auth-Token': token }
                 })
                 .then(res => res.json())
                 .then(data => {
-                    if (data.email) {
-                        $('#session-email').text(data.email).removeClass('d-none');
+                    const email = data?.user?.email || '';
+                    if (email) {
+                        $('#session-email').text(email).removeClass('d-none');
                     }
                 })
                 .catch(() => {});

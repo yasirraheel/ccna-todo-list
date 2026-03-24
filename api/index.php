@@ -534,6 +534,12 @@ function getAuthorizationToken(): string {
     if ($header === '' && isset($_SERVER['Authorization'])) {
         $header = (string) $_SERVER['Authorization'];
     }
+    if ($header === '' && isset($_SERVER['HTTP_X_AUTH_TOKEN'])) {
+        $header = 'Bearer ' . (string) $_SERVER['HTTP_X_AUTH_TOKEN'];
+    }
+    if ($header === '' && isset($_SERVER['HTTP_X_AUTHORIZATION'])) {
+        $header = (string) $_SERVER['HTTP_X_AUTHORIZATION'];
+    }
     if ($header === '' && function_exists('apache_request_headers')) {
         $headers = apache_request_headers();
         foreach ($headers as $key => $value) {
