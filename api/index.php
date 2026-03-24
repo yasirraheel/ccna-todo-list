@@ -528,6 +528,12 @@ function mapTaskNoteRow(array $row, int $viewerId): array {
 function getAuthorizationToken(): string {
     $header = '';
     if (isset($_SERVER['HTTP_AUTHORIZATION'])) $header = (string) $_SERVER['HTTP_AUTHORIZATION'];
+    if ($header === '' && isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $header = (string) $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    }
+    if ($header === '' && isset($_SERVER['Authorization'])) {
+        $header = (string) $_SERVER['Authorization'];
+    }
     if ($header === '' && function_exists('apache_request_headers')) {
         $headers = apache_request_headers();
         foreach ($headers as $key => $value) {
