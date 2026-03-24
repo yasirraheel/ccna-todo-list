@@ -83,7 +83,6 @@ let statTotalEl, statCompletedEl, statPendingEl, statPlaylistEl, statProgressFil
 
 window.openMobilePlaylistModal = function() {
   const modal = document.getElementById('mobile-playlist-modal');
-  setMobileNavOpenState(false);
   syncMobilePlaylistUi(getMobilePlaylistOptions());
   if (modal) modal.classList.add('active');
 };
@@ -238,10 +237,6 @@ document.addEventListener('DOMContentLoaded', () => {
   importBtnIdleLabel = importPlaylistBtn ? importPlaylistBtn.textContent.trim() : 'Import Playlist';
   playlistFilterSelect = document.getElementById('playlist-filter');
   scopeFilterSelect = document.getElementById('scope-filter');
-  if (!scopeFilterSelect && !isLoginPage && !isAdminPage) {
-    currentScope = 'my';
-    localStorage.setItem(TASK_SCOPE_KEY, 'my');
-  }
   playlistVisibilityBtn = document.getElementById('playlist-visibility-btn');
   playlistRenameBtn = document.getElementById('playlist-rename-btn');
   playlistDeleteBtn = document.getElementById('playlist-delete-btn');
@@ -406,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  saasSearchInput = document.getElementById('saas-search');
+  saasSearchInput = document.getElementById('saas-search-input');
   if (saasSearchInput) {
     saasSearchInput.addEventListener('input', (e) => {
       currentSearchQuery = (e.target.value || '').trim().toLowerCase();
@@ -784,23 +779,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setDefaultPublicScope() {
-    currentScope = 'my';
-    localStorage.setItem(TASK_SCOPE_KEY, 'my');
+    currentScope = 'public';
+    localStorage.setItem(TASK_SCOPE_KEY, 'public');
     currentPlaylistFilter = 'all';
     selectedTaskIds.clear();
-    if (scopeFilterSelect) scopeFilterSelect.value = 'my';
+    if (scopeFilterSelect) scopeFilterSelect.value = 'public';
     if (playlistFilterSelect) playlistFilterSelect.value = 'all';
   }
 
   function redirectToLogin() {
     if (!isLoginPage) {
-      window.location.href = 'login.php';
+      window.location.href = '/login';
     }
   }
 
   function redirectToApp() {
     if (isLoginPage) {
-      window.location.href = 'index.php';
+      window.location.href = '/';
     }
   }
 
@@ -847,17 +842,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!taskList) return 1;
     const computedStyle = window.getComputedStyle(taskList);
     const gridTemplateColumns = computedStyle.getPropertyValue('grid-template-columns');
-    if (!gridTemplateColumns || gridTemplateColumns === 'none' || gridTemplateColumns === 'normal') {
-      return 1;
-    }
-    const cols = gridTemplateColumns.trim().split(/\s+/).length;
+    const cols = gridTemplateColumns.split(' ').length;
     return cols > 0 ? cols : 1;
   }
 
   function syncInitialPageSize() {
     const columns = getGridColumnCount();
-    const rows = 6; // Default rows per page
-    const initial = Math.max(6, columns * rows);
+    const initial = columns * TASKS_ROWS_PER_PAGE;
     const saved = localStorage.getItem(VISIBLE_TASK_COUNT_KEY);
     if (saved) {
       const savedCount = parseInt(saved, 10);
@@ -1089,8 +1080,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isLoginPage) {
         showAuthPanel();
       } else {
-        setDefaultPublicScope();
-        showAppPanel({});
+        redirectToLogin();
       }
       return false;
     }
@@ -1101,8 +1091,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isLoginPage) {
           showAuthPanel('Please login to continue');
         } else {
-          setDefaultPublicScope();
-          showAppPanel({});
+          redirectToLogin();
         }
         return false;
       }
@@ -1110,7 +1099,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showAppPanel(data.user || {});
       if (isLoginPage) {
         if (data.user?.role === 'admin') {
-          window.location.href = 'admin.php';
+          window.location.href = '/admin';
         } else {
           redirectToApp();
         }
@@ -1119,9 +1108,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_error) {
       if (isLoginPage) {
         showAuthPanel('Could not connect to auth service');
-      } else {
-        setDefaultPublicScope();
-        showAppPanel({});
       }
       return false;
     }
@@ -1186,7 +1172,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showAppPanel(data.user || {});
       
       if (data.user?.role === 'admin') {
-        window.location.href = 'admin.php';
+        window.location.href = '/admin';
         return;
       }
       
@@ -1276,7 +1262,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showAppPanel(data.user || {});
       
       if (data.user?.role === 'admin') {
-        window.location.href = 'admin.php';
+        window.location.href = '/admin';
         return;
       }
       
@@ -1332,7 +1318,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showAppPanel(data.user || {});
       
       if (data.user?.role === 'admin') {
-        window.location.href = 'admin.php';
+        window.location.href = '/admin';
         return;
       }
       
@@ -2356,15 +2342,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const authed = await authenticateWithStoredToken();
       console.log('Authentication status:', authed);
       if (!authed) {
-        if (!isLoginPage) {
-          await loadPlaylists();
-          await loadSelectedPlaylistPreference();
-          syncInitialPageSize();
-          showPageLoader('Loading public workspace...');
-          await loadTasks();
-          renderTasks();
-          restoreScrollPosition();
-        }
         hidePageLoader();
         return;
       }
@@ -2461,15 +2438,13 @@ document.addEventListener('DOMContentLoaded', () => {
         hidePageLoader();
         return;
       }
-      const data = await response.json();
-      tasks = Array.isArray(data) ? data : (data.tasks || []);
+      tasks = await response.json();
       taskNotesCache.clear();
       syncInitialPageSize();
       if (currentScope === 'public') {
         selectedTaskIds.clear();
       }
       updateDashboard();
-      hidePageLoader();
     } catch (_error) {
       tasks = [];
       showFlash('Could not connect to task service', 'error');
@@ -2482,22 +2457,17 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const response = await apiFetch(currentScope === 'public' ? PUBLIC_TASKS_API : PLAYLISTS_API);
       if (!response.ok) return;
-      
-      const data = await response.json();
-      const items = Array.isArray(data) ? data : (data.playlists || data.tasks || []);
-      
+      const items = await response.json();
       const prev = currentPlaylistFilter;
       playlistFilterSelect.innerHTML = '';
       const optAll = document.createElement('option');
       optAll.value = 'all';
       optAll.textContent = 'All Playlists';
       playlistFilterSelect.appendChild(optAll);
-      
       if (currentScope === 'public') {
         const map = new Map();
         (items || []).forEach(task => {
-          if (!task) return;
-          const name = String(task.playlistName || '').trim();
+          const name = String(task?.playlistName || '');
           map.set(name, (map.get(name) || 0) + 1);
         });
         Array.from(map.entries()).forEach(([name, count]) => {
@@ -2509,24 +2479,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       } else {
         (items || []).forEach(it => {
-          if (!it) return;
-          const name = String(it.name || '').trim();
+          const name = String(it?.name || '');
           const label = name || 'Unassigned';
           const option = document.createElement('option');
           option.value = name;
-          option.textContent = `${label} (${it.count ?? 0})`;
+          option.textContent = `${label} (${it?.count ?? 0})`;
           playlistFilterSelect.appendChild(option);
         });
       }
-      
-      const exists = Array.from(playlistFilterSelect.options).some(o => o.value === prev);
-      playlistFilterSelect.value = exists ? prev : 'all';
+      playlistFilterSelect.value = prev || 'all';
       currentPlaylistFilter = playlistFilterSelect.value || 'all';
-      
       const options = getMobilePlaylistOptions();
       syncMobilePlaylistUi(options);
     } catch (_e) {
-      console.error('Load Playlists Error:', _e);
+      // ignore
     }
   }
 
@@ -2813,7 +2779,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function getFilteredTasks() {
-    let filteredTasks = Array.isArray(tasks) ? tasks : [];
+    let filteredTasks = tasks;
     
     // Apply playlist filter
     if (currentPlaylistFilter && currentPlaylistFilter !== 'all') {
@@ -3004,21 +2970,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderTasks() {
     if (!taskList) return;
-    
-    const filteredTasks = getFilteredTasks();
-    const visibleTasks = filteredTasks.slice(0, visibleTaskCount);
-    
-    console.log('Rendering tasks:', {
-      total: (tasks || []).length,
-      filtered: filteredTasks.length,
-      visible: visibleTasks.length,
-      currentFilter,
-      currentPlaylistFilter,
-      visibleTaskCount
-    });
-
     taskList.innerHTML = '';
     
+    const filteredTasks = getFilteredTasks();
+
+    const visibleTasks = filteredTasks.slice(0, visibleTaskCount);
     updateBulkActionState(visibleTasks);
     updatePlaylistActionState();
     updateDashboard();
