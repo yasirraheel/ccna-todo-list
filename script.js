@@ -1092,11 +1092,6 @@ document.addEventListener('DOMContentLoaded', () => {
       setDefaultPublicScope();
       showAppPanel(data.user || {});
       
-      if (data.user?.role === 'admin') {
-        window.location.href = '/admin';
-        return;
-      }
-      
       redirectToApp();
       if (isLoginPage) return;
       await loadPlaylists();
@@ -1182,11 +1177,6 @@ document.addEventListener('DOMContentLoaded', () => {
       setDefaultPublicScope();
       showAppPanel(data.user || {});
       
-      if (data.user?.role === 'admin') {
-        window.location.href = '/admin';
-        return;
-      }
-      
       redirectToApp();
       if (isLoginPage) return;
       await loadPlaylists();
@@ -1237,11 +1227,6 @@ document.addEventListener('DOMContentLoaded', () => {
       setAuthToken(data.token || '');
       setDefaultPublicScope();
       showAppPanel(data.user || {});
-      
-      if (data.user?.role === 'admin') {
-        window.location.href = '/admin';
-        return;
-      }
       
       redirectToApp();
       if (isLoginPage) return;
