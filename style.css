@@ -1198,9 +1198,9 @@ body, html {
     justify-content: space-between;
     align-items: center;
     padding: 10px 20px;
-    background: rgba(238, 131, 49, 0.1);
+    background: rgba(0, 0, 0, 0.55);
     border-bottom: 1px solid rgba(255,255,255,0.05);
-    color: #ee8331;
+    color: #ffffff;
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
@@ -1220,6 +1220,11 @@ body, html {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 250px;
+    color: #ffffff;
+}
+
+.mobile-playlist-info i {
+    color: #ee8331;
 }
 
 .mobile-bottom-nav {
@@ -1365,6 +1370,8 @@ body, html {
     font-size: 1rem;
     cursor: pointer;
     transition: background 0.2s;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .mobile-playlist-item i {
