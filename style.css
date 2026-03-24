@@ -1434,9 +1434,14 @@ body, html {
 }
 
 #app-container {
-    padding-top: 100px;
     min-height: 100vh;
     color: #fff;
+}
+
+@media (min-width: 768px) {
+    #app-container {
+        padding-top: 100px;
+    }
 }
 
 .page-title-row {
@@ -1473,6 +1478,22 @@ body, html {
     padding: 30px !important; /* Increased padding */
     margin: 0 15px 30px 15px; /* Added margins to prevent touching edges */
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 767.98px) {
+    #app-container {
+        padding-top: 64px !important;
+    }
+
+    #todo-form, .view-controls {
+        padding: 14px !important;
+        margin: 0 10px 12px 10px !important;
+    }
+
+    .task-list {
+        padding: 0 10px !important;
+        gap: 14px !important;
+    }
 }
 
 .section-title {
