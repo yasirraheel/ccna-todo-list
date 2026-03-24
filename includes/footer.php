@@ -41,6 +41,7 @@
                 <?php if ($siteMobile): ?>
                     <br>Mobile: <?php echo $siteMobile; ?>
                 <?php endif; ?>
+                <br>Build: <?php echo $assetVersion; ?>
             </div>
         </div>
     </footer>

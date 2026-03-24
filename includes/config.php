@@ -21,7 +21,13 @@ $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : 
 $host = $_SERVER['HTTP_HOST'];
 $dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 $baseUrl = $protocol . "://" . $host . ($dir === '/' ? "" : $dir);
-$assetVersion = "1.1.47"; // Incremented version to bust cache
+$assetCandidates = [
+    @filemtime(__DIR__ . '/../script.js') ?: 0,
+    @filemtime(__DIR__ . '/../style.css') ?: 0,
+    @filemtime(__DIR__ . '/../assets/js/main.js') ?: 0
+];
+$assetVersion = (string) max($assetCandidates);
+if ($assetVersion === '0') $assetVersion = "1.1.47";
 
 // Default SEO values
 if (!isset($pageTitle)) $pageTitle = $appName;

@@ -3,7 +3,7 @@
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Auth-Token, X-Authorization');
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
     http_response_code(204);
@@ -540,6 +540,9 @@ function getAuthorizationToken(): string {
     if ($header === '' && isset($_SERVER['HTTP_X_AUTHORIZATION'])) {
         $header = (string) $_SERVER['HTTP_X_AUTHORIZATION'];
     }
+    if ($header === '' && isset($_COOKIE['todo_auth_token'])) {
+        $header = 'Bearer ' . (string) $_COOKIE['todo_auth_token'];
+    }
     if ($header === '' && function_exists('apache_request_headers')) {
         $headers = apache_request_headers();
         foreach ($headers as $key => $value) {
@@ -551,6 +554,17 @@ function getAuthorizationToken(): string {
     }
     if (!preg_match('/Bearer\s+(.+)/i', $header, $match)) return '';
     return trim($match[1]);
+}
+
+function setAuthCookie(string $token): void {
+    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    setcookie('todo_auth_token', $token, [
+        'expires' => time() + (60 * 60 * 24 * 30),
+        'path' => '/',
+        'secure' => $secure,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
 }
 
 function issueUserToken(PDO $pdo, int $userId): string {
@@ -712,6 +726,7 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'regis
     }
     
     $authToken = issueUserToken($pdo, $userId);
+    setAuthCookie($authToken);
     jsonResponse(201, ['token' => $authToken, 'user' => ['id' => $userId, 'name' => $name, 'email' => $email]]);
 }
 
@@ -728,6 +743,7 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'verif
     $pdo->prepare('UPDATE `users` SET `is_verified` = 1, `verification_token` = NULL WHERE `id` = :id')->execute([':id' => $user['id']]);
     
     $authToken = issueUserToken($pdo, (int) $user['id']);
+    setAuthCookie($authToken);
     jsonResponse(200, [
         'message' => 'Email verified successfully',
         'token' => $authToken,
@@ -754,6 +770,7 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'login
         jsonResponse(403, ['message' => 'Please verify your email before logging in.']);
     }
     $token = issueUserToken($pdo, (int) $user['id']);
+    setAuthCookie($token);
     jsonResponse(200, [
         'token' => $token,
         'user' => ['id' => (int) $user['id'], 'name' => (string) $user['name'], 'email' => (string) $user['email']]
@@ -819,6 +836,7 @@ if (count($segments) === 2 && $segments[0] === 'auth' && $segments[1] === 'googl
     }
     
     $token = issueUserToken($pdo, $userId);
+    setAuthCookie($token);
     jsonResponse(200, ['token' => $token, 'user' => ['id' => $userId, 'name' => $user['name'], 'email' => $user['email'], 'role' => $user['role'] ?? 'user']]);
 }
 
