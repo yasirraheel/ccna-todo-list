@@ -2262,20 +2262,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const authed = await authenticateWithStoredToken();
       console.log('Authentication status:', authed);
       if (!authed) {
-        setDefaultPublicScope();
-        if (isLoginPage) {
-          hidePageLoader();
-          return;
-        }
-        showAppPanel({});
-        await loadPlaylists();
-        await loadSelectedPlaylistPreference();
-        syncInitialPageSize();
-        showPageLoader('Loading workspace...');
-        await loadTasks();
-        console.log('Tasks loaded:', tasks.length);
-        renderTasks();
-        restoreScrollPosition();
         hidePageLoader();
         return;
       }
